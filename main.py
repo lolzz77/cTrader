@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import os
+from dotenv import load_dotenv
+
 from ctrader_open_api import Client, Protobuf, TcpProtocol, Auth, EndPoints
 from ctrader_open_api.endpoints import EndPoints
 from ctrader_open_api.messages.OpenApiCommonMessages_pb2 import *
@@ -11,35 +14,26 @@ import webbrowser
 import datetime
 import calendar
 
+# https://dev.to/jakewitcher/using-env-files-for-environment-variables-in-python-applications-55a1
+# load_dotenv() will look for '.env' file
+load_dotenv()
+
+# From .env file, get the variable
+APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
+APP_CLIENT_SECRET = os.getenv('APP_CLIENT_SECRET')
+ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
+
+ACCOUNT_TYPE = "demo"
+
 if __name__ == "__main__":
     currentAccountId = None
-    hostType = input("Host (Live/Demo): ")
+    hostType = ACCOUNT_TYPE
     hostType = hostType.lower()
 
-    while hostType != "live" and  hostType != "demo":
-        print(f"{hostType} is not a valid host type.")
-        hostType = input("Host (Live/Demo): ")
 
-    appClientId = input("App Client ID: ")
-    appClientSecret = input("App Client Secret: ")
-    isTokenAvailable = input("Do you have an access token? (Y/N): ").lower() == "y"
-
-    accessToken = None
-    if isTokenAvailable == False:
-        appRedirectUri = input("App Redirect URI: ")
-        auth = Auth(appClientId, appClientSecret, appRedirectUri)
-        authUri = auth.getAuthUri()
-        print(f"Please continue the authentication on your browser:\n {authUri}")
-        webbrowser.open_new(authUri)
-        print("\nThen enter the auth code that is appended to redirect URI immediatly (the code is after ?code= in URI)")
-        authCode = input("Auth Code: ")
-        token = auth.getToken(authCode)
-        if "accessToken" not in token:
-            raise KeyError(token)
-        print("Token: \n", token)
-        accessToken = token["accessToken"]
-    else:
-        accessToken = input("Access Token: ")
+    appClientId = APP_CLIENT_ID
+    appClientSecret = APP_CLIENT_SECRET
+    accessToken = ACCESS_TOKEN
 
     client = Client(EndPoints.PROTOBUF_LIVE_HOST if hostType.lower() == "live" else EndPoints.PROTOBUF_DEMO_HOST, EndPoints.PROTOBUF_PORT, TcpProtocol)
 
