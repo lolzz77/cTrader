@@ -4,6 +4,7 @@ import re
 import json
 import csv
 import os
+import time
 
 gSymbolData = None
 gConfigData = None
@@ -89,3 +90,20 @@ def write_csv(data):
         writer.writerows(data)
 
     print("Data Written!")
+    
+
+
+
+class Timer:
+    def __init__(self, timeout):
+        self.timeout = timeout  # Duration before reset
+        self.start_time = time.time()  # Start timer
+
+    def timer_expired(self):
+        current_time = time.time()
+        if current_time - self.start_time >= self.timeout:
+            self.start_time = current_time  # Reset timer
+            return True  # Timer expired and reset
+        print(f"Timer left {self.timeout - (current_time - self.start_time)}")
+        return False  # Timer still running
+

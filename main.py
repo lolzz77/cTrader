@@ -22,7 +22,6 @@ import ast
 load_dotenv(".env_demo")
 utility.read_config_file()
 
-
 # From .env file, get the variable
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
 APP_CLIENT_SECRET = os.getenv('APP_CLIENT_SECRET')
@@ -37,6 +36,8 @@ gPayloadIgnoreList = [
     ProtoHeartbeatEvent().payloadType,
     ProtoOAExecutionEvent().payloadType
 ]
+gTimer = utility.Timer(30)  # Set timer for 1 min
+gData = []
 
 if __name__ == "__main__":
     hostType = ACCOUNT_TYPE
@@ -93,12 +94,24 @@ if __name__ == "__main__":
             print("New accessToken & refreshToken updated")
 
         elif message.payloadType == ProtoOASpotEvent().payloadType:
+            global gData
             res = Protobuf.extract(message)
             symbol = utility.read_symbol_id(res.symbolId, ACCOUNT_TYPE)["symbolName"]
-            data = [
+            
+            # gData.append([res.symbolId, symbol, res.bid, res.ask, res.timestamp])
+            # while len(gData) > 51:
+            #     gData.pop(0)
+            # print(f"gData size : {len(gData)}")
+            # if gTimer.timer_expired():
+            #     utility.write_csv(gData)
+            #     gData.clear()
+            #     print(f"gData size : {len(gData)}")
+                
+            gData = [
                 [res.symbolId, symbol, res.bid, res.ask, res.timestamp]
             ]
-            utility.write_csv(data)
+            utility.write_csv(gData)
+            gData.clear()
 
         else:
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
