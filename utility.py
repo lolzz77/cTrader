@@ -2,6 +2,8 @@ import json
 import configparser
 import re
 import json
+import csv
+import os
 
 gSymbolData = None
 gConfigData = None
@@ -25,14 +27,14 @@ def read_symbol_id(symbol_id_to_search, account_type, to_print=False):
             print("symbolId:{} symbolName:{}".format(result["symbolId"], result["symbolName"]))
     else:
         print("Key not found in the JSON file.")
-        
+
     return result
 
 def read_config_file(reload=False):
     global gConfigData
     if (gConfigData is not None) and (reload == False):
         return
-    
+
     # Initialize the parser
     config = configparser.ConfigParser()
 
@@ -69,3 +71,21 @@ def convert_txt_to_json(txt_path, account_type):
         json.dump(symbols, json_file, indent=4)
 
     print("Data successfully written to symbolist.json!")
+
+
+def write_csv(data):
+    filename = "spread.csv"
+    if not os.path.exists(filename) or os.path.getsize(filename) == 0:
+        header = [
+            ["symbolId", "symbol", "bid", "ask", "timestamp"]
+        ]
+
+        with open(filename, "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerows(header)
+
+    with open(filename, "a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+
+    print("Data Written!")
