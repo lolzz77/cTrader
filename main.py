@@ -216,15 +216,6 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def sendProtoOASubscribeSpotsReq(symbolId, timeInSeconds, subscribeToSpotTimestamp	= False, clientMsgId = None):
-        request = ProtoOASubscribeSpotsReq()
-        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        request.symbolId.append(int(symbolId))
-        request.subscribeToSpotTimestamp = subscribeToSpotTimestamp if type(subscribeToSpotTimestamp) is bool else bool(subscribeToSpotTimestamp)
-        deferred = client.send(request, clientMsgId = clientMsgId)
-        deferred.addErrback(onError)
-        reactor.callLater(int(timeInSeconds), sendProtoOAUnsubscribeSpotsReq, symbolId)
-
     def sendProtoOAClosePositionReq(positionId, volume, clientMsgId = None):
         request = ProtoOAClosePositionReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
@@ -535,7 +526,6 @@ if __name__ == "__main__":
         "ver": sendProtoOAVersionReq, # Show version
         "auth": sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts
         "acc": getAllAccounts, # Get all account details
-        "ProtoOASubscribeSpotsReq": sendProtoOASubscribeSpotsReq,
         "ClosePosition": sendProtoOAClosePositionReq,
         "renew": renewAccessToken, # Renew access & refresh token
         "qq": disconnect,
