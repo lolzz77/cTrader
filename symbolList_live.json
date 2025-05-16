@@ -1,0 +1,1454 @@
+[
+    {
+        "symbolId": 5,
+        "symbolName": "AUDUSD"
+    },
+    {
+        "symbolId": 18,
+        "symbolName": "AUDCAD"
+    },
+    {
+        "symbolId": 28,
+        "symbolName": "USDSGD"
+    },
+    {
+        "symbolId": 41,
+        "symbolName": "XAUUSD"
+    },
+    {
+        "symbolId": 100,
+        "symbolName": "BRNUSD"
+    },
+    {
+        "symbolId": 102,
+        "symbolName": "ETHUSD"
+    },
+    {
+        "symbolId": 239,
+        "symbolName": "ASXAUD"
+    },
+    {
+        "symbolId": 263,
+        "symbolName": "ADS"
+    },
+    {
+        "symbolId": 292,
+        "symbolName": "A"
+    },
+    {
+        "symbolId": 294,
+        "symbolName": "AAPL"
+    },
+    {
+        "symbolId": 329,
+        "symbolName": "BTCEUR"
+    },
+    {
+        "symbolId": 339,
+        "symbolName": "BCHUSD"
+    },
+    {
+        "symbolId": 346,
+        "symbolName": "LTCUSD"
+    },
+    {
+        "symbolId": 353,
+        "symbolName": "XRPUSD"
+    },
+    {
+        "symbolId": 354,
+        "symbolName": "BNBUSD"
+    },
+    {
+        "symbolId": 361,
+        "symbolName": "BATUSD"
+    },
+    {
+        "symbolId": 440,
+        "symbolName": "CITIC"
+    },
+    {
+        "symbolId": 444,
+        "symbolName": "AIA"
+    },
+    {
+        "symbolId": 470,
+        "symbolName": "GLD"
+    },
+    {
+        "symbolId": 1,
+        "symbolName": "EURUSD"
+    },
+    {
+        "symbolId": 23,
+        "symbolName": "AUDCHF"
+    },
+    {
+        "symbolId": 38,
+        "symbolName": "AUDDKK"
+    },
+    {
+        "symbolId": 42,
+        "symbolName": "XAGUSD"
+    },
+    {
+        "symbolId": 99,
+        "symbolName": "WTIUSD"
+    },
+    {
+        "symbolId": 228,
+        "symbolName": "DAXEUR"
+    },
+    {
+        "symbolId": 264,
+        "symbolName": "AF"
+    },
+    {
+        "symbolId": 293,
+        "symbolName": "AAL"
+    },
+    {
+        "symbolId": 321,
+        "symbolName": "TSLA"
+    },
+    {
+        "symbolId": 330,
+        "symbolName": "BTCJPY"
+    },
+    {
+        "symbolId": 340,
+        "symbolName": "BCHEUR"
+    },
+    {
+        "symbolId": 347,
+        "symbolName": "LTCEUR"
+    },
+    {
+        "symbolId": 355,
+        "symbolName": "BNBEUR"
+    },
+    {
+        "symbolId": 362,
+        "symbolName": "DSHUSD"
+    },
+    {
+        "symbolId": 439,
+        "symbolName": "ChinaMobile"
+    },
+    {
+        "symbolId": 441,
+        "symbolName": "CKHutchison"
+    },
+    {
+        "symbolId": 472,
+        "symbolName": "IWM"
+    },
+    {
+        "symbolId": 2,
+        "symbolName": "GBPUSD"
+    },
+    {
+        "symbolId": 11,
+        "symbolName": "AUDJPY"
+    },
+    {
+        "symbolId": 48,
+        "symbolName": "USDHKD"
+    },
+    {
+        "symbolId": 234,
+        "symbolName": "DJIUSD"
+    },
+    {
+        "symbolId": 241,
+        "symbolName": "NGCUSD"
+    },
+    {
+        "symbolId": 265,
+        "symbolName": "AI"
+    },
+    {
+        "symbolId": 295,
+        "symbolName": "AIG"
+    },
+    {
+        "symbolId": 313,
+        "symbolName": "MSFT"
+    },
+    {
+        "symbolId": 331,
+        "symbolName": "BTCGBP"
+    },
+    {
+        "symbolId": 341,
+        "symbolName": "BCHJPY"
+    },
+    {
+        "symbolId": 348,
+        "symbolName": "LTCJPY"
+    },
+    {
+        "symbolId": 356,
+        "symbolName": "BNBJPY"
+    },
+    {
+        "symbolId": 363,
+        "symbolName": "EOSUSD"
+    },
+    {
+        "symbolId": 442,
+        "symbolName": "CNOOC"
+    },
+    {
+        "symbolId": 445,
+        "symbolName": "HKBankChina"
+    },
+    {
+        "symbolId": 473,
+        "symbolName": "QQQ"
+    },
+    {
+        "symbolId": 12,
+        "symbolName": "NZDUSD"
+    },
+    {
+        "symbolId": 20,
+        "symbolName": "AUDNZD"
+    },
+    {
+        "symbolId": 63,
+        "symbolName": "AUDSEK"
+    },
+    {
+        "symbolId": 229,
+        "symbolName": "F40EUR"
+    },
+    {
+        "symbolId": 266,
+        "symbolName": "AIR"
+    },
+    {
+        "symbolId": 297,
+        "symbolName": "BA"
+    },
+    {
+        "symbolId": 311,
+        "symbolName": "NVDA"
+    },
+    {
+        "symbolId": 332,
+        "symbolName": "BTCCHF"
+    },
+    {
+        "symbolId": 342,
+        "symbolName": "BCHGBP"
+    },
+    {
+        "symbolId": 349,
+        "symbolName": "LTCGBP"
+    },
+    {
+        "symbolId": 357,
+        "symbolName": "BNBGBP"
+    },
+    {
+        "symbolId": 364,
+        "symbolName": "ETCUSD"
+    },
+    {
+        "symbolId": 438,
+        "symbolName": "Canon"
+    },
+    {
+        "symbolId": 446,
+        "symbolName": "HSBC"
+    },
+    {
+        "symbolId": 475,
+        "symbolName": "SCHD"
+    },
+    {
+        "symbolId": 8,
+        "symbolName": "USDCAD"
+    },
+    {
+        "symbolId": 13,
+        "symbolName": "CHFJPY"
+    },
+    {
+        "symbolId": 64,
+        "symbolName": "AUDSGD"
+    },
+    {
+        "symbolId": 232,
+        "symbolName": "ESXEUR"
+    },
+    {
+        "symbolId": 267,
+        "symbolName": "ALV"
+    },
+    {
+        "symbolId": 280,
+        "symbolName": "META"
+    },
+    {
+        "symbolId": 298,
+        "symbolName": "BAC"
+    },
+    {
+        "symbolId": 333,
+        "symbolName": "BTCAUD"
+    },
+    {
+        "symbolId": 343,
+        "symbolName": "BCHAUD"
+    },
+    {
+        "symbolId": 350,
+        "symbolName": "LTCAUD"
+    },
+    {
+        "symbolId": 358,
+        "symbolName": "BNBAUD"
+    },
+    {
+        "symbolId": 365,
+        "symbolName": "IOTUSD"
+    },
+    {
+        "symbolId": 443,
+        "symbolName": "Henderson"
+    },
+    {
+        "symbolId": 460,
+        "symbolName": "ShenhuaEnrg"
+    },
+    {
+        "symbolId": 476,
+        "symbolName": "USO"
+    },
+    {
+        "symbolId": 6,
+        "symbolName": "USDCHF"
+    },
+    {
+        "symbolId": 14,
+        "symbolName": "EURAUD"
+    },
+    {
+        "symbolId": 65,
+        "symbolName": "AUDZAR"
+    },
+    {
+        "symbolId": 230,
+        "symbolName": "FTSGBP"
+    },
+    {
+        "symbolId": 268,
+        "symbolName": "BAS"
+    },
+    {
+        "symbolId": 296,
+        "symbolName": "AMZN"
+    },
+    {
+        "symbolId": 299,
+        "symbolName": "C"
+    },
+    {
+        "symbolId": 334,
+        "symbolName": "BTCNZD"
+    },
+    {
+        "symbolId": 344,
+        "symbolName": "BCHCAD"
+    },
+    {
+        "symbolId": 351,
+        "symbolName": "LTCCAD"
+    },
+    {
+        "symbolId": 359,
+        "symbolName": "BNBCAD"
+    },
+    {
+        "symbolId": 366,
+        "symbolName": "NEOUSD"
+    },
+    {
+        "symbolId": 452,
+        "symbolName": "Honda"
+    },
+    {
+        "symbolId": 468,
+        "symbolName": "Xiaomi"
+    },
+    {
+        "symbolId": 474,
+        "symbolName": "VEA"
+    },
+    {
+        "symbolId": 4,
+        "symbolName": "USDJPY"
+    },
+    {
+        "symbolId": 17,
+        "symbolName": "EURCAD"
+    },
+    {
+        "symbolId": 66,
+        "symbolName": "CADDKK"
+    },
+    {
+        "symbolId": 238,
+        "symbolName": "HSIHKD"
+    },
+    {
+        "symbolId": 269,
+        "symbolName": "BATS"
+    },
+    {
+        "symbolId": 276,
+        "symbolName": "GOOGL"
+    },
+    {
+        "symbolId": 300,
+        "symbolName": "CSCO"
+    },
+    {
+        "symbolId": 335,
+        "symbolName": "BTCCAD"
+    },
+    {
+        "symbolId": 345,
+        "symbolName": "BCHNZD"
+    },
+    {
+        "symbolId": 352,
+        "symbolName": "LTCNZD"
+    },
+    {
+        "symbolId": 360,
+        "symbolName": "BNBNZD"
+    },
+    {
+        "symbolId": 367,
+        "symbolName": "OMGUSD"
+    },
+    {
+        "symbolId": 447,
+        "symbolName": "Ind&ComBank"
+    },
+    {
+        "symbolId": 465,
+        "symbolName": "Tencent"
+    },
+    {
+        "symbolId": 471,
+        "symbolName": "VOO"
+    },
+    {
+        "symbolId": 10,
+        "symbolName": "EURCHF"
+    },
+    {
+        "symbolId": 67,
+        "symbolName": "CADHKD"
+    },
+    {
+        "symbolId": 236,
+        "symbolName": "NDXUSD"
+    },
+    {
+        "symbolId": 270,
+        "symbolName": "BAYN"
+    },
+    {
+        "symbolId": 291,
+        "symbolName": "CVX"
+    },
+    {
+        "symbolId": 336,
+        "symbolName": "BTCBCH"
+    },
+    {
+        "symbolId": 368,
+        "symbolName": "TRXUSD"
+    },
+    {
+        "symbolId": 469,
+        "symbolName": "JDCom"
+    },
+    {
+        "symbolId": 9,
+        "symbolName": "EURGBP"
+    },
+    {
+        "symbolId": 68,
+        "symbolName": "CADMXN"
+    },
+    {
+        "symbolId": 233,
+        "symbolName": "IBXEUR"
+    },
+    {
+        "symbolId": 271,
+        "symbolName": "BMW"
+    },
+    {
+        "symbolId": 290,
+        "symbolName": "DIS"
+    },
+    {
+        "symbolId": 337,
+        "symbolName": "BTCETH"
+    },
+    {
+        "symbolId": 369,
+        "symbolName": "XLMUSD"
+    },
+    {
+        "symbolId": 448,
+        "symbolName": "JpnTobacco"
+    },
+    {
+        "symbolId": 3,
+        "symbolName": "EURJPY"
+    },
+    {
+        "symbolId": 69,
+        "symbolName": "CADNOK"
+    },
+    {
+        "symbolId": 237,
+        "symbolName": "NIKJPY"
+    },
+    {
+        "symbolId": 272,
+        "symbolName": "BN"
+    },
+    {
+        "symbolId": 305,
+        "symbolName": "DLPN"
+    },
+    {
+        "symbolId": 338,
+        "symbolName": "BTCLTC"
+    },
+    {
+        "symbolId": 370,
+        "symbolName": "XMRUSD"
+    },
+    {
+        "symbolId": 449,
+        "symbolName": "KDDI"
+    },
+    {
+        "symbolId": 26,
+        "symbolName": "EURNZD"
+    },
+    {
+        "symbolId": 70,
+        "symbolName": "CADSEK"
+    },
+    {
+        "symbolId": 101,
+        "symbolName": "BTCUSD"
+    },
+    {
+        "symbolId": 235,
+        "symbolName": "SPXUSD"
+    },
+    {
+        "symbolId": 262,
+        "symbolName": "BNP"
+    },
+    {
+        "symbolId": 289,
+        "symbolName": "F"
+    },
+    {
+        "symbolId": 371,
+        "symbolName": "ZECUSD"
+    },
+    {
+        "symbolId": 450,
+        "symbolName": "Keyence"
+    },
+    {
+        "symbolId": 16,
+        "symbolName": "GBPAUD"
+    },
+    {
+        "symbolId": 71,
+        "symbolName": "CADSGD"
+    },
+    {
+        "symbolId": 240,
+        "symbolName": "XINUSD"
+    },
+    {
+        "symbolId": 273,
+        "symbolName": "CS"
+    },
+    {
+        "symbolId": 274,
+        "symbolName": "FDX"
+    },
+    {
+        "symbolId": 372,
+        "symbolName": "ADAUSD"
+    },
+    {
+        "symbolId": 451,
+        "symbolName": "Lenovo"
+    },
+    {
+        "symbolId": 19,
+        "symbolName": "GBPCAD"
+    },
+    {
+        "symbolId": 72,
+        "symbolName": "CHFNOK"
+    },
+    {
+        "symbolId": 231,
+        "symbolName": "SMICHF"
+    },
+    {
+        "symbolId": 261,
+        "symbolName": "DGE"
+    },
+    {
+        "symbolId": 307,
+        "symbolName": "FNKO"
+    },
+    {
+        "symbolId": 373,
+        "symbolName": "DOGUSD"
+    },
+    {
+        "symbolId": 453,
+        "symbolName": "Makita"
+    },
+    {
+        "symbolId": 40,
+        "symbolName": "GBPCHF"
+    },
+    {
+        "symbolId": 73,
+        "symbolName": "CHFPLN"
+    },
+    {
+        "symbolId": 204,
+        "symbolName": "Test"
+    },
+    {
+        "symbolId": 260,
+        "symbolName": "DTE"
+    },
+    {
+        "symbolId": 275,
+        "symbolName": "GE"
+    },
+    {
+        "symbolId": 374,
+        "symbolName": "SOLUSD"
+    },
+    {
+        "symbolId": 454,
+        "symbolName": "MitsubisUFJ"
+    },
+    {
+        "symbolId": 7,
+        "symbolName": "GBPJPY"
+    },
+    {
+        "symbolId": 74,
+        "symbolName": "CHFSEK"
+    },
+    {
+        "symbolId": 245,
+        "symbolName": "EDF"
+    },
+    {
+        "symbolId": 277,
+        "symbolName": "GS"
+    },
+    {
+        "symbolId": 375,
+        "symbolName": "DOTUSD"
+    },
+    {
+        "symbolId": 455,
+        "symbolName": "Mitsui"
+    },
+    {
+        "symbolId": 25,
+        "symbolName": "GBPNZD"
+    },
+    {
+        "symbolId": 76,
+        "symbolName": "CHFZAR"
+    },
+    {
+        "symbolId": 246,
+        "symbolName": "GLEN"
+    },
+    {
+        "symbolId": 278,
+        "symbolName": "H"
+    },
+    {
+        "symbolId": 376,
+        "symbolName": "LNKUSD"
+    },
+    {
+        "symbolId": 456,
+        "symbolName": "Mizuho"
+    },
+    {
+        "symbolId": 30,
+        "symbolName": "NZDCAD"
+    },
+    {
+        "symbolId": 75,
+        "symbolName": "CHFSGD"
+    },
+    {
+        "symbolId": 247,
+        "symbolName": "GSK"
+    },
+    {
+        "symbolId": 279,
+        "symbolName": "HD"
+    },
+    {
+        "symbolId": 377,
+        "symbolName": "MTCUSD"
+    },
+    {
+        "symbolId": 457,
+        "symbolName": "Nissan"
+    },
+    {
+        "symbolId": 39,
+        "symbolName": "NZDCHF"
+    },
+    {
+        "symbolId": 77,
+        "symbolName": "DKKNOK"
+    },
+    {
+        "symbolId": 248,
+        "symbolName": "IBE"
+    },
+    {
+        "symbolId": 281,
+        "symbolName": "HPQ"
+    },
+    {
+        "symbolId": 378,
+        "symbolName": "UNIUSD"
+    },
+    {
+        "symbolId": 458,
+        "symbolName": "PICC"
+    },
+    {
+        "symbolId": 21,
+        "symbolName": "NZDJPY"
+    },
+    {
+        "symbolId": 78,
+        "symbolName": "DKKSEK"
+    },
+    {
+        "symbolId": 249,
+        "symbolName": "LHA"
+    },
+    {
+        "symbolId": 288,
+        "symbolName": "IBM"
+    },
+    {
+        "symbolId": 379,
+        "symbolName": "ALGUSD"
+    },
+    {
+        "symbolId": 461,
+        "symbolName": "SHK"
+    },
+    {
+        "symbolId": 79,
+        "symbolName": "EURCNH"
+    },
+    {
+        "symbolId": 250,
+        "symbolName": "MBG"
+    },
+    {
+        "symbolId": 282,
+        "symbolName": "ING"
+    },
+    {
+        "symbolId": 380,
+        "symbolName": "FILUSD"
+    },
+    {
+        "symbolId": 459,
+        "symbolName": "Seven&I"
+    },
+    {
+        "symbolId": 55,
+        "symbolName": "EURCZK"
+    },
+    {
+        "symbolId": 251,
+        "symbolName": "MC"
+    },
+    {
+        "symbolId": 283,
+        "symbolName": "INTC"
+    },
+    {
+        "symbolId": 381,
+        "symbolName": "MKRUSD"
+    },
+    {
+        "symbolId": 462,
+        "symbolName": "Softbank"
+    },
+    {
+        "symbolId": 57,
+        "symbolName": "EURDKK"
+    },
+    {
+        "symbolId": 252,
+        "symbolName": "NESN"
+    },
+    {
+        "symbolId": 284,
+        "symbolName": "JNJ"
+    },
+    {
+        "symbolId": 382,
+        "symbolName": "AVAUSD"
+    },
+    {
+        "symbolId": 463,
+        "symbolName": "Sony"
+    },
+    {
+        "symbolId": 45,
+        "symbolName": "EURHKD"
+    },
+    {
+        "symbolId": 253,
+        "symbolName": "NOVN"
+    },
+    {
+        "symbolId": 285,
+        "symbolName": "JPM"
+    },
+    {
+        "symbolId": 383,
+        "symbolName": "VECUSD"
+    },
+    {
+        "symbolId": 464,
+        "symbolName": "Sumitomo"
+    },
+    {
+        "symbolId": 80,
+        "symbolName": "EURILS"
+    },
+    {
+        "symbolId": 254,
+        "symbolName": "OR"
+    },
+    {
+        "symbolId": 286,
+        "symbolName": "KO"
+    },
+    {
+        "symbolId": 384,
+        "symbolName": "NERUSD"
+    },
+    {
+        "symbolId": 466,
+        "symbolName": "Toshiba"
+    },
+    {
+        "symbolId": 50,
+        "symbolName": "EURMXN"
+    },
+    {
+        "symbolId": 256,
+        "symbolName": "RIO"
+    },
+    {
+        "symbolId": 287,
+        "symbolName": "MA"
+    },
+    {
+        "symbolId": 385,
+        "symbolName": "ATMUSD"
+    },
+    {
+        "symbolId": 467,
+        "symbolName": "Toyota"
+    },
+    {
+        "symbolId": 51,
+        "symbolName": "EURPLN"
+    },
+    {
+        "symbolId": 257,
+        "symbolName": "ROG"
+    },
+    {
+        "symbolId": 301,
+        "symbolName": "MAR"
+    },
+    {
+        "symbolId": 386,
+        "symbolName": "SANUSD"
+    },
+    {
+        "symbolId": 81,
+        "symbolName": "EURRON"
+    },
+    {
+        "symbolId": 258,
+        "symbolName": "SAP"
+    },
+    {
+        "symbolId": 310,
+        "symbolName": "MAT"
+    },
+    {
+        "symbolId": 387,
+        "symbolName": "SUSUSD"
+    },
+    {
+        "symbolId": 58,
+        "symbolName": "EURRUB"
+    },
+    {
+        "symbolId": 255,
+        "symbolName": "SHEL"
+    },
+    {
+        "symbolId": 302,
+        "symbolName": "MCD"
+    },
+    {
+        "symbolId": 388,
+        "symbolName": "AXSUSD"
+    },
+    {
+        "symbolId": 82,
+        "symbolName": "EURSGD"
+    },
+    {
+        "symbolId": 259,
+        "symbolName": "SIE"
+    },
+    {
+        "symbolId": 303,
+        "symbolName": "MMM"
+    },
+    {
+        "symbolId": 389,
+        "symbolName": "CRVUSD"
+    },
+    {
+        "symbolId": 44,
+        "symbolName": "EURTRY"
+    },
+    {
+        "symbolId": 244,
+        "symbolName": "ULVR"
+    },
+    {
+        "symbolId": 304,
+        "symbolName": "MRK"
+    },
+    {
+        "symbolId": 390,
+        "symbolName": "ONEUSD"
+    },
+    {
+        "symbolId": 46,
+        "symbolName": "EURZAR"
+    },
+    {
+        "symbolId": 243,
+        "symbolName": "VOD"
+    },
+    {
+        "symbolId": 314,
+        "symbolName": "NDAQ"
+    },
+    {
+        "symbolId": 391,
+        "symbolName": "LRCUSD"
+    },
+    {
+        "symbolId": 83,
+        "symbolName": "GBPDKK"
+    },
+    {
+        "symbolId": 242,
+        "symbolName": "VOW3"
+    },
+    {
+        "symbolId": 308,
+        "symbolName": "NET"
+    },
+    {
+        "symbolId": 392,
+        "symbolName": "INCUSD"
+    },
+    {
+        "symbolId": 37,
+        "symbolName": "GBPNOK"
+    },
+    {
+        "symbolId": 315,
+        "symbolName": "NFLX"
+    },
+    {
+        "symbolId": 393,
+        "symbolName": "XTZUSD"
+    },
+    {
+        "symbolId": 62,
+        "symbolName": "GBPPLN"
+    },
+    {
+        "symbolId": 316,
+        "symbolName": "NKE"
+    },
+    {
+        "symbolId": 394,
+        "symbolName": "APEUSD"
+    },
+    {
+        "symbolId": 61,
+        "symbolName": "GBPSEK"
+    },
+    {
+        "symbolId": 317,
+        "symbolName": "ORCL"
+    },
+    {
+        "symbolId": 395,
+        "symbolName": "BARUSD"
+    },
+    {
+        "symbolId": 84,
+        "symbolName": "GBPTRY"
+    },
+    {
+        "symbolId": 318,
+        "symbolName": "PEP"
+    },
+    {
+        "symbolId": 396,
+        "symbolName": "MANUSD"
+    },
+    {
+        "symbolId": 52,
+        "symbolName": "GBPZAR"
+    },
+    {
+        "symbolId": 319,
+        "symbolName": "PG"
+    },
+    {
+        "symbolId": 397,
+        "symbolName": "TETUSD"
+    },
+    {
+        "symbolId": 85,
+        "symbolName": "HKDJPY"
+    },
+    {
+        "symbolId": 306,
+        "symbolName": "PLBY"
+    },
+    {
+        "symbolId": 398,
+        "symbolName": "FTMUSD"
+    },
+    {
+        "symbolId": 86,
+        "symbolName": "NOKJPY"
+    },
+    {
+        "symbolId": 320,
+        "symbolName": "T"
+    },
+    {
+        "symbolId": 399,
+        "symbolName": "AAVUSD"
+    },
+    {
+        "symbolId": 87,
+        "symbolName": "NOKSEK"
+    },
+    {
+        "symbolId": 309,
+        "symbolName": "TKAT"
+    },
+    {
+        "symbolId": 400,
+        "symbolName": "GMTUSD"
+    },
+    {
+        "symbolId": 88,
+        "symbolName": "NZDSEK"
+    },
+    {
+        "symbolId": 322,
+        "symbolName": "UAL"
+    },
+    {
+        "symbolId": 401,
+        "symbolName": "FLWUSD"
+    },
+    {
+        "symbolId": 53,
+        "symbolName": "NZDSGD"
+    },
+    {
+        "symbolId": 323,
+        "symbolName": "UNH"
+    },
+    {
+        "symbolId": 402,
+        "symbolName": "GRTUSD"
+    },
+    {
+        "symbolId": 47,
+        "symbolName": "SGDJPY"
+    },
+    {
+        "symbolId": 324,
+        "symbolName": "V"
+    },
+    {
+        "symbolId": 403,
+        "symbolName": "KSMUSD"
+    },
+    {
+        "symbolId": 89,
+        "symbolName": "TRYJPY"
+    },
+    {
+        "symbolId": 325,
+        "symbolName": "VZ"
+    },
+    {
+        "symbolId": 404,
+        "symbolName": "ZILUSD"
+    },
+    {
+        "symbolId": 60,
+        "symbolName": "USDCNH"
+    },
+    {
+        "symbolId": 326,
+        "symbolName": "WFC"
+    },
+    {
+        "symbolId": 405,
+        "symbolName": "GALUSD"
+    },
+    {
+        "symbolId": 56,
+        "symbolName": "USDCZK"
+    },
+    {
+        "symbolId": 327,
+        "symbolName": "WKHS"
+    },
+    {
+        "symbolId": 406,
+        "symbolName": "CEOUSD"
+    },
+    {
+        "symbolId": 36,
+        "symbolName": "USDDKK"
+    },
+    {
+        "symbolId": 312,
+        "symbolName": "WMT"
+    },
+    {
+        "symbolId": 407,
+        "symbolName": "CHZUSD"
+    },
+    {
+        "symbolId": 54,
+        "symbolName": "USDHUF"
+    },
+    {
+        "symbolId": 328,
+        "symbolName": "XOM"
+    },
+    {
+        "symbolId": 408,
+        "symbolName": "ENJUSD"
+    },
+    {
+        "symbolId": 22,
+        "symbolName": "USDNOK"
+    },
+    {
+        "symbolId": 409,
+        "symbolName": "KAVUSD"
+    },
+    {
+        "symbolId": 35,
+        "symbolName": "USDPLN"
+    },
+    {
+        "symbolId": 410,
+        "symbolName": "ARWUSD"
+    },
+    {
+        "symbolId": 90,
+        "symbolName": "USDRON"
+    },
+    {
+        "symbolId": 411,
+        "symbolName": "KNCUSD"
+    },
+    {
+        "symbolId": 59,
+        "symbolName": "USDRUB"
+    },
+    {
+        "symbolId": 412,
+        "symbolName": "COMUSD"
+    },
+    {
+        "symbolId": 91,
+        "symbolName": "USDTHB"
+    },
+    {
+        "symbolId": 413,
+        "symbolName": "XEMUSD"
+    },
+    {
+        "symbolId": 43,
+        "symbolName": "USDTRY"
+    },
+    {
+        "symbolId": 414,
+        "symbolName": "YFIUSD"
+    },
+    {
+        "symbolId": 49,
+        "symbolName": "USDZAR"
+    },
+    {
+        "symbolId": 415,
+        "symbolName": "QTMUSD"
+    },
+    {
+        "symbolId": 98,
+        "symbolName": "ZARJPY"
+    },
+    {
+        "symbolId": 416,
+        "symbolName": "SNXUSD"
+    },
+    {
+        "symbolId": 205,
+        "symbolName": "AUDHUF"
+    },
+    {
+        "symbolId": 417,
+        "symbolName": "EGLUSD"
+    },
+    {
+        "symbolId": 206,
+        "symbolName": "AUDNOK"
+    },
+    {
+        "symbolId": 418,
+        "symbolName": "SKLUSD"
+    },
+    {
+        "symbolId": 207,
+        "symbolName": "CHFDKK"
+    },
+    {
+        "symbolId": 419,
+        "symbolName": "ANKUSD"
+    },
+    {
+        "symbolId": 208,
+        "symbolName": "CHFHUF"
+    },
+    {
+        "symbolId": 420,
+        "symbolName": "SXPUSD"
+    },
+    {
+        "symbolId": 209,
+        "symbolName": "CNHJPY"
+    },
+    {
+        "symbolId": 421,
+        "symbolName": "LPTUSD"
+    },
+    {
+        "symbolId": 210,
+        "symbolName": "GBPCZK"
+    },
+    {
+        "symbolId": 422,
+        "symbolName": "RVNUSD"
+    },
+    {
+        "symbolId": 211,
+        "symbolName": "GBPHKD"
+    },
+    {
+        "symbolId": 423,
+        "symbolName": "WOOUSD"
+    },
+    {
+        "symbolId": 212,
+        "symbolName": "GBPHUF"
+    },
+    {
+        "symbolId": 424,
+        "symbolName": "ONTUSD"
+    },
+    {
+        "symbolId": 213,
+        "symbolName": "GBPMXN"
+    },
+    {
+        "symbolId": 425,
+        "symbolName": "ZENUSD"
+    },
+    {
+        "symbolId": 214,
+        "symbolName": "MXNJPY"
+    },
+    {
+        "symbolId": 426,
+        "symbolName": "IMXUSD"
+    },
+    {
+        "symbolId": 215,
+        "symbolName": "NZDDKK"
+    },
+    {
+        "symbolId": 427,
+        "symbolName": "STOUSD"
+    },
+    {
+        "symbolId": 216,
+        "symbolName": "NZDHUF"
+    },
+    {
+        "symbolId": 428,
+        "symbolName": "RENUSD"
+    },
+    {
+        "symbolId": 217,
+        "symbolName": "NZDNOK"
+    },
+    {
+        "symbolId": 429,
+        "symbolName": "CELUSD"
+    },
+    {
+        "symbolId": 218,
+        "symbolName": "SEKJPY"
+    },
+    {
+        "symbolId": 430,
+        "symbolName": "DYDUSD"
+    },
+    {
+        "symbolId": 219,
+        "symbolName": "SGDHKD"
+    },
+    {
+        "symbolId": 431,
+        "symbolName": "CNEUSD"
+    },
+    {
+        "symbolId": 220,
+        "symbolName": "USDILS"
+    },
+    {
+        "symbolId": 432,
+        "symbolName": "PEPUSD"
+    },
+    {
+        "symbolId": 24,
+        "symbolName": "USDMXN"
+    },
+    {
+        "symbolId": 433,
+        "symbolName": "CHRUSD"
+    },
+    {
+        "symbolId": 29,
+        "symbolName": "USDSEK"
+    },
+    {
+        "symbolId": 434,
+        "symbolName": "COTUSD"
+    },
+    {
+        "symbolId": 31,
+        "symbolName": "EURSEK"
+    },
+    {
+        "symbolId": 435,
+        "symbolName": "ALIUSD"
+    },
+    {
+        "symbolId": 32,
+        "symbolName": "GBPSGD"
+    },
+    {
+        "symbolId": 436,
+        "symbolName": "CTSUSD"
+    },
+    {
+        "symbolId": 33,
+        "symbolName": "EURNOK"
+    },
+    {
+        "symbolId": 437,
+        "symbolName": "ZRXUSD"
+    },
+    {
+        "symbolId": 34,
+        "symbolName": "EURHUF"
+    },
+    {
+        "symbolId": 103,
+        "symbolName": "USTUSD"
+    },
+    {
+        "symbolId": 27,
+        "symbolName": "CADCHF"
+    },
+    {
+        "symbolId": 15,
+        "symbolName": "CADJPY"
+    }
+]
