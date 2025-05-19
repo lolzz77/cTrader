@@ -61,6 +61,9 @@ if __name__ == "__main__":
     def onMessageReceived(client, message): # Callback for receiving all messages
         if message.payloadType in gPayloadIgnoreList:
             return
+        elif message.payloadType == ProtoHeartbeatEvent().payloadType:
+            print("Heartbeat Received.")
+            return
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
             print(f"API Application authorized")
             if CURRENT_CTIDTRADERACCOUNTID is not None:
@@ -69,6 +72,7 @@ if __name__ == "__main__":
         elif message.payloadType == ProtoOAAccountAuthRes().payloadType:
             protoOAAccountAuthRes = Protobuf.extract(message)
             print(f"Account {protoOAAccountAuthRes.ctidTraderAccountId} has been authorized")
+            sendProtoOASubscribeSpotsReq()
 
         elif message.payloadType == ProtoOASymbolsListRes().payloadType:
             res = Protobuf.extract(message)
@@ -117,7 +121,7 @@ if __name__ == "__main__":
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
             print(f"Message received: payloadType = {message.payloadType} ({payloadName})")
             print("\n", Protobuf.extract(message))
-        reactor.callLater(1, callable=executeUserCommand)
+        # reactor.callLater(1, callable=executeUserCommand)
 
     def onError(failure): # Call back for errors
         print("Message Error: ", failure)
@@ -139,17 +143,19 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def sendProtoOASubscribeSpotsReq(symbolIdList=None, timeInSeconds=0, subscribeToSpotTimestamp = True, clientMsgId = None):
+    def sendProtoOASubscribeSpotsReq(symbolIdList=None, timeInSeconds=1, subscribeToSpotTimestamp = True, clientMsgId = None):
         """
         symbolIdList : call the cmd like this `sub [41,135]`
         Nvm, i set it to None and i hardcode it
         """
         symbolIdList = "[41,135,133,127]" # XAUUSD, NDXUSD, DJIUSD, DAXEUR
+        symbolId = 41
         request = ProtoOASubscribeSpotsReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         actual_list = ast.literal_eval(symbolIdList)
-        for symbolId in actual_list:
-            request.symbolId.append(int(symbolId))
+        # for symbolId in actual_list:
+        #     request.symbolId.append(int(symbolId))
+        request.symbolId.append(int(symbolId))
         request.subscribeToSpotTimestamp = subscribeToSpotTimestamp if type(subscribeToSpotTimestamp) is bool else bool(subscribeToSpotTimestamp)
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
@@ -204,8 +210,10 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def test(orderId, clientMsgId=None):
-        print("hello")
+    def test(clientMsgId=None):
+        request = ProtoHeartbeatEvent()
+        deferred = client.send(request, clientMsgId = clientMsgId)
+        deferred.addErrback(onError)
 
     commands = {
         "help": showHelp,
