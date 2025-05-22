@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import sys
 
 from dotenv import load_dotenv
 
@@ -11,10 +10,11 @@ from ctrader_open_api.messages.OpenApiCommonMessages_pb2 import *
 from ctrader_open_api.messages.OpenApiMessages_pb2 import *
 from ctrader_open_api.messages.OpenApiModelMessages_pb2 import *
 from twisted.internet import reactor
-from inputimeout import inputimeout, TimeoutOccurred
 import utility
 import fileinput
 import ast
+import threading
+
 
 
 # https://dev.to/jakewitcher/using-env-files-for-environment-variables-in-python-applications-55a1
@@ -72,7 +72,6 @@ if __name__ == "__main__":
         elif message.payloadType == ProtoOAAccountAuthRes().payloadType:
             protoOAAccountAuthRes = Protobuf.extract(message)
             print(f"Account {protoOAAccountAuthRes.ctidTraderAccountId} has been authorized")
-            sendProtoOASubscribeSpotsReq()
 
         elif message.payloadType == ProtoOASymbolsListRes().payloadType:
             res = Protobuf.extract(message)
@@ -121,15 +120,12 @@ if __name__ == "__main__":
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
             print(f"Message received: payloadType = {message.payloadType} ({payloadName})")
             print("\n", Protobuf.extract(message))
-        # reactor.callLater(1, callable=executeUserCommand)
 
     def onError(failure): # Call back for errors
         print("Message Error: ", failure)
-        reactor.callLater(1, callable=executeUserCommand)
 
     def showHelp():
         print("im too lazy to write, you should know better")
-        reactor.callLater(1, callable=executeUserCommand)
 
     def sendProtoOAVersionReq(clientMsgId = None):
         request = ProtoOAVersionReq()
@@ -147,6 +143,10 @@ if __name__ == "__main__":
         """
         symbolIdList : call the cmd like this `sub [41,135]`
         Nvm, i set it to None and i hardcode it
+        41 = XAUUSD
+        135 = NDXUSD
+        133 = DJIUSD
+        DAX = 127
         """
         symbolIdList = "[41,135,133,127]" # XAUUSD, NDXUSD, DJIUSD, DAXEUR
         symbolId = 41
@@ -202,7 +202,6 @@ if __name__ == "__main__":
         utility.read_config_file(True)
         load_dotenv(override=True)
         ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
-        reactor.callLater(1, callable=executeUserCommand)
 
     def renewAccessToken(clientMsgId=None):
         request = ProtoOARefreshTokenReq()
@@ -219,6 +218,7 @@ if __name__ == "__main__":
         "help": showHelp,
         "ver": sendProtoOAVersionReq, # Show version
         "sub": sendProtoOASubscribeSpotsReq, # call the cmd like this `sub [41,135]`
+        "unsub": sendProtoOAUnsubscribeSpotsReq,
         "renew": renewAccessToken, # Renew access & refresh token
         "qq": disconnect,
         "s": getSymbolList, # Update symbol files
@@ -227,30 +227,29 @@ if __name__ == "__main__":
     }
 
     def executeUserCommand():
-        try:
+        while True:
             print("\n=====================================\n")
-            userInput = inputimeout("Command (ex help): ", timeout=18)
-        except TimeoutOccurred:
-            print("Command Input Timeout")
-            reactor.callLater(1, callable=executeUserCommand)
-            return
-        userInputSplit = userInput.split(" ")
-        if not userInputSplit:
-            print("Command split error: ", userInput)
-            reactor.callLater(1, callable=executeUserCommand)
-            return
-        command = userInputSplit[0]
-        try:
-            parameters = [parameter if parameter[0] != "*" else parameter[1:] for parameter in userInputSplit[1:]]
-        except:
-            print("Invalid parameters: ", userInput)
-            reactor.callLater(1, callable=executeUserCommand)
-        if command in commands:
-            commands[command](*parameters)
-        else:
-            print("Invalid Command: ", userInput)
-            reactor.callLater(1, callable=executeUserCommand)
+            userInput = input("Command (ex help): ")
+            userInputSplit = userInput.split(" ")
+            if not userInputSplit:
+                print("Command split error: ", userInput)
+                continue
+            command = userInputSplit[0]
+            try:
+                parameters = [parameter if parameter[0] != "*" else parameter[1:] for parameter in userInputSplit[1:]]
+            except:
+                print("Invalid parameters: ", userInput)
+                continue
+            if command in commands:
+                commands[command](*parameters)
+            else:
+                print("Invalid Command: ", userInput)
+                continue
 
+    # Start user console command
+    thread = threading.Thread(target=executeUserCommand)
+    thread.start()
+    
     # Setting optional client callbacks
     client.setConnectedCallback(connected)
     client.setDisconnectedCallback(disconnected)
