@@ -507,8 +507,10 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
         
-    def test(orderId, clientMsgId=None):
-        print("hello")
+    def test(clientMsgId=None):
+        request = ProtoHeartbeatEvent()
+        deferred = client.send(request, clientMsgId=clientMsgId)
+        deferred.addErrback(onError)
 
     commands = {
         "help": showHelp,
