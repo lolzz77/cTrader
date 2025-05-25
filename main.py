@@ -15,10 +15,6 @@ import fileinput
 import ast
 import threading
 
-
-
-# https://dev.to/jakewitcher/using-env-files-for-environment-variables-in-python-applications-55a1
-# load_dotenv() will look for '.env' file
 load_dotenv(".env_demo")
 utility.read_config_file()
 
@@ -28,6 +24,9 @@ APP_CLIENT_SECRET = os.getenv('APP_CLIENT_SECRET')
 ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
 ACCOUNT_TYPE = os.getenv('ACCOUNT_TYPE')
 CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
+
+# To decide to write into CSV or not, for subscribe function
+g_write_CSV = False
 
 # List of payload to ignore
 gPayloadIgnoreList = [
@@ -98,6 +97,7 @@ if __name__ == "__main__":
 
         elif message.payloadType == ProtoOASpotEvent().payloadType:
             global gData
+            global g_write_CSV
             res = Protobuf.extract(message)
             symbol = utility.read_symbol_id(res.symbolId, ACCOUNT_TYPE)["symbolName"]
             
@@ -113,7 +113,10 @@ if __name__ == "__main__":
             gData = [
                 [res.symbolId, symbol, res.bid, res.ask, res.timestamp]
             ]
-            utility.write_csv(gData)
+            if g_write_CSV:
+                utility.write_csv(gData)
+            else:
+                print(gData)
             gData.clear()
 
         else:
@@ -139,22 +142,30 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def sendProtoOASubscribeSpotsReq(symbolIdList=None, timeInSeconds=1, subscribeToSpotTimestamp = True, clientMsgId = None):
+    def sendProtoOASubscribeSpotsReq(symbolId, write_CSV = False, timeInSeconds=1, subscribeToSpotTimestamp = True, clientMsgId = None):
         """
-        symbolIdList : call the cmd like this `sub [41,135]`
-        Nvm, i set it to None and i hardcode it
+        Subscribe = Get
+        Spot = the current price
+        Output of this function
+
+        ctidTraderAccountId: xxxxx
+        symbolId: 41
+        bid: 318645000
+        ask: 318677000
+        
         41 = XAUUSD
         135 = NDXUSD
         133 = DJIUSD
-        DAX = 127
+        127 = DAX
         """
-        symbolIdList = "[41,135,133,127]" # XAUUSD, NDXUSD, DJIUSD, DAXEUR
-        symbolId = 41
+        global g_write_CSV
+        if write_CSV:
+            g_write_CSV = True
+        else:
+            g_write_CSV = False
+            
         request = ProtoOASubscribeSpotsReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        actual_list = ast.literal_eval(symbolIdList)
-        # for symbolId in actual_list:
-        #     request.symbolId.append(int(symbolId))
         request.symbolId.append(int(symbolId))
         request.subscribeToSpotTimestamp = subscribeToSpotTimestamp if type(subscribeToSpotTimestamp) is bool else bool(subscribeToSpotTimestamp)
         deferred = client.send(request, clientMsgId = clientMsgId)
@@ -174,23 +185,6 @@ if __name__ == "__main__":
     def getSymbolList(clientMsgId=None):
         request = ProtoOASymbolsListReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        deferred = client.send(request, clientMsgId=clientMsgId)
-        deferred.addErrback(onError)
-
-    def subscribeToSymbolSpot(symbolId, clientMsgId=None):
-        """
-        Subscribe = Get
-        Spot = the current price
-        Output of this function
-
-        ctidTraderAccountId: xxxxx
-        symbolId: 41
-        bid: 318645000
-        ask: 318677000
-        """
-        request = ProtoOASubscribeSpotsReq()
-        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        request.symbolId.append(int(symbolId))
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
@@ -217,8 +211,8 @@ if __name__ == "__main__":
     commands = {
         "help": showHelp,
         "ver": sendProtoOAVersionReq, # Show version
-        "sub": sendProtoOASubscribeSpotsReq, # call the cmd like this `sub [41,135]`
-        "unsub": sendProtoOAUnsubscribeSpotsReq,
+        "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, get bid & ask price, call like this `sub 41`
+        "unsub": sendProtoOAUnsubscribeSpotsReq, # Unsubscribe asset, stop getting data, call like this `unsub 41`
         "renew": renewAccessToken, # Renew access & refresh token
         "qq": disconnect,
         "s": getSymbolList, # Update symbol files
