@@ -17,6 +17,7 @@ import utility
 from enum import Enum
 import fileinput
 import threading
+import time
 
 # In an order, it has relative stop loss or absolute stop loss
 # YOu have to choose one side
@@ -31,13 +32,10 @@ class StopLossTakeProfit(Enum):
                 return key.name
         return None
 
-
-
-# https://dev.to/jakewitcher/using-env-files-for-environment-variables-in-python-applications-55a1
-# load_dotenv() will look for '.env' file
 load_dotenv()
 utility.read_config_file()
 
+g_heartbeat = True
 
 # From .env file, get the variable
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
@@ -50,7 +48,7 @@ CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
 gPayloadIgnoreList = [
     ProtoOASubscribeSpotsRes().payloadType,
     ProtoOAAccountLogoutRes().payloadType,
-    ProtoHeartbeatEvent().payloadType,
+    # ProtoHeartbeatEvent().payloadType,
     ProtoOAExecutionEvent().payloadType
 ]
 gAuthPrintOnly = False
@@ -76,6 +74,10 @@ if __name__ == "__main__":
 
     def onMessageReceived(client, message): # Callback for receiving all messages
         if message.payloadType in gPayloadIgnoreList:
+            return
+        elif message.payloadType == ProtoHeartbeatEvent().payloadType:
+            if g_heartbeat:
+                print(f"[{time.time()}] Heartbeat received.")
             return
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
             print(f"API Application authorized")
@@ -507,6 +509,10 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
         
+    def setHeartbeat(value, clientMsgId=None):
+        global g_heartbeat
+        g_heartbeat = int(value)
+        
     def test(clientMsgId=None):
         request = ProtoHeartbeatEvent()
         deferred = client.send(request, clientMsgId=clientMsgId)
@@ -520,6 +526,7 @@ if __name__ == "__main__":
         "acc": getAllAccounts, # Get all account details
         "ClosePosition": sendProtoOAClosePositionReq,
         "renew": renewAccessToken, # Renew access & refresh token
+        "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this "hb 1"
         "qq": disconnect,
         "a": getOrderList, # Amend orders
         "s": getSymbolList, # Update symbol files
