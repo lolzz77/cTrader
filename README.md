@@ -1,5 +1,8 @@
 # cTrader
 
+# Version
+1. Python - 3.10.12
+
 # Quick Start
 1. pip3 install -r requirements.txt
 2. Create .env file
