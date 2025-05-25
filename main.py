@@ -162,10 +162,7 @@ if __name__ == "__main__":
         127 = DAX
         """
         global g_write_CSV
-        if write_CSV:
-            g_write_CSV = True
-        else:
-            g_write_CSV = False
+        g_write_CSV = int(write_CSV)
             
         request = ProtoOASubscribeSpotsReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
