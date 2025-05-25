@@ -12,8 +12,8 @@ from ctrader_open_api.messages.OpenApiModelMessages_pb2 import *
 from twisted.internet import reactor
 import utility
 import fileinput
-import ast
 import threading
+import time
 
 load_dotenv(".env_demo")
 utility.read_config_file()
@@ -27,12 +27,14 @@ CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
 
 # To decide to write into CSV or not, for subscribe function
 g_write_CSV = False
+# To print "Heartbeat received"
+g_heartbeat = True
 
 # List of payload to ignore
 gPayloadIgnoreList = [
     ProtoOASubscribeSpotsRes().payloadType,
     ProtoOAAccountLogoutRes().payloadType,
-    ProtoHeartbeatEvent().payloadType,
+    # ProtoHeartbeatEvent().payloadType,
     ProtoOAExecutionEvent().payloadType
 ]
 gTimer = utility.Timer(30)  # Set timer for 1 min
@@ -61,7 +63,8 @@ if __name__ == "__main__":
         if message.payloadType in gPayloadIgnoreList:
             return
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
-            print("Heartbeat Received.")
+            if g_heartbeat:
+                print(f"[{time.time()}] Heartbeat Received.")
             return
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
             print(f"API Application authorized")
@@ -202,6 +205,10 @@ if __name__ == "__main__":
         request.refreshToken = os.getenv("REFRESH_TOKEN")
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
+        
+    def setPrintHeartbeat(value, clientMsgId=None):
+        global g_heartbeat
+        g_heartbeat = int(value)
 
     def test(clientMsgId=None):
         request = ProtoHeartbeatEvent()
@@ -211,9 +218,10 @@ if __name__ == "__main__":
     commands = {
         "help": showHelp,
         "ver": sendProtoOAVersionReq, # Show version
-        "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, get bid & ask price, call like this `sub 41`
+        "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, get bid & ask price, call like this `sub 41 1`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # Unsubscribe asset, stop getting data, call like this `unsub 41`
         "renew": renewAccessToken, # Renew access & refresh token
+        "hb" : setPrintHeartbeat, # set print hearbeat True or false, call like this `hb 1`
         "qq": disconnect,
         "s": getSymbolList, # Update symbol files
         "r": refresh_RAM, # Refresh global variable with latest value
