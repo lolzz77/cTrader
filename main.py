@@ -129,7 +129,14 @@ if __name__ == "__main__":
             if g_write_CSV:
                 utility.write_csv(gData)
             else:
-                print(gData)
+                if res.symbolId == 41:
+                    if res.bid == 0 or res.ask == 0:
+                        return
+                    spread = (res.ask - res.bid) / 10000
+                    # res.timestamp is in milliseconds, conver to seconds
+                    dt = datetime.fromtimestamp(res.timestamp/1000, timezone.utc) + timedelta(hours=8)
+                    formatted_time = dt.strftime("%d/%b/%y:%H%M")
+                    print(f"{res.symbolId}, {symbol}, {spread}, {formatted_time}")
             gData.clear()
 
         else:
