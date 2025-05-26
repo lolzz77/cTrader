@@ -36,6 +36,7 @@ load_dotenv()
 utility.read_config_file()
 
 g_heartbeat = True
+g_mytimezone = pytz.timezone("Asia/Singapore")
 
 # From .env file, get the variable
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
@@ -77,7 +78,16 @@ if __name__ == "__main__":
             return
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if g_heartbeat:
-                print(f"[{time.time()}] Heartbeat received.")
+                # Get the current time in seconds since the epoch
+                current_time = time.time()
+
+                # Convert to a datetime object
+                dt = datetime.fromtimestamp(current_time, g_mytimezone)
+
+                # Format the time as "HHMM", GMT+8
+                formatted_time = dt.strftime("%H%M")
+
+                print(f"[{formatted_time}] Heartbeat Received.")
             return
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
             print(f"API Application authorized")
@@ -220,7 +230,7 @@ if __name__ == "__main__":
     def disconnect(clientMsgId=None): # Disconnect the client
         client._disconnected("User exited the connection")
 
-    def getOrderList(clientMsgId=None):
+    def getPendingOrderList(clientMsgId=None):
         request = ProtoOAReconcileReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
@@ -359,8 +369,7 @@ if __name__ == "__main__":
         print("\n")
         if _ProtoOAOrder.expirationTimestamp != 0:
             expiry_dt = _ProtoOAOrder.expirationTimestamp
-            my_timezone = pytz.timezone("Asia/Singapore")
-            dt = datetime.fromtimestamp(expiry_dt / 1000, tz=timezone.utc).astimezone(my_timezone)
+            dt = datetime.fromtimestamp(expiry_dt / 1000, tz=timezone.utc).astimezone(g_mytimezone)
             expiry_dt_str = dt.strftime("%d %b %Y %H%M")  # Format as "24 May 2025 2359"
             print(f"OrderId:{_ProtoOAOrder.orderId} Symbol:{symbol} has expiration date set. Expiration: {expiry_dt_str}. Skip.")
             return
@@ -410,11 +419,10 @@ if __name__ == "__main__":
             is_dst = bool(now.dst())
 
 
-        my_timezone = pytz.timezone("Asia/Singapore")
-        now = datetime.now(my_timezone)
+        now = datetime.now(g_mytimezone)
         is_friday = now.weekday() == 4
         # Get today's midnight
-        midnight = datetime.now(my_timezone).replace(hour=0, minute=0, second=0, microsecond=0)
+        midnight = datetime.now(g_mytimezone).replace(hour=0, minute=0, second=0, microsecond=0)
         # Convert to Unix timestamp in millisecond
         unix_time = int(midnight.timestamp()) * 1000
 
@@ -428,7 +436,7 @@ if __name__ == "__main__":
             expiry = expiry + "_FRIDAY"
 
         expiry_dt = unix_time + int(utility.gConfigData[expiry])
-        dt = datetime.fromtimestamp(expiry_dt / 1000, tz=timezone.utc).astimezone(my_timezone)
+        dt = datetime.fromtimestamp(expiry_dt / 1000, tz=timezone.utc).astimezone(g_mytimezone)
         expiry_dt_str = dt.strftime("%d %b %Y %H%M")  # Format as "24 May 2025 2359"
 
         spread = f"SPREAD_{symbol}"
@@ -528,7 +536,8 @@ if __name__ == "__main__":
         "renew": renewAccessToken, # Renew access & refresh token
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this "hb 1"
         "qq": disconnect,
-        "a": getOrderList, # Amend orders
+        "ex": getPendingOrderList, # Set lot size to 0,01, set expiry, set entry with spread
+        "lt": getPendingOrderList, # set lots size to 100 lots, `lt <number>`
         "s": getSymbolList, # Update symbol files
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
