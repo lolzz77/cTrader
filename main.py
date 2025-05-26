@@ -498,7 +498,7 @@ if __name__ == "__main__":
         print(f"is_friday: {'True' if is_friday else 'False'}")
 
 
-        request = ProtoOAAmendOrder_SetSpread_SetExpiry_SetLotReq()
+        request = ProtoOAAmendOrderReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         request.orderId = int(_ProtoOAOrder.orderId)
         # regarding _ProtoOAOrder.relativeStopLoss
