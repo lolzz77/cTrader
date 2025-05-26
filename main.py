@@ -18,6 +18,7 @@ from enum import Enum
 import fileinput
 import threading
 import time
+import running_position
 
 # In an order, it has relative stop loss or absolute stop loss
 # YOu have to choose one side
@@ -37,6 +38,11 @@ utility.read_config_file()
 
 g_heartbeat = True
 g_mytimezone = pytz.timezone("Asia/Singapore")
+
+# For RunningPosition class objects
+g_running_position_obj_threads = []
+
+
 
 # From .env file, get the variable
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
@@ -61,13 +67,46 @@ gAuthPrintOnly = False
 # For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
 g_auth_acc = []
 
-if __name__ == "__main__":
-    hostType = ACCOUNT_TYPE
-    hostType = hostType.lower()
-    appClientId = APP_CLIENT_ID
-    appClientSecret = APP_CLIENT_SECRET
+hostType = ACCOUNT_TYPE
+hostType = hostType.lower()
+appClientId = APP_CLIENT_ID
+appClientSecret = APP_CLIENT_SECRET
 
-    client = Client(EndPoints.PROTOBUF_LIVE_HOST if hostType.lower() == "live" else EndPoints.PROTOBUF_DEMO_HOST, EndPoints.PROTOBUF_PORT, TcpProtocol)
+client = Client(EndPoints.PROTOBUF_LIVE_HOST if hostType.lower() == "live" else EndPoints.PROTOBUF_DEMO_HOST, EndPoints.PROTOBUF_PORT, TcpProtocol)
+
+def sendProtoOASubscribeSpotsReq(symbolId, clientMsgId = None):
+    """
+    ctidTraderAccountId: xxxxx
+    symbolId: 41
+    bid: 318645000
+    ask: 318677000
+
+    If already subscribed, dont subscribe again, subscribe once,
+    the server will keep sending you data already
+    """
+
+    request = ProtoOASubscribeSpotsReq()
+    request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+    request.symbolId.append(int(symbolId))
+    request.subscribeToSpotTimestamp = False
+    deferred = client.send(request, clientMsgId = clientMsgId)
+    deferred.addErrback(onError)
+
+def sendProtoOAUnsubscribeSpotsReq(symbolId, clientMsgId = None):
+    """
+    This is UNSUBSCRIBE
+    """
+    request = ProtoOAUnsubscribeDepthQuotesReq()
+    request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+    request.symbolId.append(int(symbolId))
+    deferred = client.send(request, clientMsgId = clientMsgId)
+    deferred.addErrback(onError)
+
+
+def onError(failure): # Call back for errors
+    print("Message Error: ", failure)
+
+if __name__ == "__main__":
 
     def connected(client): # Callback for client connection
         print(f"\nConnected. ACCOUNT_TYPE:{ACCOUNT_TYPE}")
@@ -95,12 +134,17 @@ if __name__ == "__main__":
                 formatted_time = dt.strftime("%H%M")
 
                 print(f"[{formatted_time}] Heartbeat Received.")
+
+
+            getRunningPositions()
+
+
             return
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
             print(f"API Application authorized")
             if CURRENT_CTIDTRADERACCOUNTID is not None:
                 sendProtoOAAccountAuthReq()
-                return
+            return
         elif message.payloadType == ProtoOAAccountAuthRes().payloadType:
             protoOAAccountAuthRes = Protobuf.extract(message)
             print(f"Account {protoOAAccountAuthRes.ctidTraderAccountId} has been authorized")
@@ -128,7 +172,6 @@ if __name__ == "__main__":
             refresh_RAM()
             print("New accessToken & refreshToken updated")
 
-
         elif message.payloadType == ProtoOAGetAccountListByAccessTokenRes().payloadType:
             global gAuthPrintOnly
 
@@ -151,33 +194,66 @@ if __name__ == "__main__":
                 print(acc)
             gAuthPrintOnly = False
 
+        # My problem with this, how to get `res.symbolId` lol
+        # elif message.payloadType == ProtoOAUnsubscribeDepthQuotesRes().payloadType:
+        #     global g_subscribe
+        #     payloadName = ProtoOAPayloadType.Name(message.payloadType)
+        #     print(f"Message received: payloadType = {message.payloadType} ({payloadName})")
+        #     print("\n", Protobuf.extract(message))
+
+        #     running_position.g_subscribe[res.symbolId]["symbolId"] = None
+        #     running_position.g_subscribe[res.symbolId]["symbol"] = None
+        #     running_position.g_subscribe[res.symbolId]["bid"] = None
+        #     running_position.g_subscribe[res.symbolId]["ask"] = None
+        #     running_position.g_subscribe[res.symbolId]["NumOfUser"] = None
+
+        elif message.payloadType == ProtoOASpotEvent().payloadType:
+            global g_subscribe
+
+            res = Protobuf.extract(message)
+            # For now, let's try ignore getting real symbol name
+            symbol = "demo"
+            # symbol = utility.read_symbol_id(res.symbolId, ACCOUNT_TYPE)["symbolName"]
+
+            # If exists, just update the bid/ask price
+            if running_position.g_subscribe[res.symbolId]["symbolId"] is not None:
+                running_position.g_subscribe[res.symbolId]["bid"] = res.bid
+                running_position.g_subscribe[res.symbolId]["ask"] = res.ask
+            else:
+                running_position.g_subscribe[res.symbolId]["symbolId"] = res.symbolId
+                running_position.g_subscribe[res.symbolId]["symbol"] = symbol
+                running_position.g_subscribe[res.symbolId]["bid"] = res.bid
+                running_position.g_subscribe[res.symbolId]["ask"] = res.ask
+                running_position.g_subscribe[res.symbolId]["NumOfUser"] = int(1)
+
         # Get list of pending orders and running positions of account
         elif message.payloadType == ProtoOAReconcileRes().payloadType:
+            global g_positions
             res = Protobuf.extract(message)
-
-            # Just leave the positionList here
-            # For now, I only care pending orders
-            # Those that entered position, please, you should know
-            # it and you should set it immediately
-            positionList = res.position
-            orderList = []
-            if len(res.order) != 0:
-                orderList = res.order
+            positionList = []
+            if len(res.position) != 0:
+                positionList = res.position
             else:
-                print("No pending order")
+                print("No running order")
                 return
 
-            for order in orderList:
-                symbol = utility.read_symbol_id(order.tradeData.symbolId, ACCOUNT_TYPE)["symbolName"]
-                monitorAndTPP(order, symbol)
+            for position in positionList:
+                # Check if exists in list
+                if any(p["positionId"] == position.positionId for p in running_position.g_positions) and len(running_position.g_positions) != 0:
+                    continue
+                symbol = utility.read_symbol_id(position.tradeData.symbolId, ACCOUNT_TYPE)["symbolName"]
+                obj = running_position.RunningPosition(position.positionId, position.tradeData.symbolId, symbol, position.tradeData.volume, position.tradeData.tradeSide, position.price, position.stopLoss, position.takeProfit)
+                obj.getBidAndAsk()
+                thread = threading.Thread(target=obj.run)
+                thread.start()
+                # Keeping the object is no application at the moment
+                # I just keep it in case future need use
+                running_position.g_positions.append({"positionId": position.positionId, "Object": obj})
 
         else:
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
             print(f"Message received: payloadType = {message.payloadType} ({payloadName})")
             print("\n", Protobuf.extract(message))
-
-    def onError(failure): # Call back for errors
-        print("Message Error: ", failure)
 
     def setAccount(index):
         """
@@ -185,7 +261,7 @@ if __name__ == "__main__":
         call `acc` and you know what 7 im saying
         """
         global CURRENT_CTIDTRADERACCOUNTID
-        
+
         if len(g_auth_acc) == 0:
             print("Call `acc` first, to get account list")
             return
@@ -242,12 +318,9 @@ if __name__ == "__main__":
     def disconnect(clientMsgId=None): # Disconnect the client
         client._disconnected("User exited the connection")
 
-    def setSpread_SetExpiry_SetLot(clientMsgId=None):
+    def getRunningPositions(clientMsgId=None):
         """
         This is for pending orders
-        Set entry with spread
-        Set expiry
-        Set lot sizes to 0.01
         """
         request = ProtoOAReconcileReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
@@ -331,65 +404,27 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def subscribeToSymbolSpot(symbolId, clientMsgId=None):
-        """
-        Subscribe = Get
-        Spot = the current price
-        Output of this function
-
-        ctidTraderAccountId: xxxxx
-        symbolId: 41
-        bid: 318645000
-        ask: 318677000
-        """
-        request = ProtoOASubscribeSpotsReq()
-        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        request.symbolId.append(int(symbolId))
-        deferred = client.send(request, clientMsgId=clientMsgId)
-        deferred.addErrback(onError)
-
-    def monitorAndTPP(_ProtoOAOrder, symbol, clientMsgId=None):
+    def monitorAndTPP(_ProtoOAPosition, clientMsgId=None):
         """
         Monitor running position and TPP if necessary
         """
-        print("\n")
-        if _ProtoOAOrder.expirationTimestamp != 0:
-            expiry_dt = _ProtoOAOrder.expirationTimestamp
-            dt = datetime.fromtimestamp(expiry_dt / 1000, tz=timezone.utc).astimezone(g_mytimezone)
-            expiry_dt_str = dt.strftime("%d %b %Y %H%M")  # Format as "24 May 2025 2359"
-            print(f"OrderId:{_ProtoOAOrder.orderId} Symbol:{symbol} has expiration date set. Expiration: {expiry_dt_str}. Skip.")
-            return
+        while True:
+            if len(running_position.g_positions) == 0:
+                pass
 
-
-        # For amending order with spread
-        # for buy limit, add spread to higher price
-        # for sell limit, minus spread to lower price
-        direction_bias_entry = 0
-        # Default, same got both BUY/SELL, dont change
-        direction_bias_TP = -1
-        direction_bias_SL = 1
-
-        # Here's the rule
-        # I only handle LIMIT orders
-        # If buy limit, means con9lan7firm order limit price is below current market price
-        # If sell limit, means con9lan7firm order limit price is above current market price
-        if _ProtoOAOrder.tradeData.tradeSide == ProtoOATradeSide.Value('BUY'):
-            direction_bias_entry = 1
-        else:
-            direction_bias_entry = -1
 
         _StopLossTakeProfit = -1
-        if _ProtoOAOrder.relativeStopLoss != 0 or _ProtoOAOrder.relativeTakeProfit != 0:
+        if _ProtoOAPosition.relativeStopLoss != 0 or _ProtoOAPosition.relativeTakeProfit != 0:
             _StopLossTakeProfit = StopLossTakeProfit.RELATIVE.value
-        elif _ProtoOAOrder.stopLoss != 0 or _ProtoOAOrder.takeProfit != 0:
+        elif _ProtoOAPosition.stopLoss != 0 or _ProtoOAPosition.takeProfit != 0:
             _StopLossTakeProfit = StopLossTakeProfit.ABSOLUTE.value
         else:
             print(f"Warning: Abnormal absolute & realtive TP SL detected. Skip")
-            print(f"OrderId:{_ProtoOAOrder.orderId} Symbol:{symbol}")
-            print(f"relativeStopLoss:{_ProtoOAOrder.relativeStopLoss}")
-            print(f"relativeTakeProfit:{_ProtoOAOrder.relativeTakeProfit}")
-            print(f"stopLoss:{_ProtoOAOrder.stopLoss}")
-            print(f"takeProfit:{_ProtoOAOrder.takeProfit}")
+            print(f"OrderId:{_ProtoOAPosition.orderId} Symbol:{symbol}")
+            print(f"relativeStopLoss:{_ProtoOAPosition.relativeStopLoss}")
+            print(f"relativeTakeProfit:{_ProtoOAPosition.relativeTakeProfit}")
+            print(f"stopLoss:{_ProtoOAPosition.stopLoss}")
+            print(f"takeProfit:{_ProtoOAPosition.takeProfit}")
             return
 
         _timezone = None
@@ -432,11 +467,11 @@ if __name__ == "__main__":
 
 
         is_limit_order = False
-        if _ProtoOAOrder.orderType == ProtoOAOrderType.Value('LIMIT'):
+        if _ProtoOAPosition.orderType == ProtoOAOrderType.Value('LIMIT'):
             is_limit_order = True
 
         if not is_limit_order:
-            print(f"Warning: OrderId:{_ProtoOAOrder.orderId} Symbol:{symbol} orderType is {ProtoOAOrderType.Name(_ProtoOAOrder.orderType)} order. I will skip this one")
+            print(f"Warning: OrderId:{_ProtoOAPosition.orderId} Symbol:{symbol} orderType is {ProtoOAOrderType.Name(_ProtoOAPosition.orderType)} order. I will skip this one")
             return
         if spread not in utility.gConfigData:
             print(f"Warning: Spread:{spread} is not defined for this Symbol:{symbol}. Skip.")
@@ -452,9 +487,9 @@ if __name__ == "__main__":
             return
 
 
-        print(f"OrderId: {_ProtoOAOrder.orderId}")
+        print(f"OrderId: {_ProtoOAPosition.orderId}")
         print(f"Symbol: {symbol}")
-        print(f"tradeSide: {ProtoOATradeSide.Name(_ProtoOAOrder.tradeData.tradeSide)}")
+        print(f"tradeSide: {ProtoOATradeSide.Name(_ProtoOAPosition.tradeData.tradeSide)}")
         print(f"StopLossTakeProfit: {StopLossTakeProfit.getName(_StopLossTakeProfit)}")
         print(f"timezone: {_timezone}")
         print(f"is_dst: {'True' if is_dst else 'False'}")
@@ -468,25 +503,33 @@ if __name__ == "__main__":
 
         request = ProtoOAAmendOrderReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        request.orderId = int(_ProtoOAOrder.orderId)
-        # regarding _ProtoOAOrder.relativeStopLoss
+        request.orderId = int(_ProtoOAPosition.orderId)
+        # regarding _ProtoOAPosition.relativeStopLoss
         # It has if you NEVER place by entering price, but rather by dragging
         # It has value 0 if you entered using price,
-        # And it will use _ProtoOAOrder.stopLoss, which is absolute stopLoss price
+        # And it will use _ProtoOAPosition.stopLoss, which is absolute stopLoss price
         # And if either one is 0, request will fail
         # Ok, sometimes it changed to use either & i dk how i triggered that
         # Best is, ur coding, should cover both
-        request.limitPrice = round(float(_ProtoOAOrder.limitPrice) + (float(utility.gConfigData[spread]) * float(utility.gConfigData[price_per_pip]) * direction_bias_entry), 2)
+        request.limitPrice = round(float(_ProtoOAPosition.limitPrice) + (float(utility.gConfigData[spread]) * float(utility.gConfigData[price_per_pip]) * direction_bias_entry), 2)
         if _StopLossTakeProfit == StopLossTakeProfit.RELATIVE.value:
-            request.relativeStopLoss   = int(_ProtoOAOrder.relativeStopLoss)   + int((int(utility.gConfigData[relative_per_pip]) * float(utility.gConfigData[spread]) * direction_bias_SL))
-            request.relativeTakeProfit = int(_ProtoOAOrder.relativeTakeProfit) + int((int(utility.gConfigData[relative_per_pip]) * float(utility.gConfigData[spread]) * direction_bias_TP))
+            request.relativeStopLoss   = int(_ProtoOAPosition.relativeStopLoss)   + int((int(utility.gConfigData[relative_per_pip]) * float(utility.gConfigData[spread]) * direction_bias_SL))
+            request.relativeTakeProfit = int(_ProtoOAPosition.relativeTakeProfit) + int((int(utility.gConfigData[relative_per_pip]) * float(utility.gConfigData[spread]) * direction_bias_TP))
         else:
-            request.stopLoss   = _ProtoOAOrder.stopLoss
-            request.takeProfit = _ProtoOAOrder.takeProfit
-        request.volume = int(utility.gConfigData[volume_per_lot])
-        request.expirationTimestamp = expiry_dt
-        deferred = client.send(request, clientMsgId=clientMsgId)
-        deferred.addErrback(onError)
+            request.stopLoss   = _ProtoOAPosition.stopLoss
+            request.takeProfit = _ProtoOAPosition.takeProfit
+        # request.volume = int(utility.gConfigData[volume_per_lot])
+        # request.expirationTimestamp = expiry_dt
+        # deferred = client.send(request, clientMsgId=clientMsgId)
+        # deferred.addErrback(onError)
+
+    def printRunningList():
+        """
+        """
+        print("\n")
+        print("Running list now :")
+        for p in running_position.g_positions:
+            print(f"{p}")
 
     def refresh_RAM():
         """
@@ -523,7 +566,8 @@ if __name__ == "__main__":
         print("test: test,")
 
     def test(clientMsgId=None):
-        request = ProtoHeartbeatEvent()
+        request = ProtoOAGetPositionUnrealizedPnLReq()
+        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
@@ -536,7 +580,9 @@ if __name__ == "__main__":
         "renew": renewAccessToken, # Renew access & refresh token
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
         "qq": disconnect,
-        "m": monitorAndTPP, # m = monitor, to monitor your running position, and TPP if necessary
+        "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
+        "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
+        "p": printRunningList, # p = print running list
         "s": getSymbolList, # Update symbol files
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
@@ -546,6 +592,11 @@ if __name__ == "__main__":
         while True:
             print("\n=====================================\n")
             userInput = input("Command (ex help): ")
+            running_position.g_command_queue.put(userInput)
+            
+    def processCommand():
+        while True:
+            userInput = running_position.g_command_queue.get() # Get command from queue
             userInputSplit = userInput.split(" ")
             if not userInputSplit:
                 print("Command split error: ", userInput)
@@ -563,8 +614,13 @@ if __name__ == "__main__":
                 continue
 
     # Start user console command
-    thread = threading.Thread(target=executeUserCommand)
-    thread.start()
+    thread_user_input = threading.Thread(target=executeUserCommand)
+    thread_user_input.start()
+    thread_process_command = threading.Thread(target=processCommand)
+    thread_process_command.start()
+    # Check for running positions
+    # thread2 = threading.Thread(target=monitorAndTPP)
+    # thread2.start()
 
     # Setting optional client callbacks
     client.setConnectedCallback(connected)
@@ -573,3 +629,4 @@ if __name__ == "__main__":
     # Starting the client service
     client.startService()
     reactor.run()
+
