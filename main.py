@@ -14,6 +14,7 @@ import utility
 import fileinput
 import threading
 import time
+from datetime import datetime, timezone, timedelta
 
 load_dotenv(".env_demo")
 utility.read_config_file()
@@ -64,7 +65,16 @@ if __name__ == "__main__":
             return
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if g_heartbeat:
-                print(f"[{time.time()}] Heartbeat Received.")
+                # Get the current time in seconds since the epoch
+                current_time = time.time()
+
+                # Convert to a datetime object
+                dt = datetime.fromtimestamp(current_time, timezone.utc) + timedelta(hours=8)
+
+                # Format the time as "HHMM", GMT+8
+                formatted_time = dt.strftime("%H%M")
+
+                print(f"[{formatted_time}] Heartbeat Received.")
             return
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
             print(f"API Application authorized")
