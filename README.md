@@ -32,3 +32,9 @@ ACCOUNT_TYPE="demo"
 # Termux known issue
 1. When you type `sub 41`, it will become `sub 4` and sends command
 2. You have to type 1 more char behind, for termux
+
+# Branch
+1. `main` - Set entry with spread, set expiry, set lotsize to 0.01
+2. `lotsize` - Set lotsize of your desired amount
+3. `tpp` - monitor your running position and take partial profit
+4. `spread` - monitor spread of asset you desired
