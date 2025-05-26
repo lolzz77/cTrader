@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
             for order in orderList:
                 symbol = utility.read_symbol_id(order.tradeData.symbolId, ACCOUNT_TYPE)["symbolName"]
-                amendOrder_SetSpread_SetExpiry_SetLot(order, symbol)
+                monitorAndTPP(order, symbol)
 
         else:
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
@@ -348,41 +348,9 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def amendOrder_SetSpread_SetExpiry_SetLot(_ProtoOAOrder, symbol, clientMsgId=None):
+    def monitorAndTPP(_ProtoOAOrder, symbol, clientMsgId=None):
         """
-        1. Check what is your order Type - ProtoOAOrderType
-        if ProtoOAOrderType == LIMIT
-            Then please assign request.limitPrice
-        if ProtoOAOrderType == STOP
-            Then please alert because I probably set wrong
-
-        2. If you didnt set TP SL
-        It will reset to no set
-
-        3. expirationTimestamp
-        Unix datetime in milisecond
-        Example: 1747383452 (in second)
-        Translate to
-            16 May 2025 08:17:32 GMT+0
-            16 May 2025 16:17:32 GMT+8
-
-        Give this variable with value 1747383452000 (in milisecond)
-        The expiry shown on cTrader is 16/05/2025 16:17:32
-
-        I guess it will auto detect your cTrader timezone i dk
-        Means, no need to convert anything
-
-        Note:
-        1. Check if expiry is set, if set, DONT SET AGAIN,
-        cos it will DOUBLE set the spread!
-        2. Maybe when u put order manually, you can put max lot size,
-        then it confirm will fail execute,
-        then write code only 5-10 mins before market open set the order,
-        change lot size back to 0.01
-        3. If Expiry for that symbol is not found in config.ini,
-        print to alert me it will skip setting expiry, it will proceed
-        to set the SL to opposite direction
-
+        Monitor running position and TPP if necessary
         """
         print("\n")
         if _ProtoOAOrder.expirationTimestamp != 0:
@@ -549,7 +517,7 @@ if __name__ == "__main__":
         print("renew: renewAccessToken, # Renew access & refresh token")
         print("hb: setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`")
         print("qq: disconnect,")
-        print("sp: setSpread_SetExpiry_SetLot, # sp = spread. Set spread, set expiry, set lot size")
+        print("m: monitorAndTPP, # m = monitor, to monitor your running position, and TPP if necessary")
         print("s: getSymbolList, # Update symbol files")
         print("r: refresh_RAM, # Refresh global variable with latest value")
         print("test: test,")
@@ -568,7 +536,7 @@ if __name__ == "__main__":
         "renew": renewAccessToken, # Renew access & refresh token
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
         "qq": disconnect,
-        "sp": setSpread_SetExpiry_SetLot, # sp = spread. Set spread, set expiry, set lot size
+        "m": monitorAndTPP, # m = monitor, to monitor your running position, and TPP if necessary
         "s": getSymbolList, # Update symbol files
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
