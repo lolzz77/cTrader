@@ -52,7 +52,14 @@ gPayloadIgnoreList = [
     # ProtoHeartbeatEvent().payloadType,
     ProtoOAExecutionEvent().payloadType
 ]
+
+# When you run `acc`, it will set this to TRUE
+# Then it will set it back to false
+# When you run `auth`, it wont modify this variable,
+# leads to authenticating your acc
 gAuthPrintOnly = False
+# For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
+g_auth_acc = []
 
 if __name__ == "__main__":
     hostType = ACCOUNT_TYPE
@@ -127,58 +134,66 @@ if __name__ == "__main__":
 
             res = Protobuf.extract(message)
             accounts = res.ctidTraderAccount
-            for acc in accounts:
+            g_auth_acc.clear()
+            for index, acc in enumerate(accounts):
                 traderLogin = acc.traderLogin
                 ctidTraderAccountId = acc.ctidTraderAccountId
                 key = f"A_{traderLogin}"
                 nickname = "None"
                 if key in utility.gConfigData:
                     nickname = utility.gConfigData[key]
-                print(f"Authenticating traderLogin:{traderLogin} ctidTraderAccountId:{ctidTraderAccountId} Nickname:{nickname}")
+                g_auth_acc.append({"no": index, "traderLogin": traderLogin, "ctidTraderAccountId": ctidTraderAccountId, "nickname": nickname})
+                # print(f"Authenticating traderLogin:{traderLogin} ctidTraderAccountId:{ctidTraderAccountId} Nickname:{nickname}")
                 if gAuthPrintOnly == False:
-                    setAccount(ctidTraderAccountId)
+                    setAccount(index)
+            print("\n")
+            for acc in g_auth_acc:
+                print(acc)
             gAuthPrintOnly = False
 
         # Get list of pending orders and running positions of account
         elif message.payloadType == ProtoOAReconcileRes().payloadType:
             res = Protobuf.extract(message)
 
-            # Just leave it here
+            # Just leave the positionList here
             # For now, I only care pending orders
             # Those that entered position, please, you should know
             # it and you should set it immediately
             positionList = res.position
-
+            orderList = []
             if len(res.order) != 0:
                 orderList = res.order
-                for order in orderList:
-                    symbol = utility.read_symbol_id(order.tradeData.symbolId, ACCOUNT_TYPE)["symbolName"]
-                    amendOrder(order, symbol)
             else:
                 print("No pending order")
+                return
 
-
+            for order in orderList:
+                symbol = utility.read_symbol_id(order.tradeData.symbolId, ACCOUNT_TYPE)["symbolName"]
+                amendOrder_SetSpread_SetExpiry_SetLot(order, symbol)
 
         else:
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
             print(f"Message received: payloadType = {message.payloadType} ({payloadName})")
             print("\n", Protobuf.extract(message))
-            
+
     def onError(failure): # Call back for errors
         print("Message Error: ", failure)
 
-    def showHelp():
-        print("im too lazy to write, you should know better")
-
-    def setAccount(ctidTraderAccountId):
+    def setAccount(index):
+        """
+        index is g_auth_acc index
+        call `acc` and you know what 7 im saying
+        """
         global CURRENT_CTIDTRADERACCOUNTID
+        
+        if len(g_auth_acc) == 0:
+            print("Call `acc` first, to get account list")
+            return
+
         # if CURRENT_CTIDTRADERACCOUNTID is not None:
         #     sendProtoOAAccountLogoutReq()
-        CURRENT_CTIDTRADERACCOUNTID = int(ctidTraderAccountId)
-        # Dont authenticate, just set global variable
-        # sendProtoOAAccountAuthReq()
-        
-        
+        CURRENT_CTIDTRADERACCOUNTID = g_auth_acc[int(index)]["ctidTraderAccountId"]
+        sendProtoOAAccountAuthReq()
 
     def sendProtoOAVersionReq(clientMsgId = None):
         request = ProtoOAVersionReq()
@@ -192,6 +207,11 @@ if __name__ == "__main__":
         deferred.addErrback(onError)
 
     def getAllAccounts(clientMsgId = None):
+        """
+        The account it displays, depends on the permission you set here
+        Click on `sandbox` and you know what 7 im talking ady
+        https://openapi.ctrader.com/apps
+        """
         global gAuthPrintOnly
         gAuthPrintOnly = True
         request = ProtoOAGetAccountListByAccessTokenReq()
@@ -219,18 +239,16 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def sendProtoOAClosePositionReq(positionId, volume, clientMsgId = None):
-        request = ProtoOAClosePositionReq()
-        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        request.positionId = int(positionId)
-        request.volume = int(volume) * 100
-        deferred = client.send(request, clientMsgId = clientMsgId)
-        deferred.addErrback(onError)
-
     def disconnect(clientMsgId=None): # Disconnect the client
         client._disconnected("User exited the connection")
 
-    def getPendingOrderList(clientMsgId=None):
+    def setSpread_SetExpiry_SetLot(clientMsgId=None):
+        """
+        This is for pending orders
+        Set entry with spread
+        Set expiry
+        Set lot sizes to 0.01
+        """
         request = ProtoOAReconcileReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
@@ -330,7 +348,7 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def amendOrder(_ProtoOAOrder, symbol, clientMsgId=None):
+    def amendOrder_SetSpread_SetExpiry_SetLot(_ProtoOAOrder, symbol, clientMsgId=None):
         """
         1. Check what is your order Type - ProtoOAOrderType
         if ProtoOAOrderType == LIMIT
@@ -480,7 +498,7 @@ if __name__ == "__main__":
         print(f"is_friday: {'True' if is_friday else 'False'}")
 
 
-        request = ProtoOAAmendOrderReq()
+        request = ProtoOAAmendOrder_SetSpread_SetExpiry_SetLotReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         request.orderId = int(_ProtoOAOrder.orderId)
         # regarding _ProtoOAOrder.relativeStopLoss
@@ -516,11 +534,26 @@ if __name__ == "__main__":
         request.refreshToken = os.getenv("REFRESH_TOKEN")
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
-        
+
     def setHeartbeat(value, clientMsgId=None):
         global g_heartbeat
         g_heartbeat = int(value)
-        
+
+    def showHelp():
+        print()
+        print("help: showHelp,")
+        print("set: setAccount, # Set global variable account ID")
+        print("ver: sendProtoOAVersionReq, # Show version")
+        print("auth: sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts")
+        print("acc: getAllAccounts, # Get all account details")
+        print("renew: renewAccessToken, # Renew access & refresh token")
+        print("hb: setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`")
+        print("qq: disconnect,")
+        print("sp: setSpread_SetExpiry_SetLot, # sp = spread. Set spread, set expiry, set lot size")
+        print("s: getSymbolList, # Update symbol files")
+        print("r: refresh_RAM, # Refresh global variable with latest value")
+        print("test: test,")
+
     def test(clientMsgId=None):
         request = ProtoHeartbeatEvent()
         deferred = client.send(request, clientMsgId=clientMsgId)
@@ -532,12 +565,10 @@ if __name__ == "__main__":
         "ver": sendProtoOAVersionReq, # Show version
         "auth": sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts
         "acc": getAllAccounts, # Get all account details
-        "ClosePosition": sendProtoOAClosePositionReq,
         "renew": renewAccessToken, # Renew access & refresh token
-        "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this "hb 1"
+        "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
         "qq": disconnect,
-        "ex": getPendingOrderList, # Set lot size to 0,01, set expiry, set entry with spread
-        "lt": getPendingOrderList, # set lots size to 100 lots, `lt <number>`
+        "sp": setSpread_SetExpiry_SetLot, # sp = spread. Set spread, set expiry, set lot size
         "s": getSymbolList, # Update symbol files
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
@@ -566,7 +597,7 @@ if __name__ == "__main__":
     # Start user console command
     thread = threading.Thread(target=executeUserCommand)
     thread.start()
-    
+
     # Setting optional client callbacks
     client.setConnectedCallback(connected)
     client.setDisconnectedCallback(disconnected)
