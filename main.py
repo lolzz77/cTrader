@@ -14,7 +14,8 @@ import utility
 import fileinput
 import threading
 import time
-from datetime import datetime, timezone, timedelta
+import pytz
+from datetime import datetime
 
 load_dotenv(".env_demo")
 utility.read_config_file()
@@ -30,6 +31,8 @@ CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
 g_write_CSV = False
 # To print "Heartbeat received"
 g_heartbeat = True
+
+g_mytimezone = pytz.timezone("Asia/Singapore")
 
 # List of payload to ignore
 gPayloadIgnoreList = [
@@ -69,7 +72,7 @@ if __name__ == "__main__":
                 current_time = time.time()
 
                 # Convert to a datetime object
-                dt = datetime.fromtimestamp(current_time, timezone.utc) + timedelta(hours=8)
+                dt = datetime.fromtimestamp(current_time, g_mytimezone)
 
                 # Format the time as "HHMM", GMT+8
                 formatted_time = dt.strftime("%H%M")
@@ -132,9 +135,9 @@ if __name__ == "__main__":
                 if res.symbolId == 41:
                     if res.bid == 0 or res.ask == 0:
                         return
-                    spread = (res.ask - res.bid) / 10000
+                    spread = (res.ask - res.bid) / int(utility.gConfigData[f"RELATIVE_PER_PIP_{symbol}"])
                     # res.timestamp is in milliseconds, conver to seconds
-                    dt = datetime.fromtimestamp(res.timestamp/1000, timezone.utc) + timedelta(hours=8)
+                    dt = datetime.fromtimestamp(res.timestamp/1000, g_mytimezone)
                     formatted_time = dt.strftime("%d/%b/%y:%H%M")
                     print(f"{res.symbolId}, {symbol}, {spread}, {formatted_time}")
             gData.clear()
