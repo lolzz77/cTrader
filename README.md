@@ -28,3 +28,7 @@ ACCOUNT_TYPE="demo"
 4. This sends heartbeat to server
 5. And look for `def stringReceived(self, data):`
 6. This is triggered everytime you receives message from server
+
+# Termux known issue
+1. When you type `sub 41`, it will become `sub 4` and sends command
+2. You have to type 1 more char behind, for termux
