@@ -55,8 +55,8 @@ CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
 gPayloadIgnoreList = [
     ProtoOASubscribeSpotsRes().payloadType,
     ProtoOAAccountLogoutRes().payloadType,
-    # ProtoHeartbeatEvent().payloadType,
-    ProtoOAExecutionEvent().payloadType
+    ProtoHeartbeatEvent().payloadType,
+    # ProtoOAExecutionEvent().payloadType
 ]
 
 # When you run `acc`, it will set this to TRUE
@@ -122,6 +122,23 @@ if __name__ == "__main__":
     def onMessageReceived(client, message): # Callback for receiving all messages
         if message.payloadType in gPayloadIgnoreList:
             return
+        elif message.payloadType == ProtoOAExecutionEvent().payloadType:
+            """
+            To detect whether buy/sell limit is hit & entered trade
+            And to detect whether the position is still running
+            !Note! If you have 0.05 lot, you tpp 0.03 lot
+            !Note! Then you tpp 0.01 lot
+            !Note! What's left is 0.01 running
+            !Note! It will still running
+            """
+            res = Protobuf.extract(message)
+            executionType = res.executionType
+            positionStatus = res.position.positionStatus
+            if executionType == ProtoOAExecutionType.Value('ORDER_ACCEPTED') and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_OPEN'):
+                getRunningPositions()
+            if positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED'):
+                stopRunningPosition(res.position.positionId)
+            return
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if g_heartbeat:
                 # Get the current time in seconds since the epoch
@@ -134,10 +151,6 @@ if __name__ == "__main__":
                 formatted_time = dt.strftime("%H%M")
 
                 print(f"[{formatted_time}] Heartbeat Received.")
-
-
-            getRunningPositions()
-
 
             return
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
@@ -215,6 +228,10 @@ if __name__ == "__main__":
             symbol = "demo"
             # symbol = utility.read_symbol_id(res.symbolId, ACCOUNT_TYPE)["symbolName"]
 
+            # If data is 0, dont insert, later disrupt my script miscalculate or mistaken that can breakeven now
+            if res.bid == 0 or res.ask == 0:
+                return
+
             # If exists, just update the bid/ask price
             if running_position.g_subscribe[res.symbolId]["symbolId"] is not None:
                 running_position.g_subscribe[res.symbolId]["bid"] = res.bid
@@ -241,10 +258,27 @@ if __name__ == "__main__":
                 # Check if exists in list
                 if any(p["positionId"] == position.positionId for p in running_position.g_positions) and len(running_position.g_positions) != 0:
                     continue
+                if position.stopLoss == 0:
+                    print(f"PositionId:{position.positionId}, stopLoss is 0. Abort.")
+                    continue
                 symbol = utility.read_symbol_id(position.tradeData.symbolId, ACCOUNT_TYPE)["symbolName"]
+                # Safety check, make sure config has the asset
+                # I will only check one for the sake of simplicity,
+                # Please, be full of integrity, if you add one symbol config,
+                # please remember to add all
+                if f"SPREAD_{symbol}" not in utility.gConfigData:
+                    print(f"Symbol {symbol} has incomplete config.ini. Abort.")
+                    continue
+                
+                volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
+                lotsize = round(position.tradeData.volume * volume_to_pip_converter, 2)
+                # You can't TPP with lotsize 0.01
+                if lotsize == 0.01:
+                    continue
+                print(f"PositionId:{position.positionId} Symbol:{symbol} Position created.")
                 obj = running_position.RunningPosition(position.positionId, position.tradeData.symbolId, symbol, position.tradeData.volume, position.tradeData.tradeSide, position.price, position.stopLoss, position.takeProfit)
                 obj.getBidAndAsk()
-                thread = threading.Thread(target=obj.run)
+                thread = threading.Thread(target=obj.run, name = str(position.positionId))
                 thread.start()
                 # Keeping the object is no application at the moment
                 # I just keep it in case future need use
@@ -326,6 +360,23 @@ if __name__ == "__main__":
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
+        
+    def stopRunningPosition(positionId, clientMsgId=None):
+        """
+        Remove position from g_position since it hit SL
+        """
+        global g_positions
+        # Find index of entry with id 4
+        index_to_remove = next((i for i, p in enumerate(running_position.g_positions) if p["positionId"] == positionId), None)
+
+        # Remove entry if found
+        if index_to_remove is not None:
+            # Destroy the object
+            running_position.g_positions[index_to_remove]["Object"].alive = False
+            # Remove from the list
+            running_position.g_positions.pop(index_to_remove)
+            print(f"PositionId:{positionId} has been removed from g_positions.")
+        
 
     def getSymbolList(clientMsgId=None):
         request = ProtoOASymbolsListReq()
@@ -404,126 +455,28 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def monitorAndTPP(_ProtoOAPosition, clientMsgId=None):
+    def sendCloseReq(positionId, volume, clientMsgId=None):
         """
-        Monitor running position and TPP if necessary
+        Take partial profit
         """
-        while True:
-            if len(running_position.g_positions) == 0:
-                pass
-
-
-        _StopLossTakeProfit = -1
-        if _ProtoOAPosition.relativeStopLoss != 0 or _ProtoOAPosition.relativeTakeProfit != 0:
-            _StopLossTakeProfit = StopLossTakeProfit.RELATIVE.value
-        elif _ProtoOAPosition.stopLoss != 0 or _ProtoOAPosition.takeProfit != 0:
-            _StopLossTakeProfit = StopLossTakeProfit.ABSOLUTE.value
-        else:
-            print(f"Warning: Abnormal absolute & realtive TP SL detected. Skip")
-            print(f"OrderId:{_ProtoOAPosition.orderId} Symbol:{symbol}")
-            print(f"relativeStopLoss:{_ProtoOAPosition.relativeStopLoss}")
-            print(f"relativeTakeProfit:{_ProtoOAPosition.relativeTakeProfit}")
-            print(f"stopLoss:{_ProtoOAPosition.stopLoss}")
-            print(f"takeProfit:{_ProtoOAPosition.takeProfit}")
-            return
-
-        _timezone = None
-        if symbol == "DAXEUR":
-            _timezone = pytz.timezone("Europe/Berlin")
-        elif symbol == "NDXUSD" or symbol == "DJIUSD" or symbol =="XAUUSD":
-            _timezone = pytz.timezone("America/New_York")
-
-        is_dst = False
-        if _timezone is not None:
-            now = datetime.now(_timezone)
-            # Check if DST is active
-            is_dst = bool(now.dst())
-
-
-        now = datetime.now(g_mytimezone)
-        is_friday = now.weekday() == 4
-        # Get today's midnight
-        midnight = datetime.now(g_mytimezone).replace(hour=0, minute=0, second=0, microsecond=0)
-        # Convert to Unix timestamp in millisecond
-        unix_time = int(midnight.timestamp()) * 1000
-
-        expiry = f""
-        if is_dst:
-            expiry = f"EXPIRY_DST_{symbol}"
-        else:
-            expiry = f"EXPIRY_STANDARD_{symbol}"
-
-        if is_friday:
-            expiry = expiry + "_FRIDAY"
-
-        expiry_dt = unix_time + int(utility.gConfigData[expiry])
-        dt = datetime.fromtimestamp(expiry_dt / 1000, tz=timezone.utc).astimezone(g_mytimezone)
-        expiry_dt_str = dt.strftime("%d %b %Y %H%M")  # Format as "24 May 2025 2359"
-
-        spread = f"SPREAD_{symbol}"
-        price_per_pip = f"PRICE_PER_PIP_{symbol}"
-        relative_per_pip = f"RELATIVE_PER_PIP_{symbol}"
-        volume_per_lot = f"VOLUME_PER_LOT_{symbol}"
-
-
-        is_limit_order = False
-        if _ProtoOAPosition.orderType == ProtoOAOrderType.Value('LIMIT'):
-            is_limit_order = True
-
-        if not is_limit_order:
-            print(f"Warning: OrderId:{_ProtoOAPosition.orderId} Symbol:{symbol} orderType is {ProtoOAOrderType.Name(_ProtoOAPosition.orderType)} order. I will skip this one")
-            return
-        if spread not in utility.gConfigData:
-            print(f"Warning: Spread:{spread} is not defined for this Symbol:{symbol}. Skip.")
-            return
-        if price_per_pip not in utility.gConfigData:
-            print(f"Warning: price_per_pip:{price_per_pip} is not defined for this Symbol:{symbol}. Skip.")
-            return
-        if relative_per_pip not in utility.gConfigData:
-            print(f"Warning: relative_per_pip:{relative_per_pip} is not defined for this Symbol:{symbol}. Skip.")
-            return
-        if volume_per_lot not in utility.gConfigData:
-            print(f"Warning: volume_per_lot:{volume_per_lot} is not defined for this Symbol:{symbol}. Skip.")
-            return
-
-
-        print(f"OrderId: {_ProtoOAPosition.orderId}")
-        print(f"Symbol: {symbol}")
-        print(f"tradeSide: {ProtoOATradeSide.Name(_ProtoOAPosition.tradeData.tradeSide)}")
-        print(f"StopLossTakeProfit: {StopLossTakeProfit.getName(_StopLossTakeProfit)}")
-        print(f"timezone: {_timezone}")
-        print(f"is_dst: {'True' if is_dst else 'False'}")
-        print(f"spread: {spread}:{round(float(utility.gConfigData[spread]),1)}")
-        print(f"price_per_pip: {price_per_pip}:{round(float(utility.gConfigData[price_per_pip]),2)}")
-        print(f"relative_per_pip: {relative_per_pip}:{int(utility.gConfigData[relative_per_pip])}")
-        print(f"volume_per_lot: {volume_per_lot}:{int(utility.gConfigData[volume_per_lot])}")
-        print(f"expiry: {expiry}, Until:{expiry_dt_str}")
-        print(f"is_friday: {'True' if is_friday else 'False'}")
-
-
-        request = ProtoOAAmendOrderReq()
+        request = ProtoOAClosePositionReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        request.orderId = int(_ProtoOAPosition.orderId)
-        # regarding _ProtoOAPosition.relativeStopLoss
-        # It has if you NEVER place by entering price, but rather by dragging
-        # It has value 0 if you entered using price,
-        # And it will use _ProtoOAPosition.stopLoss, which is absolute stopLoss price
-        # And if either one is 0, request will fail
-        # Ok, sometimes it changed to use either & i dk how i triggered that
-        # Best is, ur coding, should cover both
-        request.limitPrice = round(float(_ProtoOAPosition.limitPrice) + (float(utility.gConfigData[spread]) * float(utility.gConfigData[price_per_pip]) * direction_bias_entry), 2)
-        if _StopLossTakeProfit == StopLossTakeProfit.RELATIVE.value:
-            request.relativeStopLoss   = int(_ProtoOAPosition.relativeStopLoss)   + int((int(utility.gConfigData[relative_per_pip]) * float(utility.gConfigData[spread]) * direction_bias_SL))
-            request.relativeTakeProfit = int(_ProtoOAPosition.relativeTakeProfit) + int((int(utility.gConfigData[relative_per_pip]) * float(utility.gConfigData[spread]) * direction_bias_TP))
-        else:
-            request.stopLoss   = _ProtoOAPosition.stopLoss
-            request.takeProfit = _ProtoOAPosition.takeProfit
-        # request.volume = int(utility.gConfigData[volume_per_lot])
-        # request.expirationTimestamp = expiry_dt
-        # deferred = client.send(request, clientMsgId=clientMsgId)
-        # deferred.addErrback(onError)
+        request.positionId = int(positionId)
+        request.volume = int(volume)
+        deferred = client.send(request, clientMsgId=clientMsgId)
+        deferred.addErrback(onError)
 
     def printRunningList():
+        """
+        """
+        print("\n")
+        print("Subscription list now :")
+        for s in running_position.g_subscribe:
+            if s["symbolId"] is None:
+                continue
+            print(f"{s}")
+            
+    def printSubscriptionList():
         """
         """
         print("\n")
@@ -581,8 +534,11 @@ if __name__ == "__main__":
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
         "qq": disconnect,
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
+        "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
+        "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
-        "p": printRunningList, # p = print running list
+        "pp": printRunningList, # p = print running list
+        "p": printSubscriptionList, # p = print subscription list
         "s": getSymbolList, # Update symbol files
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
