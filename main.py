@@ -161,6 +161,9 @@ if __name__ == "__main__":
         elif message.payloadType == ProtoOAAccountAuthRes().payloadType:
             protoOAAccountAuthRes = Protobuf.extract(message)
             print(f"Account {protoOAAccountAuthRes.ctidTraderAccountId} has been authorized")
+            # This is so that, what if your scrip restarts, you need to check immediately
+            # whether got running positions or not
+            running_position.g_command_queue.put("m")
 
         elif message.payloadType == ProtoOASymbolsListRes().payloadType:
             res = Protobuf.extract(message)
@@ -256,7 +259,7 @@ if __name__ == "__main__":
                 if f"SPREAD_{symbol}" not in utility.gConfigData:
                     print(f"Symbol {symbol} has incomplete config.ini. Abort.")
                     continue
-                
+
                 volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
                 lotsize = round(position.tradeData.volume * volume_to_pip_converter, 2)
                 # You can't TPP with lotsize 0.01
@@ -347,7 +350,7 @@ if __name__ == "__main__":
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
-        
+
     def stopRunningPosition(positionId, clientMsgId=None):
         """
         Remove position from g_position since it hit SL
@@ -363,7 +366,7 @@ if __name__ == "__main__":
             # Remove from the list
             running_position.g_positions.pop(index_to_remove)
             print(f"PositionId:{positionId} has been removed from g_positions.")
-        
+
     def getSymbolList(clientMsgId=None):
         request = ProtoOASymbolsListReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
@@ -461,7 +464,7 @@ if __name__ == "__main__":
             if s["symbolId"] is None:
                 continue
             print(f"{s}")
-            
+
     def printSubscriptionList():
         """
         """
@@ -539,7 +542,7 @@ if __name__ == "__main__":
             print("\n=====================================\n")
             userInput = input("Command (ex help): ")
             running_position.g_command_queue.put(userInput)
-            
+
     def processCommand():
         while True:
             userInput = running_position.g_command_queue.get() # Get command from queue
