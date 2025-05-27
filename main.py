@@ -319,6 +319,11 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
+    def getCurrentAccount(clientMsgId = None):
+        """
+        """
+        print(f"ctidTraderAccountId:{CURRENT_CTIDTRADERACCOUNTID}")
+
     def sendProtoOAAccountLogoutReq(clientMsgId = None):
         request = ProtoOAAccountLogoutReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
@@ -500,6 +505,7 @@ if __name__ == "__main__":
         print("ver: sendProtoOAVersionReq, # Show version")
         print("auth: sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts")
         print("acc: getAllAccounts, # Get all account details")
+        print("cur: getCurrentAccount, # Get current acc")
         print("renew: renewAccessToken, # Renew access & refresh token")
         print("hb: setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`")
         print("qq: disconnect,")
@@ -523,6 +529,7 @@ if __name__ == "__main__":
         "ver": sendProtoOAVersionReq, # Show version
         "auth": sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts
         "acc": getAllAccounts, # Get all account details
+        "cur": getCurrentAccount, # Get current acc
         "renew": renewAccessToken, # Renew access & refresh token
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
         "qq": disconnect,
