@@ -207,19 +207,6 @@ if __name__ == "__main__":
                 print(acc)
             gAuthPrintOnly = False
 
-        # My problem with this, how to get `res.symbolId` lol
-        # elif message.payloadType == ProtoOAUnsubscribeDepthQuotesRes().payloadType:
-        #     global g_subscribe
-        #     payloadName = ProtoOAPayloadType.Name(message.payloadType)
-        #     print(f"Message received: payloadType = {message.payloadType} ({payloadName})")
-        #     print("\n", Protobuf.extract(message))
-
-        #     running_position.g_subscribe[res.symbolId]["symbolId"] = None
-        #     running_position.g_subscribe[res.symbolId]["symbol"] = None
-        #     running_position.g_subscribe[res.symbolId]["bid"] = None
-        #     running_position.g_subscribe[res.symbolId]["ask"] = None
-        #     running_position.g_subscribe[res.symbolId]["NumOfUser"] = None
-
         elif message.payloadType == ProtoOASpotEvent().payloadType:
             global g_subscribe
 
@@ -377,7 +364,6 @@ if __name__ == "__main__":
             running_position.g_positions.pop(index_to_remove)
             print(f"PositionId:{positionId} has been removed from g_positions.")
         
-
     def getSymbolList(clientMsgId=None):
         request = ProtoOASymbolsListReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
@@ -505,6 +491,7 @@ if __name__ == "__main__":
 
     def showHelp():
         print()
+        print("Note: Some command are not shown, those shall not be executed by you")
         print("help: showHelp,")
         print("set: setAccount, # Set global variable account ID")
         print("ver: sendProtoOAVersionReq, # Show version")
@@ -513,16 +500,19 @@ if __name__ == "__main__":
         print("renew: renewAccessToken, # Renew access & refresh token")
         print("hb: setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`")
         print("qq: disconnect,")
-        print("m: monitorAndTPP, # m = monitor, to monitor your running position, and TPP if necessary")
+        print("m: getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary")
+        print("pp: printRunningList, # p = print running list")
+        print("p: printSubscriptionList, # p = print subscription list")
         print("s: getSymbolList, # Update symbol files")
         print("r: refresh_RAM, # Refresh global variable with latest value")
         print("test: test,")
 
     def test(clientMsgId=None):
-        request = ProtoOAGetPositionUnrealizedPnLReq()
-        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        deferred = client.send(request, clientMsgId=clientMsgId)
-        deferred.addErrback(onError)
+        pass
+        # request = ProtoOAGetPositionUnrealizedPnLReq()
+        # request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+        # deferred = client.send(request, clientMsgId=clientMsgId)
+        # deferred.addErrback(onError)
 
     commands = {
         "help": showHelp,
@@ -574,9 +564,6 @@ if __name__ == "__main__":
     thread_user_input.start()
     thread_process_command = threading.Thread(target=processCommand)
     thread_process_command.start()
-    # Check for running positions
-    # thread2 = threading.Thread(target=monitorAndTPP)
-    # thread2.start()
 
     # Setting optional client callbacks
     client.setConnectedCallback(connected)
