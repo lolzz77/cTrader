@@ -77,10 +77,11 @@ class RunningPosition:
             runningPip = 0
             # The documentation mention bid & ask are specified in 1/100000 unit
             runningPip = round(((g_subscribe[self.symbolId][self.tp_sl_bid_or_ask]/100000) - self.entryPrice) / self.price_per_pip, 2) * self.sl_direction_bias
-            # Take partial profit
+            # Take partial profit & set BE & set SL trigger is default (trade)
             if runningPip >= self.tpp_pips:
                 print(f"PositionId:{self.positionId} Symbol:{self.symbol} TPP")
                 g_command_queue.put(f"tpp {self.positionId} {self.tpp_lotsize_in_volume}")
+                g_command_queue.put(f"be {self.positionId} {self.entryPrice}")
                 break
         self.destroy()
 

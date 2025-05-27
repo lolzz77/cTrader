@@ -459,6 +459,20 @@ if __name__ == "__main__":
         request.volume = int(volume)
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
+        
+    def sendSetBE(positionId, entryPrice, clientMsgId=None):
+        """
+        Set BE
+        And set trade side to default
+        TODO: Set BE + few pips
+        """
+        request = ProtoOAAmendPositionSLTPReq()
+        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+        request.positionId = int(positionId)
+        request.stopLoss = round(float(entryPrice), 2)
+        request.stopLossTriggerMethod = ProtoOAOrderTriggerMethod.Value('TRADE')
+        deferred = client.send(request, clientMsgId=clientMsgId)
+        deferred.addErrback(onError)
 
     def printRunningList():
         """
@@ -536,6 +550,7 @@ if __name__ == "__main__":
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
+        "be": sendSetBE, # Set BE, call `be positionId entryPrice`
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
         "pp": printRunningList, # p = print running list
         "p": printSubscriptionList, # p = print subscription list
