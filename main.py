@@ -467,7 +467,7 @@ if __name__ == "__main__":
         request.volume = int(volume)
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
-        
+
     def sendSetBE(positionId, entryPrice, clientMsgId=None):
         """
         Set BE
@@ -568,10 +568,20 @@ if __name__ == "__main__":
     }
 
     def executeUserCommand():
-        while True:
-            print("\n=====================================\n")
-            userInput = input("Command (ex help): ")
-            running_position.g_command_queue.put(userInput)
+        try:
+            while True:
+                print("\n=====================================\n")
+                userInput = input("Command (ex help): ")
+                running_position.g_command_queue.put(userInput)
+        # !CTRL C!
+        # To detech & handle CTRL C, but this will not work
+        # Due to `reactor.run` is being treated as main thread
+        except KeyboardInterrupt:
+            print(f"CTRL C is pressed")
+        # Detect CTRL D
+        except EOFError:
+            print(f"Terminate script forcefully.")
+            os._exit(0)
 
     def processCommand():
         while True:
@@ -602,7 +612,13 @@ if __name__ == "__main__":
     client.setConnectedCallback(connected)
     client.setDisconnectedCallback(disconnected)
     client.setMessageReceivedCallback(onMessageReceived)
+
     # Starting the client service
     client.startService()
+
+    # !CTRL C!
+    # This will be treated as main thread
+    # When you type CTRL C, this thread will capture it
+    # TODO Find a way to handle CTRL C
     reactor.run()
 
