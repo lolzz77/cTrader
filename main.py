@@ -254,24 +254,28 @@ if __name__ == "__main__":
     }
 
     def executeUserCommand():
-        while True:
-            print("\n=====================================\n")
-            userInput = input("Command (ex help): ")
-            userInputSplit = userInput.split(" ")
-            if not userInputSplit:
-                print("Command split error: ", userInput)
-                continue
-            command = userInputSplit[0]
-            try:
-                parameters = [parameter if parameter[0] != "*" else parameter[1:] for parameter in userInputSplit[1:]]
-            except:
-                print("Invalid parameters: ", userInput)
-                continue
-            if command in commands:
-                commands[command](*parameters)
-            else:
-                print("Invalid Command: ", userInput)
-                continue
+        try:
+            while True:
+                print("\n=====================================\n")
+                userInput = input("Command (ex help): ")
+                userInputSplit = userInput.split(" ")
+                if not userInputSplit:
+                    print("Command split error: ", userInput)
+                    continue
+                command = userInputSplit[0]
+                try:
+                    parameters = [parameter if parameter[0] != "*" else parameter[1:] for parameter in userInputSplit[1:]]
+                except:
+                    print("Invalid parameters: ", userInput)
+                    continue
+                if command in commands:
+                    commands[command](*parameters)
+                else:
+                    print("Invalid Command: ", userInput)
+                    continue
+        except EOFError:
+            print("Script terminated forcefully.")
+            os._exit(0)
 
     # Start user console command
     thread = threading.Thread(target=executeUserCommand)
