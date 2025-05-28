@@ -70,7 +70,12 @@ if __name__ == "__main__":
     client = Client(EndPoints.PROTOBUF_LIVE_HOST if hostType.lower() == "live" else EndPoints.PROTOBUF_DEMO_HOST, EndPoints.PROTOBUF_PORT, TcpProtocol)
 
     def connected(client): # Callback for client connection
-        print(f"\nConnected. ACCOUNT_TYPE:{ACCOUNT_TYPE}")
+        current_time = time.time()
+        dt = datetime.fromtimestamp(current_time, g_mytimezone)
+
+        # Format the time as "HHMM", GMT+8
+        formatted_time = dt.strftime("%H%M")
+        print(f"\n[{formatted_time}]Connected. ACCOUNT_TYPE:{ACCOUNT_TYPE}")
         request = ProtoOAApplicationAuthReq()
         request.clientId = appClientId
         request.clientSecret = appClientSecret
@@ -78,17 +83,20 @@ if __name__ == "__main__":
         deferred.addErrback(onError)
 
     def disconnected(client, reason): # Callback for client disconnection
-        print(f"\nDisconnected: {reason}")
+        current_time = time.time()
+        dt = datetime.fromtimestamp(current_time, g_mytimezone)
+
+        # Format the time as "HHMM", GMT+8
+        formatted_time = dt.strftime("%H%M")
+
+        print(f"\n[{formatted_time}] Disconnected: {reason}")
 
     def onMessageReceived(client, message): # Callback for receiving all messages
         if message.payloadType in gPayloadIgnoreList:
             return
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if g_heartbeat:
-                # Get the current time in seconds since the epoch
                 current_time = time.time()
-
-                # Convert to a datetime object
                 dt = datetime.fromtimestamp(current_time, g_mytimezone)
 
                 # Format the time as "HHMM", GMT+8
