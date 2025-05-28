@@ -11,27 +11,13 @@ from ctrader_open_api.messages.OpenApiMessages_pb2 import *
 from ctrader_open_api.messages.OpenApiModelMessages_pb2 import *
 from twisted.internet import reactor
 import datetime
-from datetime import datetime, timezone
+from datetime import datetime
 import pytz
 import utility
-from enum import Enum
 import fileinput
 import threading
 import time
 import running_position
-
-# In an order, it has relative stop loss or absolute stop loss
-# YOu have to choose one side
-class StopLossTakeProfit(Enum):
-    RELATIVE = 1
-    ABSOLUTE = 2
-
-    @classmethod
-    def getName(cls, value):
-        for key in cls:
-            if key.value == value:
-                return key.name
-        return None
 
 load_dotenv()
 utility.read_config_file()
@@ -42,7 +28,13 @@ g_mytimezone = pytz.timezone("Asia/Singapore")
 # For RunningPosition class objects
 g_running_position_obj_threads = []
 
+FIRST_TIME_BOOT_UP = True
+UPDATING_SYMBOL = False
 
+g_subscribe_count = 0
+
+# Lock for multithread
+g_lock = threading.Lock()
 
 # From .env file, get the variable
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
@@ -131,8 +123,13 @@ if __name__ == "__main__":
         print(f"\n[{formatted_time}] Disconnected: {reason}")
 
     def onMessageReceived(client, message): # Callback for receiving all messages
+        # Initially i put at `if elif`
+        # Just realized, it is within function
+        global UPDATING_SYMBOL
+
         if message.payloadType in gPayloadIgnoreList:
             return
+
         elif message.payloadType == ProtoOAExecutionEvent().payloadType:
             """
             To detect whether buy/sell limit is hit & entered trade
@@ -146,10 +143,22 @@ if __name__ == "__main__":
             executionType = res.executionType
             positionStatus = res.position.positionStatus
             if executionType == ProtoOAExecutionType.Value('ORDER_ACCEPTED') and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_OPEN'):
+                """
+                New position created & running
+                Entered a trade
+                """
                 getRunningPositions()
             if positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED'):
+                """
+                Position closed, either hit TP or SL
+                """
                 stopRunningPosition(res.position.positionId)
+                # Call again to make it run "No running order" & clears g_subscribe
+                # In case g_subscribe is not cleared
+                # Maybe no need first? I dk
+                # getRunningPositions()
             return
+
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if g_heartbeat:
                 current_time = time.time()
@@ -161,25 +170,63 @@ if __name__ == "__main__":
                 print(f"[{formatted_time}] Heartbeat Received.")
 
             return
+
+        elif message.payloadType == ProtoOAPayloadType.Value('PROTO_OA_SYMBOL_CHANGED_EVENT'):
+            """
+            SYMBOL CHANGED! Update SYMBOL JSON & Update YOUR g_position, g_subscribe,
+            and the RunningPosition class!
+            """
+            print(f"Symbol change! Update!")
+            running_position.g_command_queue.put("s")
+            return
+
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
             print(f"API Application authorized")
             if CURRENT_CTIDTRADERACCOUNTID is not None:
                 sendProtoOAAccountAuthReq()
             return
+
         elif message.payloadType == ProtoOAAccountAuthRes().payloadType:
             protoOAAccountAuthRes = Protobuf.extract(message)
             print(f"Account {protoOAAccountAuthRes.ctidTraderAccountId} has been authorized")
-            # This is so that, what if your scrip restarts, you need to check immediately
-            # whether got running positions or not
-            running_position.g_command_queue.put("m")
+            
+            # Call symbol update command
+            # Who knows during your offline, they updated the symbol IDs lol
+            running_position.g_command_queue.put("s")
 
         elif message.payloadType == ProtoOASymbolsListRes().payloadType:
+            global FIRST_TIME_BOOT_UP
+            global UPDATING_SYMBOL
+
             res = Protobuf.extract(message)
             symbol_data = res.symbol
             filename = "symbolList_" + ACCOUNT_TYPE + ".txt"
             with open(filename, "w") as file:
                 file.write(str(symbol_data))
-            utility.convert_txt_to_json(filename, ACCOUNT_TYPE)
+            result, symbols_old_NAME_first_dict = utility.convert_txt_to_json(filename, ACCOUNT_TYPE)
+
+            if result == utility.SymbolJsonUpdate.HAS_UPDATE:
+                # You have a lot of shit to update..
+                # tbh, i prefer you just clear everything and restart again LOL
+                # First of all, stop the subscription, else it keeps accessing the dict
+                if running_position.g_subscribe:
+                    UPDATING_SYMBOL = True
+                    print(f"Restarting everything!")
+                    if running_position.g_positions:
+                        for p in running_position.g_positions.values():
+                            p.get('Object').alive = False
+                        # Give script some time to process
+                        time.sleep(2)
+                    # Unsubscribe them all!
+                    for s in running_position.g_subscribe.values():
+                        running_position.g_command_queue.put(f"unsub {symbols_old_NAME_first_dict[s.get('symbol')]}")
+
+            # Start monitoring running positions
+            # This is so that, what if your scrip restarts, you need to check immediately
+            # whether got running positions or not
+            if FIRST_TIME_BOOT_UP:
+                running_position.g_command_queue.put("m")
+                FIRST_TIME_BOOT_UP = False
 
         elif message.payloadType == ProtoOARefreshTokenRes().payloadType:
             res = Protobuf.extract(message)
@@ -218,7 +265,44 @@ if __name__ == "__main__":
                 print(acc)
             gAuthPrintOnly = False
 
+        elif message.payloadType == ProtoOAUnsubscribeDepthQuotesRes().payloadType or message.payloadType == ProtoOAPayloadType.Value('PROTO_OA_UNSUBSCRIBE_SPOTS_RES'):
+            """
+            Unsubscribe to symbols
+            It will use count to tell me whether has all the symbols in
+            g_subscribe has been unsubscribed, if it is, clear the dictionary
+            dangerous to use
+            ```
+            len(g_subscribe) > 0:
+                g_subscribe.pop()
+
+            What if got race condition? Just be safe
+            ```
+            """
+            global g_subscribe
+            global g_subscribe_count
+    
+            res = Protobuf.extract(message)
+
+            if UPDATING_SYMBOL:
+
+                if g_subscribe_count == 0:
+                    g_subscribe_count = len(running_position.g_subscribe)
+                else:
+                    g_subscribe_count -= 1
+
+                if g_subscribe_count <= 0:
+                    running_position.g_subscribe.clear()
+                    UPDATING_SYMBOL = False
+                    g_subscribe_count = 0
+                    running_position.g_command_queue.put("m")
+
+            payloadName = ProtoOAPayloadType.Name(message.payloadType)
+            print(f"Unsubscribe symbol, Payload Name: {payloadName}")
+
         elif message.payloadType == ProtoOASpotEvent().payloadType:
+            """
+            Subscribe to symbols
+            """
             global g_subscribe
 
             res = Protobuf.extract(message)
@@ -230,36 +314,36 @@ if __name__ == "__main__":
             if res.bid == 0 or res.ask == 0:
                 return
 
-            # If exists, just update the bid/ask price
-            if running_position.g_subscribe[res.symbolId]["symbolId"] is not None:
-                running_position.g_subscribe[res.symbolId]["bid"] = res.bid
-                running_position.g_subscribe[res.symbolId]["ask"] = res.ask
-            else:
-                running_position.g_subscribe[res.symbolId]["symbolId"] = res.symbolId
-                running_position.g_subscribe[res.symbolId]["symbol"] = symbol
-                running_position.g_subscribe[res.symbolId]["bid"] = res.bid
-                running_position.g_subscribe[res.symbolId]["ask"] = res.ask
-                running_position.g_subscribe[res.symbolId]["NumOfUser"] = int(1)
+            # If exists, just update the bid/ask price, else, write into dictionary
+            with g_lock:
+                if res.symbolId in running_position.g_subscribe:
+                    running_position.g_subscribe[res.symbolId]["bid"] = int(res.bid)
+                    running_position.g_subscribe[res.symbolId]["ask"] = int(res.ask)
+                else:
+                    running_position.g_subscribe[res.symbolId] = {"symbol": str(symbol), "bid": int(res.bid), "ask": int(res.ask), "NumOfUser": int(1)}
 
         # Get list of pending orders and running positions of account
         elif message.payloadType == ProtoOAReconcileRes().payloadType:
             global g_positions
+            global g_subscribe
             res = Protobuf.extract(message)
             positionList = []
             if len(res.position) != 0:
                 positionList = res.position
             else:
+                # Ensure reset it back to None
+                running_position.g_subscribe.clear()
                 print("No running order")
                 return
 
             for position in positionList:
                 # Check if exists in list
-                if any(p["positionId"] == position.positionId for p in running_position.g_positions) and len(running_position.g_positions) != 0:
+                if position.positionId in running_position.g_positions:
                     continue
                 if position.stopLoss == 0:
                     print(f"PositionId:{position.positionId}, stopLoss is 0. Abort.")
                     continue
-                symbol = utility.read_symbol_id(position.tradeData.symbolId, ACCOUNT_TYPE)["symbolName"]
+                symbol = utility.read_symbol_id(position.tradeData.symbolId, ACCOUNT_TYPE)
                 # Safety check, make sure config has the asset
                 # I will only check one for the sake of simplicity,
                 # Please, be full of integrity, if you add one symbol config,
@@ -278,9 +362,11 @@ if __name__ == "__main__":
                 obj.getBidAndAsk()
                 thread = threading.Thread(target=obj.run, name = str(position.positionId))
                 thread.start()
-                # Keeping the object is no application at the moment
-                # I just keep it in case future need use
-                running_position.g_positions.append({"positionId": position.positionId, "Object": obj})
+                running_position.g_positions[position.positionId] = ({"Object": obj})
+                # Check if SL trigger is opposite or not, if is not, set it to opposite
+                if position.stopLossTriggerMethod != ProtoOAOrderTriggerMethod.Value('OPPOSITE'):
+                    print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is not OPPOSITE. Set to OPPOISTE now.")
+                    running_position.g_command_queue.put(f"ap {position.positionId} {position.stopLoss} {position.takeProfit} OPPOSITE")
 
         else:
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
@@ -366,19 +452,11 @@ if __name__ == "__main__":
 
     def stopRunningPosition(positionId, clientMsgId=None):
         """
-        Remove position from g_position since it hit SL
+        Remove position from g_position since it hit SL or TP
         """
         global g_positions
-        # Find index of entry with id 4
-        index_to_remove = next((i for i, p in enumerate(running_position.g_positions) if p["positionId"] == positionId), None)
-
-        # Remove entry if found
-        if index_to_remove is not None:
-            # Destroy the object
-            running_position.g_positions[index_to_remove]["Object"].alive = False
-            # Remove from the list
-            running_position.g_positions.pop(index_to_remove)
-            print(f"PositionId:{positionId} has been removed from g_positions.")
+        running_position.g_positions[positionId]["Object"].alive = False
+        del running_position.g_positions[positionId]
 
     def getSymbolList(clientMsgId=None):
         request = ProtoOASymbolsListReq()
@@ -468,17 +546,21 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def sendSetBE(positionId, entryPrice, clientMsgId=None):
+    def sendAmendPosition(positionId, entryPrice, takeProfit, SLTriggerMethod = 'TRADE', clientMsgId=None):
         """
         Set BE
         And set trade side to default
         TODO: Set BE + few pips
+        
+        This also can be used to set SL trigger method to OPPOSITE, without setting BE
+        That is, you set original stopLoss, takeProfit, but set SLTriggerMethod to "OPPOSITE"
         """
         request = ProtoOAAmendPositionSLTPReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         request.positionId = int(positionId)
         request.stopLoss = round(float(entryPrice), 2)
-        request.stopLossTriggerMethod = ProtoOAOrderTriggerMethod.Value('TRADE')
+        request.takeProfit = round(float(takeProfit), 2)
+        request.stopLossTriggerMethod = ProtoOAOrderTriggerMethod.Value(SLTriggerMethod)
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
@@ -487,9 +569,7 @@ if __name__ == "__main__":
         """
         print("\n")
         print("Subscription list now :")
-        for s in running_position.g_subscribe:
-            if s["symbolId"] is None:
-                continue
+        for s in running_position.g_subscribe.values():
             print(f"{s}")
 
     def printSubscriptionList():
@@ -497,7 +577,7 @@ if __name__ == "__main__":
         """
         print("\n")
         print("Running list now :")
-        for p in running_position.g_positions:
+        for p in running_position.g_positions.keys():
             print(f"{p}")
 
     def refresh_RAM():
@@ -558,7 +638,7 @@ if __name__ == "__main__":
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
-        "be": sendSetBE, # Set BE, call `be positionId entryPrice`
+        "ap": sendAmendPosition, # Amend Running Position, call `ap positionId stopLoss takeProfit "TRADE"`
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
         "pp": printRunningList, # p = print running list
         "p": printSubscriptionList, # p = print subscription list

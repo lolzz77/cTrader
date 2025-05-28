@@ -1,0 +1,2066 @@
+[symbolId: 1
+symbolName: "EURUSD"
+enabled: true
+baseAssetId: 5
+quoteAssetId: 15
+symbolCategoryId: 25
+description: "Euro vs US Dollar"
+, symbolId: 3
+symbolName: "EURJPY"
+enabled: true
+baseAssetId: 5
+quoteAssetId: 8
+symbolCategoryId: 26
+description: "Euro vs Japanese Yen"
+, symbolId: 28
+symbolName: "USDSGD"
+enabled: true
+baseAssetId: 15
+quoteAssetId: 14
+symbolCategoryId: 27
+description: "US Dollar vs Singapore Dollar"
+, symbolId: 41
+symbolName: "XAUUSD"
+enabled: true
+baseAssetId: 17
+quoteAssetId: 15
+symbolCategoryId: 2
+description: "Gold vs US Dollar"
+, symbolId: 99
+symbolName: "WTIUSD"
+enabled: true
+baseAssetId: 29
+quoteAssetId: 15
+symbolCategoryId: 9
+description: "WTI Light Crude Oil"
+, symbolId: 102
+symbolName: "ETHUSD"
+enabled: false
+baseAssetId: 32
+quoteAssetId: 15
+symbolCategoryId: 12
+description: "Ethereum vs US Dollar"
+, symbolId: 127
+symbolName: "DAXEUR"
+enabled: true
+baseAssetId: 1170
+quoteAssetId: 5
+symbolCategoryId: 3
+description: "Germany 40 Index"
+, symbolId: 141
+symbolName: "VOW3"
+enabled: false
+baseAssetId: 1084
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Volkswagen"
+, symbolId: 173
+symbolName: "FDX"
+enabled: false
+baseAssetId: 1011
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "FedEx Corporation"
+, symbolId: 193
+symbolName: "AAPL"
+enabled: true
+baseAssetId: 1000
+quoteAssetId: 15
+symbolCategoryId: 29
+description: "Apple"
+, symbolId: 228
+symbolName: "BTCEUR"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 5
+symbolCategoryId: 13
+description: "BitCoin vs Euro"
+, symbolId: 238
+symbolName: "BCHUSD"
+enabled: false
+baseAssetId: 1169
+quoteAssetId: 15
+symbolCategoryId: 14
+description: "BitCoin Cash vs US Dollar"
+, symbolId: 245
+symbolName: "LTCUSD"
+enabled: false
+baseAssetId: 1167
+quoteAssetId: 15
+symbolCategoryId: 15
+description: "LiteCoin vs US Dollar"
+, symbolId: 252
+symbolName: "XRPUSD"
+enabled: false
+baseAssetId: 1168
+quoteAssetId: 15
+symbolCategoryId: 16
+description: "Ripple vs US Dollar"
+, symbolId: 253
+symbolName: "BNBUSD"
+enabled: false
+baseAssetId: 1166
+quoteAssetId: 15
+symbolCategoryId: 17
+description: "Binance Coin vs US Dollar"
+, symbolId: 260
+symbolName: "BATUSD"
+enabled: false
+baseAssetId: 1089
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Basic Attention Token vs US Dollar"
+, symbolId: 337
+symbolName: "Canon"
+enabled: false
+baseAssetId: 1184
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Canon"
+, symbolId: 369
+symbolName: "GLD"
+enabled: false
+baseAssetId: 1215
+quoteAssetId: 15
+symbolCategoryId: 20
+description: "SPDR Gold Trust"
+, symbolId: 2
+symbolName: "GBPUSD"
+enabled: true
+baseAssetId: 6
+quoteAssetId: 15
+symbolCategoryId: 25
+description: "British Pound vs US Dollar"
+, symbolId: 7
+symbolName: "GBPJPY"
+enabled: true
+baseAssetId: 6
+quoteAssetId: 8
+symbolCategoryId: 26
+description: "British Pound vs Japanese Yen"
+, symbolId: 42
+symbolName: "XAGUSD"
+enabled: true
+baseAssetId: 16
+quoteAssetId: 15
+symbolCategoryId: 2
+description: "Silver vs US Dollar"
+, symbolId: 48
+symbolName: "USDHKD"
+enabled: false
+baseAssetId: 15
+quoteAssetId: 23
+symbolCategoryId: 27
+description: "US Dollar vs Hong Kong dollar"
+, symbolId: 128
+symbolName: "F40EUR"
+enabled: true
+baseAssetId: 1171
+quoteAssetId: 5
+symbolCategoryId: 3
+description: "France 40 Index"
+, symbolId: 140
+symbolName: "NGCUSD"
+enabled: true
+baseAssetId: 1088
+quoteAssetId: 15
+symbolCategoryId: 9
+description: "Natural Gas"
+, symbolId: 142
+symbolName: "VOD"
+enabled: false
+baseAssetId: 1083
+quoteAssetId: 6
+symbolCategoryId: 22
+description: "Vodafone Group"
+, symbolId: 174
+symbolName: "GE"
+enabled: false
+baseAssetId: 1012
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "General Electric Inc."
+, symbolId: 195
+symbolName: "AMZN"
+enabled: true
+baseAssetId: 1002
+quoteAssetId: 15
+symbolCategoryId: 29
+description: "Amazon"
+, symbolId: 229
+symbolName: "BTCJPY"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 8
+symbolCategoryId: 13
+description: "BitCoin vs Japanese Yen"
+, symbolId: 239
+symbolName: "BCHEUR"
+enabled: false
+baseAssetId: 1169
+quoteAssetId: 5
+symbolCategoryId: 14
+description: "BitCoin Cash vs Euro"
+, symbolId: 246
+symbolName: "LTCEUR"
+enabled: false
+baseAssetId: 1167
+quoteAssetId: 5
+symbolCategoryId: 15
+description: "LiteCoin vs Euro"
+, symbolId: 254
+symbolName: "BNBEUR"
+enabled: false
+baseAssetId: 1166
+quoteAssetId: 5
+symbolCategoryId: 17
+description: "Binance Coin vs Euro"
+, symbolId: 261
+symbolName: "DSHUSD"
+enabled: false
+baseAssetId: 1090
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "DASH vs US Dollar"
+, symbolId: 338
+symbolName: "ChinaMobile"
+enabled: false
+baseAssetId: 1185
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "China Mobile"
+, symbolId: 370
+symbolName: "VOO"
+enabled: false
+baseAssetId: 1216
+quoteAssetId: 15
+symbolCategoryId: 20
+description: "Vanguard S&P500"
+, symbolId: 4
+symbolName: "USDJPY"
+enabled: true
+baseAssetId: 15
+quoteAssetId: 8
+symbolCategoryId: 25
+description: "US Dollar vs Japanese Yen"
+, symbolId: 9
+symbolName: "EURGBP"
+enabled: true
+baseAssetId: 5
+quoteAssetId: 6
+symbolCategoryId: 26
+description: "Euro vs British Pound"
+, symbolId: 92
+symbolName: "XAGEUR"
+enabled: false
+baseAssetId: 16
+quoteAssetId: 5
+symbolCategoryId: 2
+description: "Silver vs Euro"
+, symbolId: 100
+symbolName: "BRNUSD"
+enabled: true
+baseAssetId: 30
+quoteAssetId: 15
+symbolCategoryId: 9
+description: "Brent Crude Oil"
+, symbolId: 129
+symbolName: "FTSGBP"
+enabled: true
+baseAssetId: 1172
+quoteAssetId: 6
+symbolCategoryId: 3
+description: "UK 100 Index"
+, symbolId: 143
+symbolName: "ULVR"
+enabled: false
+baseAssetId: 1082
+quoteAssetId: 6
+symbolCategoryId: 22
+description: "Unilever"
+, symbolId: 175
+symbolName: "GOOGL"
+enabled: true
+baseAssetId: 1013
+quoteAssetId: 15
+symbolCategoryId: 29
+description: "Alphabet Class A"
+, symbolId: 176
+symbolName: "GS"
+enabled: false
+baseAssetId: 1014
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Goldman Sachs Group Inc"
+, symbolId: 230
+symbolName: "BTCGBP"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 6
+symbolCategoryId: 13
+description: "BitCoin vs Great Britain Pound"
+, symbolId: 240
+symbolName: "BCHJPY"
+enabled: false
+baseAssetId: 1169
+quoteAssetId: 8
+symbolCategoryId: 14
+description: "BitCoin Cash vs Japanese Yen"
+, symbolId: 247
+symbolName: "LTCJPY"
+enabled: false
+baseAssetId: 1167
+quoteAssetId: 8
+symbolCategoryId: 15
+description: "LiteCoin vs Japanese Yen"
+, symbolId: 255
+symbolName: "BNBJPY"
+enabled: false
+baseAssetId: 1166
+quoteAssetId: 8
+symbolCategoryId: 17
+description: "Binance Coin vs Japanese Yen"
+, symbolId: 262
+symbolName: "EOSUSD"
+enabled: false
+baseAssetId: 1091
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "EOS vs US Dollar"
+, symbolId: 339
+symbolName: "CITIC"
+enabled: false
+baseAssetId: 1186
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "CITIC Securities"
+, symbolId: 371
+symbolName: "IWM"
+enabled: false
+baseAssetId: 1217
+quoteAssetId: 15
+symbolCategoryId: 20
+description: "iShares Russell 2000"
+, symbolId: 5
+symbolName: "AUDUSD"
+enabled: true
+baseAssetId: 1
+quoteAssetId: 15
+symbolCategoryId: 25
+description: "Australian vs US Dollar"
+, symbolId: 10
+symbolName: "EURCHF"
+enabled: true
+baseAssetId: 5
+quoteAssetId: 3
+symbolCategoryId: 26
+description: "Euro vs Swiss Franc"
+, symbolId: 93
+symbolName: "XAUEUR"
+enabled: false
+baseAssetId: 17
+quoteAssetId: 5
+symbolCategoryId: 2
+description: "Gold vs Euro"
+, symbolId: 133
+symbolName: "DJIUSD"
+enabled: true
+baseAssetId: 1176
+quoteAssetId: 15
+symbolCategoryId: 3
+description: "US 30 Index"
+, symbolId: 144
+symbolName: "EDF"
+enabled: false
+baseAssetId: 1067
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Electricite de France"
+, symbolId: 177
+symbolName: "H"
+enabled: false
+baseAssetId: 1015
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Hyatt Hotels Corporation"
+, symbolId: 179
+symbolName: "META"
+enabled: true
+baseAssetId: 1010
+quoteAssetId: 15
+symbolCategoryId: 29
+description: "Meta Platforms"
+, symbolId: 231
+symbolName: "BTCCHF"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 3
+symbolCategoryId: 13
+description: "Bitcoin vs Swiss Franc"
+, symbolId: 241
+symbolName: "BCHGBP"
+enabled: false
+baseAssetId: 1169
+quoteAssetId: 6
+symbolCategoryId: 14
+description: "BitCoin Cash vs Great Britain Pound"
+, symbolId: 248
+symbolName: "LTCGBP"
+enabled: false
+baseAssetId: 1167
+quoteAssetId: 6
+symbolCategoryId: 15
+description: "LiteCoin vs Great Britain Pound"
+, symbolId: 256
+symbolName: "BNBGBP"
+enabled: false
+baseAssetId: 1166
+quoteAssetId: 6
+symbolCategoryId: 17
+description: "Binance Coin vs British Pound"
+, symbolId: 263
+symbolName: "ETCUSD"
+enabled: false
+baseAssetId: 1092
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Ethereum Classic vs US Dollar"
+, symbolId: 340
+symbolName: "CKHutchison"
+enabled: false
+baseAssetId: 1187
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "CK Hutchison Holdings"
+, symbolId: 372
+symbolName: "QQQ"
+enabled: false
+baseAssetId: 1218
+quoteAssetId: 15
+symbolCategoryId: 20
+description: "Invesco QQQ(Power Shares Trust, Series)"
+, symbolId: 6
+symbolName: "USDCHF"
+enabled: true
+baseAssetId: 15
+quoteAssetId: 3
+symbolCategoryId: 25
+description: "US Dollar vs Swiss Franc"
+, symbolId: 11
+symbolName: "AUDJPY"
+enabled: true
+baseAssetId: 1
+quoteAssetId: 8
+symbolCategoryId: 26
+description: "Australian Dollar vs Japanese Yen"
+, symbolId: 94
+symbolName: "XPDEUR"
+enabled: false
+baseAssetId: 27
+quoteAssetId: 5
+symbolCategoryId: 2
+description: "Palladium vs Euro"
+, symbolId: 134
+symbolName: "SPXUSD"
+enabled: true
+baseAssetId: 1177
+quoteAssetId: 15
+symbolCategoryId: 3
+description: "US 500 Index"
+, symbolId: 145
+symbolName: "GLEN"
+enabled: false
+baseAssetId: 1068
+quoteAssetId: 6
+symbolCategoryId: 22
+description: "Glencore"
+, symbolId: 178
+symbolName: "HD"
+enabled: false
+baseAssetId: 1016
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Home Depot"
+, symbolId: 212
+symbolName: "MSFT"
+enabled: true
+baseAssetId: 1029
+quoteAssetId: 15
+symbolCategoryId: 29
+description: "Microsoft Corporation"
+, symbolId: 232
+symbolName: "BTCAUD"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 1
+symbolCategoryId: 13
+description: "Bitcoin vs Australian Dollar"
+, symbolId: 242
+symbolName: "BCHAUD"
+enabled: false
+baseAssetId: 1169
+quoteAssetId: 1
+symbolCategoryId: 14
+description: "Bitcoin Cash vs Australian Dollar"
+, symbolId: 249
+symbolName: "LTCAUD"
+enabled: false
+baseAssetId: 1167
+quoteAssetId: 1
+symbolCategoryId: 15
+description: "Litecoin vs Australian Dollar"
+, symbolId: 257
+symbolName: "BNBAUD"
+enabled: false
+baseAssetId: 1166
+quoteAssetId: 1
+symbolCategoryId: 17
+description: "Binance Coin vs Australian Dollar"
+, symbolId: 264
+symbolName: "IOTUSD"
+enabled: false
+baseAssetId: 1093
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "IOTA vs US Dollar"
+, symbolId: 341
+symbolName: "CNOOC"
+enabled: false
+baseAssetId: 1188
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "CNOOC"
+, symbolId: 373
+symbolName: "VEA"
+enabled: false
+baseAssetId: 1219
+quoteAssetId: 15
+symbolCategoryId: 20
+description: "Vanguard FTSE DM"
+, symbolId: 8
+symbolName: "USDCAD"
+enabled: true
+baseAssetId: 15
+quoteAssetId: 2
+symbolCategoryId: 25
+description: "US Dollar vs Canadian"
+, symbolId: 13
+symbolName: "CHFJPY"
+enabled: true
+baseAssetId: 3
+quoteAssetId: 8
+symbolCategoryId: 26
+description: "Swiss Franc vs Japanese Yen"
+, symbolId: 95
+symbolName: "XPDUSD"
+enabled: false
+baseAssetId: 27
+quoteAssetId: 15
+symbolCategoryId: 2
+description: "Palladium  vs US Dollar"
+, symbolId: 135
+symbolName: "NDXUSD"
+enabled: true
+baseAssetId: 1178
+quoteAssetId: 15
+symbolCategoryId: 3
+description: "US 100 Index"
+, symbolId: 146
+symbolName: "GSK"
+enabled: false
+baseAssetId: 1069
+quoteAssetId: 6
+symbolCategoryId: 22
+description: "GlaxoSmithKline"
+, symbolId: 180
+symbolName: "HPQ"
+enabled: false
+baseAssetId: 1017
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Hewlett-Packard Company"
+, symbolId: 210
+symbolName: "NVDA"
+enabled: true
+baseAssetId: 1046
+quoteAssetId: 15
+symbolCategoryId: 29
+description: "Nvidia"
+, symbolId: 233
+symbolName: "BTCNZD"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 11
+symbolCategoryId: 13
+description: "Bitcoin vs New Zealand Dollar"
+, symbolId: 243
+symbolName: "BCHCAD"
+enabled: false
+baseAssetId: 1169
+quoteAssetId: 2
+symbolCategoryId: 14
+description: "Bitcoin Cash vs Canadian Dollar"
+, symbolId: 250
+symbolName: "LTCCAD"
+enabled: false
+baseAssetId: 1167
+quoteAssetId: 2
+symbolCategoryId: 15
+description: "Litecoin vs Canadian Dollar"
+, symbolId: 258
+symbolName: "BNBCAD"
+enabled: false
+baseAssetId: 1166
+quoteAssetId: 2
+symbolCategoryId: 17
+description: "Binance Coin vs Canadian Dollar"
+, symbolId: 265
+symbolName: "NEOUSD"
+enabled: false
+baseAssetId: 1094
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Neo vs US Dollar"
+, symbolId: 342
+symbolName: "Henderson"
+enabled: false
+baseAssetId: 1189
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "Henderson Land"
+, symbolId: 374
+symbolName: "SCHD"
+enabled: false
+baseAssetId: 1220
+quoteAssetId: 15
+symbolCategoryId: 20
+description: "Schwab US Dividend equity"
+, symbolId: 12
+symbolName: "NZDUSD"
+enabled: true
+baseAssetId: 11
+quoteAssetId: 15
+symbolCategoryId: 25
+description: "New Zeland Dollar vs US Dollar"
+, symbolId: 14
+symbolName: "EURAUD"
+enabled: true
+baseAssetId: 5
+quoteAssetId: 1
+symbolCategoryId: 26
+description: "Euro vs Australian Dollar"
+, symbolId: 96
+symbolName: "XPTEUR"
+enabled: false
+baseAssetId: 28
+quoteAssetId: 5
+symbolCategoryId: 2
+description: "Platinum vs Euro"
+, symbolId: 136
+symbolName: "NIKJPY"
+enabled: true
+baseAssetId: 1179
+quoteAssetId: 8
+symbolCategoryId: 3
+description: "Japan 225 Index"
+, symbolId: 147
+symbolName: "IBE"
+enabled: false
+baseAssetId: 1070
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Iberdrola"
+, symbolId: 181
+symbolName: "ING"
+enabled: false
+baseAssetId: 1019
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "ING Group"
+, symbolId: 220
+symbolName: "TSLA"
+enabled: true
+baseAssetId: 1037
+quoteAssetId: 15
+symbolCategoryId: 29
+description: "Tesla"
+, symbolId: 234
+symbolName: "BTCCAD"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 2
+symbolCategoryId: 13
+description: "Bitcoin vs Canadian Dollar"
+, symbolId: 244
+symbolName: "BCHNZD"
+enabled: false
+baseAssetId: 1169
+quoteAssetId: 11
+symbolCategoryId: 14
+description: "Bitcoin Cash vs New Zealand Dollar"
+, symbolId: 251
+symbolName: "LTCNZD"
+enabled: false
+baseAssetId: 1167
+quoteAssetId: 11
+symbolCategoryId: 15
+description: "Litecoin vs New Zealand Dollar"
+, symbolId: 259
+symbolName: "BNBNZD"
+enabled: false
+baseAssetId: 1166
+quoteAssetId: 11
+symbolCategoryId: 17
+description: "Binance Coin vs New Zealand Dollar"
+, symbolId: 266
+symbolName: "OMGUSD"
+enabled: false
+baseAssetId: 1095
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "OmiseGo vs US Dollar"
+, symbolId: 343
+symbolName: "AIA"
+enabled: false
+baseAssetId: 1183
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "AIA Group"
+, symbolId: 375
+symbolName: "USO"
+enabled: false
+baseAssetId: 1221
+quoteAssetId: 15
+symbolCategoryId: 20
+description: "United States Oil Fund"
+, symbolId: 15
+symbolName: "CADJPY"
+enabled: true
+baseAssetId: 2
+quoteAssetId: 8
+symbolCategoryId: 26
+description: "Canadian Dollar vs Japanese Yen"
+, symbolId: 97
+symbolName: "XPTUSD"
+enabled: false
+baseAssetId: 28
+quoteAssetId: 15
+symbolCategoryId: 2
+description: "Platinum vs US Dollar"
+, symbolId: 137
+symbolName: "HSIHKD"
+enabled: true
+baseAssetId: 1180
+quoteAssetId: 23
+symbolCategoryId: 3
+description: "Hong Kong 50 Index"
+, symbolId: 148
+symbolName: "LHA"
+enabled: false
+baseAssetId: 1071
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Lufthansa"
+, symbolId: 182
+symbolName: "INTC"
+enabled: false
+baseAssetId: 1020
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Intel"
+, symbolId: 235
+symbolName: "BTCBCH"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 1169
+symbolCategoryId: 13
+description: "Bitcoin vs Bitcoin Cash"
+, symbolId: 267
+symbolName: "TRXUSD"
+enabled: false
+baseAssetId: 1096
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "TRON vs US Dollar"
+, symbolId: 344
+symbolName: "HKBankChina"
+enabled: false
+baseAssetId: 1190
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "Bank of China"
+, symbolId: 16
+symbolName: "GBPAUD"
+enabled: true
+baseAssetId: 6
+quoteAssetId: 1
+symbolCategoryId: 26
+description: "British Pound vs Australian Dollar"
+, symbolId: 120
+symbolName: "XAGAUD"
+enabled: false
+baseAssetId: 16
+quoteAssetId: 1
+symbolCategoryId: 2
+description: "Silver vs Australian Dollar / Spot"
+, symbolId: 138
+symbolName: "ASXAUD"
+enabled: true
+baseAssetId: 1181
+quoteAssetId: 1
+symbolCategoryId: 3
+description: "Australia 200 Index"
+, symbolId: 149
+symbolName: "MBG"
+enabled: false
+baseAssetId: 1072
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Mercedes-Benz Group AG"
+, symbolId: 183
+symbolName: "JNJ"
+enabled: false
+baseAssetId: 1021
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Johnson & Johnson"
+, symbolId: 236
+symbolName: "BTCETH"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 32
+symbolCategoryId: 13
+description: "Bitcoin vs Ethereum"
+, symbolId: 268
+symbolName: "XLMUSD"
+enabled: false
+baseAssetId: 1097
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Stellar Lumens vs US Dollar"
+, symbolId: 345
+symbolName: "HSBC"
+enabled: false
+baseAssetId: 1192
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "HSBC Holdings"
+, symbolId: 17
+symbolName: "EURCAD"
+enabled: true
+baseAssetId: 5
+quoteAssetId: 2
+symbolCategoryId: 26
+description: "Euro vs Canadian Dollar"
+, symbolId: 121
+symbolName: "XAGCHF"
+enabled: false
+baseAssetId: 16
+quoteAssetId: 3
+symbolCategoryId: 2
+description: "Silver vs Swiss Franc / Spot"
+, symbolId: 139
+symbolName: "XINUSD"
+enabled: true
+baseAssetId: 1182
+quoteAssetId: 15
+symbolCategoryId: 3
+description: "China 50 Index (USD)"
+, symbolId: 150
+symbolName: "MC"
+enabled: false
+baseAssetId: 1073
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "LVMH Moet Hennessy Louis Vuitton"
+, symbolId: 184
+symbolName: "JPM"
+enabled: false
+baseAssetId: 1022
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "JPMorgan Chase & Co"
+, symbolId: 237
+symbolName: "BTCLTC"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 1167
+symbolCategoryId: 13
+description: "Bitcoin vs Litecoin"
+, symbolId: 269
+symbolName: "XMRUSD"
+enabled: false
+baseAssetId: 1098
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Monero vs US Dollar"
+, symbolId: 346
+symbolName: "Ind&ComBank"
+enabled: false
+baseAssetId: 1193
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "Industrial and Commercial Bank of China"
+, symbolId: 18
+symbolName: "AUDCAD"
+enabled: true
+baseAssetId: 1
+quoteAssetId: 2
+symbolCategoryId: 26
+description: "Australian Dollar vs Canadian Dollar"
+, symbolId: 101
+symbolName: "BTCUSD"
+enabled: false
+baseAssetId: 31
+quoteAssetId: 15
+symbolCategoryId: 13
+description: "Bitcoin vs US Dollar"
+, symbolId: 122
+symbolName: "XAGGBP"
+enabled: false
+baseAssetId: 16
+quoteAssetId: 6
+symbolCategoryId: 2
+description: "Silver vs Great Britain Pound / Spot"
+, symbolId: 151
+symbolName: "NESN"
+enabled: false
+baseAssetId: 1074
+quoteAssetId: 3
+symbolCategoryId: 22
+description: "Nestle"
+, symbolId: 185
+symbolName: "KO"
+enabled: false
+baseAssetId: 1023
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Coca-Cola Company"
+, symbolId: 270
+symbolName: "ZECUSD"
+enabled: false
+baseAssetId: 1099
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "ZCash vs US Dollar"
+, symbolId: 347
+symbolName: "JpnTobacco"
+enabled: false
+baseAssetId: 1194
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Japan Tobacco"
+, symbolId: 19
+symbolName: "GBPCAD"
+enabled: true
+baseAssetId: 6
+quoteAssetId: 2
+symbolCategoryId: 26
+description: "British Pound vs Canadian Dollar"
+, symbolId: 124
+symbolName: "XAUCHF"
+enabled: false
+baseAssetId: 17
+quoteAssetId: 3
+symbolCategoryId: 2
+description: "Gold vs  Swiss Franc / Spot"
+, symbolId: 152
+symbolName: "NOVN"
+enabled: false
+baseAssetId: 1075
+quoteAssetId: 3
+symbolCategoryId: 22
+description: "Novartis"
+, symbolId: 186
+symbolName: "MA"
+enabled: false
+baseAssetId: 1024
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Mastercard"
+, symbolId: 271
+symbolName: "ADAUSD"
+enabled: false
+baseAssetId: 1100
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Cardano vs US Dollar"
+, symbolId: 348
+symbolName: "KDDI"
+enabled: false
+baseAssetId: 1195
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "KDDI"
+, symbolId: 20
+symbolName: "AUDNZD"
+enabled: true
+baseAssetId: 1
+quoteAssetId: 11
+symbolCategoryId: 26
+description: "Australian vs New Zeland Dollar"
+, symbolId: 125
+symbolName: "XAUGBP"
+enabled: false
+baseAssetId: 17
+quoteAssetId: 6
+symbolCategoryId: 2
+description: "Gold vs Great Britain Pound / Spot"
+, symbolId: 153
+symbolName: "OR"
+enabled: false
+baseAssetId: 1076
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "L`Oreal"
+, symbolId: 187
+symbolName: "IBM"
+enabled: false
+baseAssetId: 1018
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "International Business Machines"
+, symbolId: 272
+symbolName: "DOGUSD"
+enabled: false
+baseAssetId: 1101
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Dogecoin vs US Dollar"
+, symbolId: 349
+symbolName: "Keyence"
+enabled: false
+baseAssetId: 1196
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Keyence"
+, symbolId: 21
+symbolName: "NZDJPY"
+enabled: true
+baseAssetId: 11
+quoteAssetId: 8
+symbolCategoryId: 26
+description: "New Zeland Dollar vs Japanese Yen"
+, symbolId: 126
+symbolName: "CUCUSD"
+enabled: false
+baseAssetId: 1087
+quoteAssetId: 15
+symbolCategoryId: 2
+description: "Copper vs US Dollar / Spot"
+, symbolId: 154
+symbolName: "SHEL"
+enabled: false
+baseAssetId: 1077
+quoteAssetId: 6
+symbolCategoryId: 22
+description: "Shell PLC"
+, symbolId: 188
+symbolName: "F"
+enabled: false
+baseAssetId: 1009
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Ford Motor Company"
+, symbolId: 273
+symbolName: "SOLUSD"
+enabled: false
+baseAssetId: 1102
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Solana vs US Dollar"
+, symbolId: 350
+symbolName: "Lenovo"
+enabled: false
+baseAssetId: 1197
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "Lenovo Group"
+, symbolId: 23
+symbolName: "AUDCHF"
+enabled: true
+baseAssetId: 1
+quoteAssetId: 3
+symbolCategoryId: 26
+description: "Australian Dollar vs Swiss Franc"
+, symbolId: 155
+symbolName: "RIO"
+enabled: false
+baseAssetId: 1078
+quoteAssetId: 6
+symbolCategoryId: 22
+description: "Rio Tinto"
+, symbolId: 189
+symbolName: "DIS"
+enabled: false
+baseAssetId: 1008
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Walt Disney Company"
+, symbolId: 274
+symbolName: "DOTUSD"
+enabled: false
+baseAssetId: 1103
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Polkadot vs US Dollar"
+, symbolId: 351
+symbolName: "Honda"
+enabled: false
+baseAssetId: 1191
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Honda Motor Company"
+, symbolId: 25
+symbolName: "GBPNZD"
+enabled: true
+baseAssetId: 6
+quoteAssetId: 11
+symbolCategoryId: 26
+description: "British Pound vs New Zeland Dollar "
+, symbolId: 156
+symbolName: "ROG"
+enabled: false
+baseAssetId: 1079
+quoteAssetId: 3
+symbolCategoryId: 22
+description: "Roche Holding"
+, symbolId: 190
+symbolName: "CVX"
+enabled: false
+baseAssetId: 1007
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Chevron Corporation"
+, symbolId: 275
+symbolName: "LNKUSD"
+enabled: false
+baseAssetId: 1104
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Chainlink vs US Dollar"
+, symbolId: 352
+symbolName: "Makita"
+enabled: false
+baseAssetId: 1198
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Makita"
+, symbolId: 26
+symbolName: "EURNZD"
+enabled: true
+baseAssetId: 5
+quoteAssetId: 11
+symbolCategoryId: 26
+description: "Euro vs New Zeland Dollar"
+, symbolId: 157
+symbolName: "SAP"
+enabled: false
+baseAssetId: 1080
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "SAP"
+, symbolId: 191
+symbolName: "A"
+enabled: false
+baseAssetId: 1085
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Agilent Technologies, Inc."
+, symbolId: 276
+symbolName: "MTCUSD"
+enabled: false
+baseAssetId: 1105
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Polygon vs US Dollar"
+, symbolId: 353
+symbolName: "MitsubisUFJ"
+enabled: false
+baseAssetId: 1199
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Mitsubishi UFJ Financial Group"
+, symbolId: 27
+symbolName: "CADCHF"
+enabled: true
+baseAssetId: 2
+quoteAssetId: 3
+symbolCategoryId: 26
+description: "Canadian Dollar vs Swiss Franc"
+, symbolId: 158
+symbolName: "SIE"
+enabled: false
+baseAssetId: 1081
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Siemens"
+, symbolId: 192
+symbolName: "AAL"
+enabled: false
+baseAssetId: 1086
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "American Airlines Group"
+, symbolId: 277
+symbolName: "UNIUSD"
+enabled: false
+baseAssetId: 1106
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Uniswap vs US Dollar"
+, symbolId: 354
+symbolName: "Mitsui"
+enabled: false
+baseAssetId: 1200
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Mitsui & Co"
+, symbolId: 30
+symbolName: "NZDCAD"
+enabled: true
+baseAssetId: 11
+quoteAssetId: 2
+symbolCategoryId: 26
+description: "New Zeland Dollar vs Canadian Dollar"
+, symbolId: 159
+symbolName: "DTE"
+enabled: false
+baseAssetId: 1066
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Deutsche Telekom"
+, symbolId: 194
+symbolName: "AIG"
+enabled: false
+baseAssetId: 1001
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "American International Group"
+, symbolId: 278
+symbolName: "ALGUSD"
+enabled: false
+baseAssetId: 1107
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Algorand vs US Dollar"
+, symbolId: 355
+symbolName: "Mizuho"
+enabled: false
+baseAssetId: 1201
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Mizuho Financial Group"
+, symbolId: 39
+symbolName: "NZDCHF"
+enabled: true
+baseAssetId: 11
+quoteAssetId: 3
+symbolCategoryId: 26
+description: "New Zeland Dollar vs Swiss Franc"
+, symbolId: 160
+symbolName: "DGE"
+enabled: false
+baseAssetId: 1065
+quoteAssetId: 6
+symbolCategoryId: 22
+description: "Diageo"
+, symbolId: 196
+symbolName: "BA"
+enabled: false
+baseAssetId: 1003
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Boeing Company"
+, symbolId: 279
+symbolName: "FILUSD"
+enabled: false
+baseAssetId: 1108
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Filecoin vs US Dollar"
+, symbolId: 356
+symbolName: "Nissan"
+enabled: false
+baseAssetId: 1202
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Nissan Motor Co"
+, symbolId: 40
+symbolName: "GBPCHF"
+enabled: true
+baseAssetId: 6
+quoteAssetId: 3
+symbolCategoryId: 26
+description: "British Pound vs Swiss Franc"
+, symbolId: 161
+symbolName: "BNP"
+enabled: false
+baseAssetId: 1063
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "BNP Paribas"
+, symbolId: 197
+symbolName: "BAC"
+enabled: false
+baseAssetId: 1004
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Bank of America Corporation"
+, symbolId: 280
+symbolName: "MKRUSD"
+enabled: false
+baseAssetId: 1109
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Maker vs US Dollar"
+, symbolId: 357
+symbolName: "PICC"
+enabled: false
+baseAssetId: 1203
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "PICC Property and Casualty"
+, symbolId: 162
+symbolName: "ADS"
+enabled: false
+baseAssetId: 1053
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Adidas"
+, symbolId: 198
+symbolName: "C"
+enabled: false
+baseAssetId: 1005
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Citigroup"
+, symbolId: 281
+symbolName: "AVAUSD"
+enabled: false
+baseAssetId: 1110
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Avalanche vs US Dollar"
+, symbolId: 358
+symbolName: "Seven&I"
+enabled: false
+baseAssetId: 1204
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Seven & i Holdings Co"
+, symbolId: 163
+symbolName: "AF"
+enabled: false
+baseAssetId: 1054
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Air France-KLM"
+, symbolId: 199
+symbolName: "CSCO"
+enabled: false
+baseAssetId: 1006
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Cisco Systems"
+, symbolId: 282
+symbolName: "VECUSD"
+enabled: false
+baseAssetId: 1111
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "VeChain vs US Dollar"
+, symbolId: 359
+symbolName: "ShenhuaEnrg"
+enabled: false
+baseAssetId: 1205
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "China Shenhua Energy"
+, symbolId: 164
+symbolName: "AI"
+enabled: false
+baseAssetId: 1055
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Air Liquide"
+, symbolId: 200
+symbolName: "MAR"
+enabled: false
+baseAssetId: 1025
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Marriott International"
+, symbolId: 283
+symbolName: "NERUSD"
+enabled: false
+baseAssetId: 1112
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "NEAR protocol VS US Dollar"
+, symbolId: 360
+symbolName: "SHK"
+enabled: false
+baseAssetId: 1206
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "SHK Ppt"
+, symbolId: 165
+symbolName: "AIR"
+enabled: false
+baseAssetId: 1056
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Airbus Group"
+, symbolId: 201
+symbolName: "MCD"
+enabled: false
+baseAssetId: 1026
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "McDonald`s"
+, symbolId: 284
+symbolName: "ATMUSD"
+enabled: false
+baseAssetId: 1113
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Cosmos vs US Dollar"
+, symbolId: 361
+symbolName: "Softbank"
+enabled: false
+baseAssetId: 1207
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Softbank"
+, symbolId: 166
+symbolName: "ALV"
+enabled: false
+baseAssetId: 1057
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Allianz"
+, symbolId: 202
+symbolName: "MMM"
+enabled: false
+baseAssetId: 1027
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "3M Company"
+, symbolId: 285
+symbolName: "SANUSD"
+enabled: false
+baseAssetId: 1114
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "The Sandbox vs US Dollar"
+, symbolId: 362
+symbolName: "Sony"
+enabled: false
+baseAssetId: 1208
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Sony"
+, symbolId: 167
+symbolName: "BAS"
+enabled: false
+baseAssetId: 1058
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "BASF"
+, symbolId: 203
+symbolName: "MRK"
+enabled: false
+baseAssetId: 1028
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Merck & Company"
+, symbolId: 286
+symbolName: "SUSUSD"
+enabled: false
+baseAssetId: 1115
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Sushi vs US Dollar"
+, symbolId: 363
+symbolName: "Sumitomo"
+enabled: false
+baseAssetId: 1209
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "SUMITOMO SHOJI KAISHA,LTD."
+, symbolId: 168
+symbolName: "BATS"
+enabled: false
+baseAssetId: 1059
+quoteAssetId: 6
+symbolCategoryId: 22
+description: "British American Tobacco"
+, symbolId: 204
+symbolName: "DLPN"
+enabled: false
+baseAssetId: 1048
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Dolphin Entertainment, Inc. - Common Stock"
+, symbolId: 287
+symbolName: "AXSUSD"
+enabled: false
+baseAssetId: 1116
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Axie Infinity vs US Dollar"
+, symbolId: 364
+symbolName: "Tencent"
+enabled: false
+baseAssetId: 1210
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "Tencent Holdings"
+, symbolId: 169
+symbolName: "BAYN"
+enabled: false
+baseAssetId: 1060
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Bayer"
+, symbolId: 205
+symbolName: "PLBY"
+enabled: false
+baseAssetId: 1049
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "PLBY Group Inc."
+, symbolId: 288
+symbolName: "CRVUSD"
+enabled: false
+baseAssetId: 1117
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Curve vs US Dollar"
+, symbolId: 365
+symbolName: "Toshiba"
+enabled: false
+baseAssetId: 1211
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Toshiba Corporation"
+, symbolId: 170
+symbolName: "BMW"
+enabled: false
+baseAssetId: 1061
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Bayerische Motoren Werke"
+, symbolId: 206
+symbolName: "FNKO"
+enabled: false
+baseAssetId: 1050
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Funko, Inc. - Class A Common Stock"
+, symbolId: 289
+symbolName: "ONEUSD"
+enabled: false
+baseAssetId: 1118
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Harmony vs US Dollar"
+, symbolId: 366
+symbolName: "Toyota"
+enabled: false
+baseAssetId: 1212
+quoteAssetId: 8
+symbolCategoryId: 24
+description: "Toyota Motor Corp"
+, symbolId: 171
+symbolName: "BN"
+enabled: false
+baseAssetId: 1062
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "Danone"
+, symbolId: 207
+symbolName: "NET"
+enabled: false
+baseAssetId: 1051
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "CloudFlare - Class A"
+, symbolId: 290
+symbolName: "LRCUSD"
+enabled: false
+baseAssetId: 1119
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Loopring vs US Dollar"
+, symbolId: 367
+symbolName: "Xiaomi"
+enabled: false
+baseAssetId: 1213
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "Xiaomi"
+, symbolId: 172
+symbolName: "CS"
+enabled: false
+baseAssetId: 1064
+quoteAssetId: 5
+symbolCategoryId: 22
+description: "AXA"
+, symbolId: 208
+symbolName: "TKAT"
+enabled: false
+baseAssetId: 1052
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Takung Art Co. Ltd. Common Stock"
+, symbolId: 291
+symbolName: "INCUSD"
+enabled: false
+baseAssetId: 1120
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "1inch vs US Dollar"
+, symbolId: 368
+symbolName: "JDCom"
+enabled: false
+baseAssetId: 1214
+quoteAssetId: 23
+symbolCategoryId: 24
+description: "Jd Com Inc"
+, symbolId: 209
+symbolName: "MAT"
+enabled: false
+baseAssetId: 1047
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Mattel, Inc. - Common Stock"
+, symbolId: 292
+symbolName: "XTZUSD"
+enabled: false
+baseAssetId: 1121
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Tezos vs US Dollar"
+, symbolId: 211
+symbolName: "WMT"
+enabled: false
+baseAssetId: 1044
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Wal-Mart Stores"
+, symbolId: 293
+symbolName: "APEUSD"
+enabled: false
+baseAssetId: 1122
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "ApeCoin vs US Dollar"
+, symbolId: 213
+symbolName: "NDAQ"
+enabled: false
+baseAssetId: 1030
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "NASDAQ OMX Group"
+, symbolId: 294
+symbolName: "BARUSD"
+enabled: false
+baseAssetId: 1123
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Hedera vs US Dollar"
+, symbolId: 214
+symbolName: "NFLX"
+enabled: false
+baseAssetId: 1031
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Netflix"
+, symbolId: 295
+symbolName: "MANUSD"
+enabled: false
+baseAssetId: 1124
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Decentraland vs US Dollar"
+, symbolId: 215
+symbolName: "NKE"
+enabled: false
+baseAssetId: 1032
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Nike"
+, symbolId: 296
+symbolName: "TETUSD"
+enabled: false
+baseAssetId: 1125
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Theta vs US Dollar"
+, symbolId: 216
+symbolName: "ORCL"
+enabled: false
+baseAssetId: 1033
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Oracle Corporation"
+, symbolId: 297
+symbolName: "FTMUSD"
+enabled: false
+baseAssetId: 1126
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Fantom vs US Dollar"
+, symbolId: 217
+symbolName: "PEP"
+enabled: false
+baseAssetId: 1034
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Pepsico"
+, symbolId: 298
+symbolName: "AAVUSD"
+enabled: false
+baseAssetId: 1127
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "AAVE vs US Dollar"
+, symbolId: 218
+symbolName: "PG"
+enabled: false
+baseAssetId: 1035
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Procter & Gamble Company"
+, symbolId: 299
+symbolName: "GMTUSD"
+enabled: false
+baseAssetId: 1128
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "STEPN vs US Dollar"
+, symbolId: 219
+symbolName: "T"
+enabled: false
+baseAssetId: 1036
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "AT&T"
+, symbolId: 300
+symbolName: "FLWUSD"
+enabled: false
+baseAssetId: 1129
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "FLOW vs US Dollar"
+, symbolId: 221
+symbolName: "UAL"
+enabled: false
+baseAssetId: 1038
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "United Continental Holdings"
+, symbolId: 301
+symbolName: "GRTUSD"
+enabled: false
+baseAssetId: 1130
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "The Graph vs US Dollar"
+, symbolId: 222
+symbolName: "UNH"
+enabled: false
+baseAssetId: 1039
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "UnitedHealth Group"
+, symbolId: 302
+symbolName: "KSMUSD"
+enabled: false
+baseAssetId: 1131
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Kusama vs US Dollar"
+, symbolId: 223
+symbolName: "V"
+enabled: false
+baseAssetId: 1040
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Visa"
+, symbolId: 303
+symbolName: "ZILUSD"
+enabled: false
+baseAssetId: 1132
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Zilliqa vs US Dollar"
+, symbolId: 224
+symbolName: "VZ"
+enabled: false
+baseAssetId: 1041
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Verizon Communications"
+, symbolId: 304
+symbolName: "GALUSD"
+enabled: false
+baseAssetId: 1133
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "GALA vs US Dollar"
+, symbolId: 225
+symbolName: "WFC"
+enabled: false
+baseAssetId: 1042
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Wells Fargo & Company"
+, symbolId: 305
+symbolName: "CEOUSD"
+enabled: false
+baseAssetId: 1134
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Celo vs US Dollar"
+, symbolId: 226
+symbolName: "WKHS"
+enabled: false
+baseAssetId: 1043
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Workhorse Group"
+, symbolId: 306
+symbolName: "CHZUSD"
+enabled: false
+baseAssetId: 1135
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Chiliz vs US Dollar"
+, symbolId: 227
+symbolName: "XOM"
+enabled: false
+baseAssetId: 1045
+quoteAssetId: 15
+symbolCategoryId: 23
+description: "Exxon Mobil Corporation"
+, symbolId: 307
+symbolName: "ENJUSD"
+enabled: false
+baseAssetId: 1136
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Enjin Coin vs US Dollar"
+, symbolId: 308
+symbolName: "KAVUSD"
+enabled: false
+baseAssetId: 1137
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Kava vs US Dollar"
+, symbolId: 309
+symbolName: "ARWUSD"
+enabled: false
+baseAssetId: 1138
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Arweave vs US Dollar"
+, symbolId: 310
+symbolName: "KNCUSD"
+enabled: false
+baseAssetId: 1139
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Kyber vs US Dollar"
+, symbolId: 311
+symbolName: "COMUSD"
+enabled: false
+baseAssetId: 1140
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Compound vs US Dollar"
+, symbolId: 312
+symbolName: "XEMUSD"
+enabled: false
+baseAssetId: 1141
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "NEM vs US Dollar"
+, symbolId: 313
+symbolName: "YFIUSD"
+enabled: false
+baseAssetId: 1142
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Yearn Finance vs US Dollar"
+, symbolId: 314
+symbolName: "QTMUSD"
+enabled: false
+baseAssetId: 1143
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Qtum vs US Dollar"
+, symbolId: 315
+symbolName: "SNXUSD"
+enabled: false
+baseAssetId: 1144
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Synthetix vs US Dollar"
+, symbolId: 316
+symbolName: "EGLUSD"
+enabled: false
+baseAssetId: 1145
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Elrond vs US Dollar"
+, symbolId: 317
+symbolName: "SKLUSD"
+enabled: false
+baseAssetId: 1146
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Skale network vs US Dollar"
+, symbolId: 318
+symbolName: "ANKUSD"
+enabled: false
+baseAssetId: 1147
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Ankr vs US Dollar"
+, symbolId: 319
+symbolName: "SXPUSD"
+enabled: false
+baseAssetId: 1148
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "SXP vs US Dollar"
+, symbolId: 320
+symbolName: "LPTUSD"
+enabled: false
+baseAssetId: 1149
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Livepeer vs US Dollar"
+, symbolId: 321
+symbolName: "RVNUSD"
+enabled: false
+baseAssetId: 1150
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Ravencoin vs US Dollar"
+, symbolId: 322
+symbolName: "WOOUSD"
+enabled: false
+baseAssetId: 1151
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "WOO Network vs US Dollar"
+, symbolId: 323
+symbolName: "ONTUSD"
+enabled: false
+baseAssetId: 1152
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Ontology vs US Dollar"
+, symbolId: 324
+symbolName: "ZENUSD"
+enabled: false
+baseAssetId: 1153
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Horizen vs US Dollar"
+, symbolId: 325
+symbolName: "IMXUSD"
+enabled: false
+baseAssetId: 1154
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Immutable X vs US Dollar"
+, symbolId: 326
+symbolName: "STOUSD"
+enabled: false
+baseAssetId: 1155
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Storj vs US Dollar"
+, symbolId: 327
+symbolName: "RENUSD"
+enabled: false
+baseAssetId: 1156
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Ren vs US Dollar"
+, symbolId: 328
+symbolName: "CELUSD"
+enabled: false
+baseAssetId: 1157
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Celer Network vs US Dollar"
+, symbolId: 329
+symbolName: "DYDUSD"
+enabled: false
+baseAssetId: 1158
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "DYDX vs US Dollar"
+, symbolId: 330
+symbolName: "CNEUSD"
+enabled: false
+baseAssetId: 1159
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "C98 vs US Dollar"
+, symbolId: 331
+symbolName: "PEPUSD"
+enabled: false
+baseAssetId: 1160
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "ConstitutionDAO vs US Dollar"
+, symbolId: 332
+symbolName: "CHRUSD"
+enabled: false
+baseAssetId: 1161
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Chromia vs US Dollar"
+, symbolId: 333
+symbolName: "COTUSD"
+enabled: false
+baseAssetId: 1162
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "COTI vs US Dollar"
+, symbolId: 334
+symbolName: "ALIUSD"
+enabled: false
+baseAssetId: 1163
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "MyNeighborAlice vs US Dollar"
+, symbolId: 335
+symbolName: "CTSUSD"
+enabled: false
+baseAssetId: 1164
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Cartesi vs US Dollar"
+, symbolId: 336
+symbolName: "ZRXUSD"
+enabled: false
+baseAssetId: 1165
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "0x vs US Dollar"
+, symbolId: 103
+symbolName: "USTUSD"
+enabled: false
+baseAssetId: 33
+quoteAssetId: 15
+symbolCategoryId: 18
+description: "Tether vs US Dollar"
+]

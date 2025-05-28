@@ -2,9 +2,23 @@ import json
 import configparser
 import re
 import json
+from enum import Enum
 
 gSymbolData = None
 gConfigData = None
+
+SYMBOL_LIST_JSON_FILENAME = "symbolList_"
+
+class SymbolJsonUpdate(Enum):
+    NO_UPDATE = 1
+    HAS_UPDATE = 2
+
+    @classmethod
+    def getName(cls, value):
+        for key in cls:
+            if key.value == value:
+                return key.name
+        return None
 
 def read_symbol_id(symbol_id_to_search, account_type, to_print=False):
     """
@@ -12,21 +26,14 @@ def read_symbol_id(symbol_id_to_search, account_type, to_print=False):
     """
     global gSymbolData
     if gSymbolData is None:
-        filename = "symbolList_" + account_type + ".json"
+        filename = SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
         with open(filename, "r", encoding="utf-8") as json_file:
-            gSymbolData = json.load(json_file)  # Load JSON into a dictionary
+            content = json.load(json_file)  # Load JSON into a dictionary
 
-    # Search for key and output the value
-    result = next((item for item in gSymbolData if item.get("symbolId") == symbol_id_to_search), None)
+    # Convert (str) key into (int) key
+    gSymbolData = {int(k): v for k, v in content.items()}
 
-    # Print the result
-    if result:
-        if to_print:
-            print("symbolId:{} symbolName:{}".format(result["symbolId"], result["symbolName"]))
-    else:
-        print("Key not found in the JSON file.")
-        
-    return result
+    return gSymbolData[symbol_id_to_search]
 
 def read_config_file(reload=False):
     global gConfigData
@@ -58,14 +65,29 @@ def convert_txt_to_json(txt_path, account_type):
     pattern = re.findall(r"symbolId:\s*(\d+)\s*symbolName:\s*\"(.*?)\"", content)
 
     # Convert extracted data into a structured list
-    symbols = [{"symbolId": int(symbol_id), "symbolName": symbol_name} for symbol_id, symbol_name in pattern]
+    symbols_new_ID_first_dict = {int(symbol_id): symbol_name for symbol_id, symbol_name in pattern}
 
-    # Print the result in nicely formatted JSON
-    # json_output = json.dumps(symbols, indent=4)
-    # print(json_output)
+    # Check if data is same or not
+    filename_ID_first_json = SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
+    # Read existing JSON file
+    symbols_old_dict = {}
+    with open(filename_ID_first_json, "r", encoding="utf-8") as json_file:
+        data_dict = json.load(json_file)
 
-    filename_json = "symbolList_" + account_type + ".json"
-    with open(filename_json, "w", encoding="utf-8") as json_file:
-        json.dump(symbols, json_file, indent=4)
+    # Convert (str) key, into (int) key
+    symbols_old_dict = {int(k): v for k, v in data_dict.items()}
+
+
+    if symbols_new_ID_first_dict == symbols_old_dict:
+        print(f"Symbols ID is up to date")
+        return SymbolJsonUpdate.NO_UPDATE, None
+
+    # Update the JSON file
+    with open(filename_ID_first_json, "w", encoding="utf-8") as json_file:
+        json.dump(symbols_new_ID_first_dict, json_file, indent=4)
+
+    # Swap keys and values
+    symbols_old_NAME_first_dict = {v: k for k, v in symbols_old_dict.items()}
 
     print("Data successfully written to symbolist.json!")
+    return SymbolJsonUpdate.HAS_UPDATE, symbols_old_NAME_first_dict

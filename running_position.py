@@ -1,20 +1,17 @@
 import utility
 from ctrader_open_api.messages.OpenApiModelMessages_pb2 import ProtoOATradeSide
 import queue
-import time
 
 # It needs to be defined here
 # If i defined it in main.py,
 # calling g_command_queue.put() has no effect i dk why
 g_command_queue = queue.Queue()
 # list of running positions
-# [{positionId, RunningPosition object}]
-g_positions = []
+# The dict key is the Running PositionId, the data afterwards has RunningPosition object
+g_positions = {}
 # list of symbols bid/ask price
-# Initiate to 500, i want such that, if XAUUSD symbolId is 41, then insert into 41, easier to search
-g_subscribe = [{"symbolId":None, "symbol":None, "bid":None, "ask":None, "NumOfUser":None} for _ in range(500)]
-
-
+# The dict key is the symbolID, the data afterwards has Symbol name, bid, ask, NumOfUsers
+g_subscribe = {}
 
 class RunningPosition:
     def __init__(self, positionId, symbolId, symbol, volume, tradeSide, entryPrice, stopLoss, takeProfit):
@@ -59,11 +56,11 @@ class RunningPosition:
     def getBidAndAsk(self):
         global g_command_queue
         # Check if exists, if not exists, subscribe, else, add 1 user
-        if g_subscribe[self.symbolId]["symbolId"] is None:
+        if self.symbolId not in g_subscribe:
             # Trigger command `sub 41` to subscribe to asset
             g_command_queue.put(f"sub {self.symbolId}")
         else:
-            g_subscribe[self.symbolId]["NumOfUser"] += 1
+            g_subscribe[self.symbolId]["NumOfUser"] += int(1)
 
 
     def run(self):
@@ -71,17 +68,35 @@ class RunningPosition:
             # No need check lotsize 0.01 here, alreayd done before creating this class object
             # If SL-ed, then it shall be removed from the list & stop running this shit
             if self.alive == False:
+                print(f"PositionId:{self.positionId} Symbol:{self.symbol} hit SL or Symbol Update.")
                 break
-            if g_subscribe[self.symbolId]["symbolId"] is None:
+            if self.symbolId not in g_subscribe:
                 continue
             runningPip = 0
             # The documentation mention bid & ask are specified in 1/100000 unit
             runningPip = round(((g_subscribe[self.symbolId][self.tp_sl_bid_or_ask]/100000) - self.entryPrice) / self.price_per_pip, 2) * self.sl_direction_bias
             # Take partial profit & set BE & set SL trigger is default (trade)
             if runningPip >= self.tpp_pips:
+                """
+                There is 1 problem with this
+                If g_subscribe for some reason is not cleared due to race condition
+                This will straight away TRUE & TPP immediately after you enter trade
+                & set BE, then because your price still at entry then set BE fail
+                TODO
+                1. We need find a way to guarantee g_subscribe gets cleared
+                2. Maybe a command to refresh g_subscribe?
+                
+                !NOTE!
+                There's 2nd problem
+                What if you accidentally ran the script in 2 different sessions?
+                Eg: 1 in your PC, 1 in your phone
+                Hmmm
+                """
                 print(f"PositionId:{self.positionId} Symbol:{self.symbol} TPP")
+                # Set TPP
                 g_command_queue.put(f"tpp {self.positionId} {self.tpp_lotsize_in_volume}")
-                g_command_queue.put(f"be {self.positionId} {self.entryPrice}")
+                # Set BE, set stopLoss = entryPrice
+                g_command_queue.put(f"ap {self.positionId} {self.entryPrice} {self.takeProfit}")
                 break
         self.destroy()
 
@@ -91,17 +106,13 @@ class RunningPosition:
         # No need remove from list in here, it already handled by stopRunningPosition()
 
         # Check & remove subscription if no more user left
-        g_subscribe[self.symbolId]["NumOfUser"] -= 1
-        if g_subscribe[self.symbolId]["NumOfUser"] == 0:
+        g_subscribe[self.symbolId]["NumOfUser"] -= int(1)
+        if g_subscribe[self.symbolId]["NumOfUser"] == int(0):
             # You know, due to multithreading
             # After you set to None, it probably set to some value before
             # you unsubcribe completely
             # Im thinking we can just leave it have values no problem gua i guess
-            g_subscribe[self.symbolId]["symbolId"] = None
-            g_subscribe[self.symbolId]["symbol"] = None
-            g_subscribe[self.symbolId]["bid"] = None
-            g_subscribe[self.symbolId]["ask"] = None
-            g_subscribe[self.symbolId]["NumOfUser"] = None
+            del g_subscribe[self.symbolId]
             # This is unsubscribe
             g_command_queue.put(f"unsub {self.symbolId}")
 
