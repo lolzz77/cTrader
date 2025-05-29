@@ -47,6 +47,7 @@ UPDATING_SYMBOL = False
 SET_LOTSIZE = False
 MARKET_CLOSE_SET_LIAO = False
 MARKET_OPEN_SET_LIAO = False
+CLOSE_ALL = False
 
 g_subscribe_count = 0
 
@@ -146,6 +147,7 @@ if __name__ == "__main__":
         global SET_LOTSIZE
         global MARKET_CLOSE_SET_LIAO
         global MARKET_OPEN_SET_LIAO
+        global CLOSE_ALL
 
         if message.payloadType in gPayloadIgnoreList:
             return
@@ -227,13 +229,21 @@ if __name__ == "__main__":
                 print(f"Today is sunday")
                 return
 
+
             # Market closing
             if MARKET_CLOSE_SET_LIAO == False:
+
                 if current_time > time_checks[0] and current_time < time_checks[1]:
                     print(f"Today is {current_weekday} {formatted_time}. Market closing.")
                     MARKET_CLOSE_SET_LIAO = True
                     MARKET_OPEN_SET_LIAO = False
                     running_position.g_command_queue.put(f"lt 100")
+
+                    # Close all running positions
+                    if current_weekday == "Friday":
+                        print(f"Today is {current_weekday} {formatted_time}. Closing all running orders")
+                        CLOSE_ALL = True
+                        getRunningPositions()
 
             # Market open
             if MARKET_OPEN_SET_LIAO == False:
@@ -263,7 +273,7 @@ if __name__ == "__main__":
         elif message.payloadType == ProtoOAAccountAuthRes().payloadType:
             protoOAAccountAuthRes = Protobuf.extract(message)
             print(f"Account {protoOAAccountAuthRes.ctidTraderAccountId} has been authorized")
-            
+
             # Call symbol update command
             # Who knows during your offline, they updated the symbol IDs lol
             running_position.g_command_queue.put("s")
@@ -354,7 +364,7 @@ if __name__ == "__main__":
             """
             global g_subscribe
             global g_subscribe_count
-    
+
             res = Protobuf.extract(message)
 
             if UPDATING_SYMBOL:
@@ -422,6 +432,17 @@ if __name__ == "__main__":
                 running_position.g_subscribe.clear()
                 print("No running order")
                 return
+
+            if CLOSE_ALL:
+                for position in positionList:
+                    # Check if exists in list
+                    if position.positionId in running_position.g_positions:
+                        running_position.g_positions[position.positionId]["Object"].closeAll = True
+                        continue
+                    # What if there's 0.01 left running, right?
+                    print(f"PositionId:{position.positionId} Volume:{position.tradeData.volume} close all")
+                    running_position.g_command_queue.put(f"tpp {position.positionId} {position.tradeData.volume}")
+                CLOSE_ALL = False
 
             for position in positionList:
                 # Check if exists in list
@@ -540,6 +561,9 @@ if __name__ == "__main__":
     def stopRunningPosition(positionId, clientMsgId=None):
         """
         Remove position from g_position since it hit SL or TP
+        What about g_subscribe?
+        Once this object is set to False
+        It will be handled in the object destroy() function
         """
         global g_positions
         running_position.g_positions[positionId]["Object"].alive = False
@@ -625,6 +649,7 @@ if __name__ == "__main__":
     def sendCloseReq(positionId, volume, clientMsgId=None):
         """
         Take partial profit
+        If you put all volume, means close all position
         """
         request = ProtoOAClosePositionReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
@@ -633,12 +658,12 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def sendAmendPosition(positionId, entryPrice, takeProfit, SLTriggerMethod = 'TRADE', clientMsgId=None):
+    def sendAmendRunningPosition(positionId, entryPrice, takeProfit, SLTriggerMethod = 'TRADE', clientMsgId=None):
         """
         Set BE
         And set trade side to default
         TODO: Set BE + few pips
-        
+
         This also can be used to set SL trigger method to OPPOSITE, without setting BE
         That is, you set original stopLoss, takeProfit, but set SLTriggerMethod to "OPPOSITE"
         """
@@ -807,12 +832,12 @@ if __name__ == "__main__":
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
-        "ap": sendAmendPosition, # Amend Running Position, call `ap positionId stopLoss takeProfit "TRADE"`
+        "ap": sendAmendRunningPosition, # Amend Running Position, call `ap positionId stopLoss takeProfit "TRADE"`
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
         "pp": printRunningList, # p = print running list
         "p": printSubscriptionList, # p = print subscription list
         "s": getSymbolList, # Update symbol files, call `sd symbolId`
-        "sd": getSymbolDetail, # sd = symbol detail, 
+        "sd": getSymbolDetail, # sd = symbol detail,
         "lt": setLotSize, # lt = lotsize, call `lt lotsize`
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,

@@ -16,6 +16,7 @@ g_subscribe = {}
 class RunningPosition:
     def __init__(self, positionId, symbolId, symbol, volume, tradeSide, entryPrice, stopLoss, takeProfit):
         self.alive = True
+        self.closeAll = False # Close all without TPP
         self.positionId = positionId
         self.symbolId = symbolId
         self.symbol = symbol
@@ -69,6 +70,10 @@ class RunningPosition:
             # If SL-ed, then it shall be removed from the list & stop running this shit
             if self.alive == False:
                 print(f"PositionId:{self.positionId} Symbol:{self.symbol} hit SL or Symbol Update.")
+                break
+            if self.closeAll:
+                print(f"PositionId:{self.positionId} Symbol:{self.symbol} Close ALL!")
+                g_command_queue.put(f"tpp {self.positionId} {self.volume}")
                 break
             if self.symbolId not in g_subscribe:
                 continue
