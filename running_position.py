@@ -1,6 +1,7 @@
 import utility
 from ctrader_open_api.messages.OpenApiModelMessages_pb2 import ProtoOATradeSide
 import queue
+import threading
 
 # It needs to be defined here
 # If i defined it in main.py,
@@ -12,6 +13,9 @@ g_positions = {}
 # list of symbols bid/ask price
 # The dict key is the symbolID, the data afterwards has Symbol name, bid, ask, NumOfUsers
 g_subscribe = {}
+
+# Lock for multithread
+g_lock = threading.Lock()
 
 class RunningPosition:
     def __init__(self, positionId, symbolId, symbol, volume, tradeSide, entryPrice, stopLoss, takeProfit):
@@ -109,17 +113,17 @@ class RunningPosition:
         global g_subscribe
 
         # No need remove from list in here, it already handled by stopRunningPosition()
-
-        # Check & remove subscription if no more user left
-        g_subscribe[self.symbolId]["NumOfUser"] -= int(1)
-        if g_subscribe[self.symbolId]["NumOfUser"] == int(0):
-            # You know, due to multithreading
-            # After you set to None, it probably set to some value before
-            # you unsubcribe completely
-            # Im thinking we can just leave it have values no problem gua i guess
-            del g_subscribe[self.symbolId]
-            # This is unsubscribe
-            g_command_queue.put(f"unsub {self.symbolId}")
+        with g_lock:
+            # Check & remove subscription if no more user left
+            g_subscribe[self.symbolId]["NumOfUser"] -= int(1)
+            if g_subscribe[self.symbolId]["NumOfUser"] == int(0):
+                # You know, due to multithreading
+                # After you set to None, it probably set to some value before
+                # you unsubcribe completely
+                # Im thinking we can just leave it have values no problem gua i guess
+                del g_subscribe[self.symbolId]
+                # This is unsubscribe
+                g_command_queue.put(f"unsub {self.symbolId}")
 
 
         print(f"{self.positionId}:{self.symbol} is being destroyed.")

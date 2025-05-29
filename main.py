@@ -51,9 +51,6 @@ CLOSE_ALL = False
 
 g_subscribe_count = 0
 
-# Lock for multithread
-g_lock = threading.Lock()
-
 # From .env file, get the variable
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
 APP_CLIENT_SECRET = os.getenv('APP_CLIENT_SECRET')
@@ -399,7 +396,7 @@ if __name__ == "__main__":
                 return
 
             # If exists, just update the bid/ask price, else, write into dictionary
-            with g_lock:
+            with running_position.g_lock:
                 if res.symbolId in running_position.g_subscribe:
                     running_position.g_subscribe[res.symbolId]["bid"] = int(res.bid)
                     running_position.g_subscribe[res.symbolId]["ask"] = int(res.ask)
