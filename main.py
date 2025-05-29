@@ -262,7 +262,7 @@ if __name__ == "__main__":
                     # By this time, g_pending should have been populated
                     if len(g_pending) == 0:
                         return
-                    for orderId, value in g_pending.items():
+                    for value in g_pending.values():
                         if value["Object"].tradeData.volume == int(utility.gConfigData[f"VOLUME_PER_LOT_{value['symbol']}"]) * 2:
                             continue
                         amendOrder_setLotSize(value["Object"], value["symbol"], 0.02)
