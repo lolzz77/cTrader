@@ -437,6 +437,7 @@ if __name__ == "__main__":
                         running_position.g_positions[position.positionId]["Object"].closeAll = True
                         continue
                     # What if there's 0.01 left running, right?
+                    # !note! Just so you know, TPP will cause cTrader to create new ID for the running position
                     print(f"PositionId:{position.positionId} Volume:{position.tradeData.volume} close all")
                     running_position.g_command_queue.put(f"tpp {position.positionId} {position.tradeData.volume}")
                 CLOSE_ALL = False
