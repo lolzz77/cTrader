@@ -651,7 +651,7 @@ if __name__ == "__main__":
         try:
             while True:
                 print("\n=====================================\n")
-                userInput = input("Command (ex help): ")
+                userInput = input("Command (Reminder Termux eats 1 char): ")
                 running_position.g_command_queue.put(userInput)
         # !CTRL C!
         # To detech & handle CTRL C, but this will not work
