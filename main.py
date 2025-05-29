@@ -50,6 +50,8 @@ MARKET_OPEN_SET_LIAO = False
 CLOSE_ALL = False
 
 g_subscribe_count = 0
+# Pending Orders
+g_pending = {}
 
 # From .env file, get the variable
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
@@ -151,6 +153,7 @@ if __name__ == "__main__":
         global gAuthPrintOnly
         global g_positions
         global g_subscribe
+        global g_pending
 
         if message.payloadType in gPayloadIgnoreList:
             return
@@ -235,14 +238,14 @@ if __name__ == "__main__":
 
             # Market closing
             if MARKET_CLOSE_SET_LIAO == False:
-
+                # If market close, set lotsize to maximum
                 if current_time > time_checks[0] and current_time < time_checks[1]:
                     print(f"Today is {current_weekday} {formatted_time}. Market closing.")
                     MARKET_CLOSE_SET_LIAO = True
                     MARKET_OPEN_SET_LIAO = False
                     running_position.g_command_queue.put(f"lt 100")
 
-                    # Close all running positions
+                    # If friday, Close all running positions
                     if current_weekday == "Friday":
                         print(f"Today is {current_weekday} {formatted_time}. Closing all running orders")
                         CLOSE_ALL = True
@@ -250,11 +253,19 @@ if __name__ == "__main__":
 
             # Market open
             if MARKET_OPEN_SET_LIAO == False:
+                # If market open, check if lotsize is equal to 0.02, if not, set to 0.02
                 if current_time > time_checks[1] and current_time < time2(23, 59):
                     print(f"Today is {current_weekday} {formatted_time}. Market opening.")
                     MARKET_CLOSE_SET_LIAO = False
                     MARKET_OPEN_SET_LIAO = True
-                    running_position.g_command_queue.put(f"lt 0.02")
+                    
+                    # By this time, g_pending should have been populated
+                    if len(g_pending) == 0:
+                        return
+                    for orderId, value in g_pending.items():
+                        if value["Object"].tradeData.volume == int(utility.gConfigData[f"VOLUME_PER_LOT_{value['symbol']}"]) * 2:
+                            continue
+                        amendOrder_setLotSize(value["Object"], value["symbol"], 0.02)
 
             return
 
@@ -414,14 +425,19 @@ if __name__ == "__main__":
         elif message.payloadType == ProtoOAReconcileRes().payloadType:
             res = Protobuf.extract(message)
             positionList = []
-            orderList = []
+            pendingOrderList = []
+
+            pendingOrderList = res.order
+            if len(pendingOrderList) != 0:
+                for o in pendingOrderList:
+                    symbol = utility.read_symbol_id(o.tradeData.symbolId, ACCOUNT_TYPE)
+                    g_pending[o.orderId] = {"Object": o , "symbol": symbol}
 
             # This is for setting lotsize purposes
             if SET_LOTSIZE:
-                if len(res.order) == 0:
+                if len(pendingOrderList) == 0:
                     return
-                orderList = res.order
-                for order in orderList:
+                for order in pendingOrderList:
                     symbol = utility.read_symbol_id(order.tradeData.symbolId, ACCOUNT_TYPE)
                     amendOrder_setLotSize(order, symbol, g_lotsize)
                 SET_LOTSIZE = False
@@ -855,6 +871,7 @@ if __name__ == "__main__":
         "s": getSymbolList, # Update symbol files, call `sd symbolId`
         "sd": getSymbolDetail, # sd = symbol detail,
         "lt": setLotSize, # lt = lotsize, call `lt lotsize`
+        "ltoid": amendOrder_setLotSize, # ltid = lotsize with order ID, call `ltoid orderId lotsize`
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
     }
