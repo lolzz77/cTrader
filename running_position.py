@@ -117,14 +117,9 @@ class RunningPosition:
             # Check & remove subscription if no more user left
             g_subscribe[self.symbolId]["NumOfUser"] -= int(1)
             if g_subscribe[self.symbolId]["NumOfUser"] == int(0):
-                # You know, due to multithreading
-                # After you set to None, it probably set to some value before
-                # you unsubcribe completely
-                # Im thinking we can just leave it have values no problem gua i guess
-                del g_subscribe[self.symbolId]
-                # This is unsubscribe
+                # Unsubscribe
+                # The handling of deleting g_subscribe will be handled in unsubscribe response
                 g_command_queue.put(f"unsub {self.symbolId}")
-
 
         print(f"{self.positionId}:{self.symbol} is being destroyed.")
         del self

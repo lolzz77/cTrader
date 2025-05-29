@@ -145,6 +145,12 @@ if __name__ == "__main__":
         global MARKET_CLOSE_SET_LIAO
         global MARKET_OPEN_SET_LIAO
         global CLOSE_ALL
+        global g_subscribe_count
+        global FIRST_TIME_BOOT_UP
+        global UPDATING_SYMBOL
+        global gAuthPrintOnly
+        global g_positions
+        global g_subscribe
 
         if message.payloadType in gPayloadIgnoreList:
             return
@@ -276,9 +282,6 @@ if __name__ == "__main__":
             running_position.g_command_queue.put("s")
 
         elif message.payloadType == ProtoOASymbolsListRes().payloadType:
-            global FIRST_TIME_BOOT_UP
-            global UPDATING_SYMBOL
-
             res = Protobuf.extract(message)
             symbol_data = res.symbol
             filename = "symbolList_" + ACCOUNT_TYPE + ".txt"
@@ -325,8 +328,6 @@ if __name__ == "__main__":
             print("New accessToken & refreshToken updated")
 
         elif message.payloadType == ProtoOAGetAccountListByAccessTokenRes().payloadType:
-            global gAuthPrintOnly
-
             res = Protobuf.extract(message)
             accounts = res.ctidTraderAccount
             g_auth_acc.clear()
@@ -346,7 +347,7 @@ if __name__ == "__main__":
                 print(acc)
             gAuthPrintOnly = False
 
-        elif message.payloadType == ProtoOAUnsubscribeDepthQuotesRes().payloadType or message.payloadType == ProtoOAPayloadType.Value('PROTO_OA_UNSUBSCRIBE_SPOTS_RES'):
+        elif message.payloadType == ProtoOAUnsubscribeSpotsRes().payloadType:
             """
             Unsubscribe to symbols
             It will use count to tell me whether has all the symbols in
@@ -359,9 +360,6 @@ if __name__ == "__main__":
             What if got race condition? Just be safe
             ```
             """
-            global g_subscribe
-            global g_subscribe_count
-
             res = Protobuf.extract(message)
 
             if UPDATING_SYMBOL:
@@ -377,6 +375,18 @@ if __name__ == "__main__":
                     g_subscribe_count = 0
                     running_position.g_command_queue.put("m")
 
+            # Clean up the g_subscribe
+            with running_position.g_lock:
+                if len(running_position.g_positions) == 0:
+                    running_position.g_subscribe.clear()
+                else:
+                    temp = running_position.g_subscribe.copy()
+                    for t in temp:
+                        for p in running_position.g_positions.values():
+                            if t == p["Object"].symbolId:
+                                continue
+                            del running_position.g_subscribe[t]
+
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
             print(f"Unsubscribe symbol, Payload Name: {payloadName}")
 
@@ -384,12 +394,9 @@ if __name__ == "__main__":
             """
             Subscribe to symbols
             """
-            global g_subscribe
-
             res = Protobuf.extract(message)
             # For now, let's try ignore getting real symbol name
-            symbol = "demo"
-            # symbol = utility.read_symbol_id(res.symbolId, ACCOUNT_TYPE)["symbolName"]
+            symbol = utility.read_symbol_id(res.symbolId, ACCOUNT_TYPE)
 
             # If data is 0, dont insert, later disrupt my script miscalculate or mistaken that can breakeven now
             if res.bid == 0 or res.ask == 0:
@@ -405,8 +412,6 @@ if __name__ == "__main__":
 
         # Get list of pending orders and running positions of account
         elif message.payloadType == ProtoOAReconcileRes().payloadType:
-            global g_positions
-            global g_subscribe
             res = Protobuf.extract(message)
             positionList = []
             orderList = []
@@ -472,6 +477,10 @@ if __name__ == "__main__":
                 # Check if SL trigger is opposite or not, if is not, set it to opposite
                 if position.stopLossTriggerMethod != ProtoOAOrderTriggerMethod.Value('OPPOSITE'):
                     print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is not OPPOSITE. Set to OPPOISTE now.")
+                    # Note: After this command
+                    # If you get description: "Protection can\'t be negative"
+                    # Dont worry, this means you didnt set TP
+                    # Usually this happens when I trying to test demo
                     running_position.g_command_queue.put(f"ap {position.positionId} {position.stopLoss} {position.takeProfit} OPPOSITE")
 
         else:
