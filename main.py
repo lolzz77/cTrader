@@ -731,6 +731,7 @@ if __name__ == "__main__":
         print(f"volume_per_lot: {volume_per_lot}:{int(utility.gConfigData[volume_per_lot])}")
         print(f"Existing lotsize:{_ProtoOAOrder.tradeData.volume}")
         print(f"Passed in lotsize:{lotsize}")
+        print(f"=============================\n")
 
         request = ProtoOAAmendOrderReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
