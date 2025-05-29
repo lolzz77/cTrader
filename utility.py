@@ -29,9 +29,8 @@ def read_symbol_id(symbol_id_to_search, account_type, to_print=False):
         filename = SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
         with open(filename, "r", encoding="utf-8") as json_file:
             content = json.load(json_file)  # Load JSON into a dictionary
-
-    # Convert (str) key into (int) key
-    gSymbolData = {int(k): v for k, v in content.items()}
+        # Convert (str) key into (int) key
+        gSymbolData = {int(k): v for k, v in content.items()}
 
     return gSymbolData[symbol_id_to_search]
 

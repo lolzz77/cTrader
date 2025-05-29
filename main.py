@@ -11,18 +11,32 @@ from ctrader_open_api.messages.OpenApiMessages_pb2 import *
 from ctrader_open_api.messages.OpenApiModelMessages_pb2 import *
 from twisted.internet import reactor
 import datetime
-from datetime import datetime
+from datetime import datetime, time as time2
 import pytz
 import utility
 import fileinput
 import threading
 import time
 import running_position
+from enum import Enum
 
 load_dotenv()
 utility.read_config_file()
 
-g_heartbeat = True
+# In an order, it has relative stop loss or absolute stop loss
+# YOu have to choose one side
+class StopLossTakeProfit(Enum):
+    RELATIVE = 1
+    ABSOLUTE = 2
+
+    @classmethod
+    def getName(cls, value):
+        for key in cls:
+            if key.value == value:
+                return key.name
+        return None
+
+g_heartbeat = False
 g_mytimezone = pytz.timezone("Asia/Singapore")
 
 # For RunningPosition class objects
@@ -30,6 +44,9 @@ g_running_position_obj_threads = []
 
 FIRST_TIME_BOOT_UP = True
 UPDATING_SYMBOL = False
+SET_LOTSIZE = False
+MARKET_CLOSE_SET_LIAO = False
+MARKET_OPEN_SET_LIAO = False
 
 g_subscribe_count = 0
 
@@ -47,7 +64,7 @@ CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
 gPayloadIgnoreList = [
     ProtoOASubscribeSpotsRes().payloadType,
     ProtoOAAccountLogoutRes().payloadType,
-    ProtoHeartbeatEvent().payloadType,
+    # ProtoHeartbeatEvent().payloadType,
     # ProtoOAExecutionEvent().payloadType
 ]
 
@@ -126,6 +143,9 @@ if __name__ == "__main__":
         # Initially i put at `if elif`
         # Just realized, it is within function
         global UPDATING_SYMBOL
+        global SET_LOTSIZE
+        global MARKET_CLOSE_SET_LIAO
+        global MARKET_OPEN_SET_LIAO
 
         if message.payloadType in gPayloadIgnoreList:
             return
@@ -168,6 +188,60 @@ if __name__ == "__main__":
                 formatted_time = dt.strftime("%H%M")
 
                 print(f"[{formatted_time}] Heartbeat Received.")
+
+            # Set limit order 100lot and 0.02lot in specified time
+            # Everyday, 4am set to 100lot, 830am set 0.02lot
+            # Friday special, 2am set to 100lot
+            # If is saturday 830am, dont do anything, until monday 830am
+            # Only modify pending order
+            now = datetime.now(g_mytimezone)
+            current_time = now.time()  # Get the current time as a time object
+            current_time_for_myself = time.time()
+            dt = datetime.fromtimestamp(current_time_for_myself, g_mytimezone)
+            # Format the time as "HHMM", GMT+8
+            formatted_time = dt.strftime("%H%M")
+            current_weekday = now.strftime("%A")
+
+            # Define standard times
+            time_checks = [time2(4, 0), time2(8, 30)]
+
+            # Adjust for Friday, close earlier
+            if current_weekday == "Friday":
+                time_checks = [time2(2, 0), time2(8, 30)]
+
+            # Define exceptions
+            exceptions = {
+                "Saturday": [time2(8, 30)],
+                "Sunday": [time2(4, 0), time2(8, 30)]
+            }
+
+            # Remove exception times based on the current weekday
+            if current_weekday in exceptions:
+                time_checks = [t for t in time_checks if t not in exceptions[current_weekday]]
+
+            if len(time_checks) == 1:
+                print(f"Today is saturday")
+                return
+
+            if len(time_checks) == 0:
+                print(f"Today is sunday")
+                return
+
+            # Market closing
+            if MARKET_CLOSE_SET_LIAO == False:
+                if current_time > time_checks[0] and current_time < time_checks[1]:
+                    print(f"Today is {current_weekday} {formatted_time}. Market closing.")
+                    MARKET_CLOSE_SET_LIAO = True
+                    MARKET_OPEN_SET_LIAO = False
+                    running_position.g_command_queue.put(f"lt 100")
+
+            # Market open
+            if MARKET_OPEN_SET_LIAO == False:
+                if current_time > time_checks[1] and current_time < time2(23, 59):
+                    print(f"Today is {current_weekday} {formatted_time}. Market opening.")
+                    MARKET_CLOSE_SET_LIAO = False
+                    MARKET_OPEN_SET_LIAO = True
+                    running_position.g_command_queue.put(f"lt 0.02")
 
             return
 
@@ -328,6 +402,19 @@ if __name__ == "__main__":
             global g_subscribe
             res = Protobuf.extract(message)
             positionList = []
+            orderList = []
+
+            # This is for setting lotsize purposes
+            if SET_LOTSIZE:
+                if len(res.order) == 0:
+                    return
+                orderList = res.order
+                for order in orderList:
+                    symbol = utility.read_symbol_id(order.tradeData.symbolId, ACCOUNT_TYPE)
+                    amendOrder_setLotSize(order, symbol, g_lotsize)
+                SET_LOTSIZE = False
+                return
+
             if len(res.position) != 0:
                 positionList = res.position
             else:
@@ -531,7 +618,7 @@ if __name__ == "__main__":
         """
         request = ProtoOASymbolByIdReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        request.symbolId.append(symbolId)
+        request.symbolId.append(int(symbolId))
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
@@ -561,6 +648,88 @@ if __name__ == "__main__":
         request.stopLoss = round(float(entryPrice), 2)
         request.takeProfit = round(float(takeProfit), 2)
         request.stopLossTriggerMethod = ProtoOAOrderTriggerMethod.Value(SLTriggerMethod)
+        deferred = client.send(request, clientMsgId=clientMsgId)
+        deferred.addErrback(onError)
+
+    def setLotSize(lotsize, clientMsgId=None):
+        """
+        This will get list of pending orders
+        Then call amendOrder_setLotSize to set lotsize
+        """
+        global g_lotsize
+        global SET_LOTSIZE
+        SET_LOTSIZE =True
+        g_lotsize = round(float(lotsize), 2)
+        request = ProtoOAReconcileReq()
+        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+        deferred = client.send(request, clientMsgId=clientMsgId)
+        deferred.addErrback(onError)
+
+    def amendOrder_setLotSize(_ProtoOAOrder, symbol, lotsize, clientMsgId=None):
+        """
+        !Note!
+        Please take note whether it will change ur SL trigger method or not
+        I have verified that, it wont.
+        Example: My SL is triggered by opposite bid/ask price, i verfied that
+        after running this function, the trigger method still same, that is
+        opposite.
+        """
+        _StopLossTakeProfit = -1
+        if _ProtoOAOrder.relativeStopLoss != 0 or _ProtoOAOrder.relativeTakeProfit != 0:
+            _StopLossTakeProfit = StopLossTakeProfit.RELATIVE.value
+        elif _ProtoOAOrder.stopLoss != 0 or _ProtoOAOrder.takeProfit != 0:
+            _StopLossTakeProfit = StopLossTakeProfit.ABSOLUTE.value
+        else:
+            print(f"Warning: Abnormal absolute & realtive TP SL detected. Skip")
+            print(f"OrderId:{_ProtoOAOrder.orderId} Symbol:{symbol}")
+            print(f"relativeStopLoss:{_ProtoOAOrder.relativeStopLoss}")
+            print(f"relativeTakeProfit:{_ProtoOAOrder.relativeTakeProfit}")
+            print(f"stopLoss:{_ProtoOAOrder.stopLoss}")
+            print(f"takeProfit:{_ProtoOAOrder.takeProfit}")
+            return
+
+        volume_per_lot = f"VOLUME_PER_LOT_{symbol}"
+
+        is_limit_order = False
+        if _ProtoOAOrder.orderType == ProtoOAOrderType.Value('LIMIT'):
+            is_limit_order = True
+
+        if not is_limit_order:
+            print(f"Warning: OrderId:{_ProtoOAOrder.orderId} Symbol:{symbol} orderType is {ProtoOAOrderType.Name(_ProtoOAOrder.orderType)} order. I will skip this one")
+            return
+        if volume_per_lot not in utility.gConfigData:
+            print(f"Warning: volume_per_lot:{volume_per_lot} is not defined for this Symbol:{symbol}. Skip.")
+            return
+
+        print(f"OrderId: {_ProtoOAOrder.orderId}")
+        print(f"Symbol: {symbol}")
+        print(f"tradeSide: {ProtoOATradeSide.Name(_ProtoOAOrder.tradeData.tradeSide)}")
+        print(f"StopLossTakeProfit: {StopLossTakeProfit.getName(_StopLossTakeProfit)}")
+        print(f"volume_per_lot: {volume_per_lot}:{int(utility.gConfigData[volume_per_lot])}")
+        print(f"Existing lotsize:{_ProtoOAOrder.tradeData.volume}")
+        print(f"Passed in lotsize:{lotsize}")
+
+        request = ProtoOAAmendOrderReq()
+        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+        request.orderId = int(_ProtoOAOrder.orderId)
+        # regarding _ProtoOAOrder.relativeStopLoss
+        # It has if you NEVER place by entering price, but rather by dragging
+        # It has value 0 if you entered using price,
+        # And it will use _ProtoOAOrder.stopLoss, which is absolute stopLoss price
+        # And if either one is 0, request will fail
+        # Ok, sometimes it changed to use either & i dk how i triggered that
+        # Best is, ur coding, should cover both
+        request.limitPrice = float(_ProtoOAOrder.limitPrice)
+        if _StopLossTakeProfit == StopLossTakeProfit.RELATIVE.value:
+            request.relativeStopLoss   = int(_ProtoOAOrder.relativeStopLoss)
+            request.relativeTakeProfit = int(_ProtoOAOrder.relativeTakeProfit)
+        else:
+            request.stopLoss   = _ProtoOAOrder.stopLoss
+            request.takeProfit = _ProtoOAOrder.takeProfit
+        request.volume = int(int(utility.gConfigData[volume_per_lot]) * 100 * lotsize)
+        if _ProtoOAOrder.expirationTimestamp != 0:
+            request.expirationTimestamp = _ProtoOAOrder.expirationTimestamp
+        request.trailingStopLoss = _ProtoOAOrder.trailingStopLoss
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
@@ -642,7 +811,9 @@ if __name__ == "__main__":
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
         "pp": printRunningList, # p = print running list
         "p": printSubscriptionList, # p = print subscription list
-        "s": getSymbolList, # Update symbol files
+        "s": getSymbolList, # Update symbol files, call `sd symbolId`
+        "sd": getSymbolDetail, # sd = symbol detail, 
+        "lt": setLotSize, # lt = lotsize, call `lt lotsize`
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
     }
