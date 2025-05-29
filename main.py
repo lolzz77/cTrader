@@ -257,7 +257,7 @@ if __name__ == "__main__":
         try:
             while True:
                 print("\n=====================================\n")
-                userInput = input("Command (ex help): ")
+                userInput = input("Command (Reminder Termux eats 1 char): ")
                 userInputSplit = userInput.split(" ")
                 if not userInputSplit:
                     print("Command split error: ", userInput)
