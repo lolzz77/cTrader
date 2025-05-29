@@ -49,9 +49,23 @@ class RunningPosition:
         # !Note! Some asset lowest lotsize is 0.1
         self.totalStopLossPip = self.stopLossPip * (self.lotsize * 100)
 
+
+
+
+        ############# SET TPP HERE ##############
+        # This is set TPP after it run your total stop loss pip
+        # Eg: 0.02 lot, SL 25 pips. Means total 50pips
+        # I will TPP once 0.01 run 50pips
         # This tells me, after running how many pips i can take partial profit
         # With condition that, i will take all partial profit until 0.01 left
-        self.tpp_pips = self.totalStopLossPip / ((self.lotsize - 0.01) * 100)
+        # self.tpp_pips = self.totalStopLossPip / ((self.lotsize - 0.01) * 100)
+
+        # ==========================================================
+        # This is set TPP after RRR 1
+        # To protect my mentality
+        self.tpp_pips = self.stopLossPip
+
+
 
         # Lotsize to take partial profit
         # Just take volume & minus 1 VOLUME_PER_LOT
