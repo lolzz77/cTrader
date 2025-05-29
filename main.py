@@ -408,7 +408,7 @@ if __name__ == "__main__":
                     running_position.g_subscribe[res.symbolId]["bid"] = int(res.bid)
                     running_position.g_subscribe[res.symbolId]["ask"] = int(res.ask)
                 else:
-                    running_position.g_subscribe[res.symbolId] = {"symbol": str(symbol), "bid": int(res.bid), "ask": int(res.ask), "NumOfUser": int(1)}
+                    running_position.g_subscribe[res.symbolId] = {"symbol": str(symbol), "bid": int(res.bid), "ask": int(res.ask), "NumOfUser": int(0)}
 
         # Get list of pending orders and running positions of account
         elif message.payloadType == ProtoOAReconcileRes().payloadType:
@@ -447,6 +447,12 @@ if __name__ == "__main__":
                     running_position.g_command_queue.put(f"tpp {position.positionId} {position.tradeData.volume}")
                 CLOSE_ALL = False
 
+            # This list is needed because
+            # This snippet of code, is in onMessageReceived
+            # Unless you done running this `elif` part of onMessageReceived
+            # The command i called `sub symbolId` wont be running
+            # I will use this list to help me not to double subscribe to a symbolid
+            subscribed_list = []
             for position in positionList:
                 # Check if exists in list
                 if position.positionId in running_position.g_positions:
@@ -470,7 +476,9 @@ if __name__ == "__main__":
                     continue
                 print(f"PositionId:{position.positionId} Symbol:{symbol} Position created.")
                 obj = running_position.RunningPosition(position.positionId, position.tradeData.symbolId, symbol, position.tradeData.volume, position.tradeData.tradeSide, position.price, position.stopLoss, position.takeProfit)
-                obj.getBidAndAsk()
+                if position.tradeData.symbolId not in running_position.g_subscribe and position.tradeData.symbolId not in subscribed_list:
+                    subscribed_list.append(position.tradeData.symbolId)
+                    running_position.g_command_queue.put(f"sub {position.tradeData.symbolId}")
                 thread = threading.Thread(target=obj.run, name = str(position.positionId))
                 thread.start()
                 running_position.g_positions[position.positionId] = ({"Object": obj})

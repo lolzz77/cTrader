@@ -72,17 +72,11 @@ class RunningPosition:
         # When closing position, you have to use volume
         self.tpp_lotsize_in_volume = volume - int(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
 
-    def getBidAndAsk(self):
-        global g_command_queue
-        # Check if exists, if not exists, subscribe, else, add 1 user
-        if self.symbolId not in g_subscribe:
-            # Trigger command `sub 41` to subscribe to asset
-            g_command_queue.put(f"sub {self.symbolId}")
-        else:
-            g_subscribe[self.symbolId]["NumOfUser"] += int(1)
-
-
     def run(self):
+        while self.symbolId not in g_subscribe:
+            continue
+        g_subscribe[self.symbolId]["NumOfUser"] += int(1)
+
         while True:
             # No need check lotsize 0.01 here, alreayd done before creating this class object
             # If SL-ed, then it shall be removed from the list & stop running this shit
