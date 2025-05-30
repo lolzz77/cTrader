@@ -156,6 +156,12 @@ class RunningPosition:
                 g_command_queue.put(f"tpp {self.positionId} {self.tpp_lotsize_in_volume}")
                 # Set BE, set stopLoss = entryPrice
                 g_command_queue.put(f"ap {self.positionId} {self.entryPricePlusPips} {self.takeProfit}")
+                
+                # Because i suspect the script still randomly gets to trigger to close
+                # my leftover 0.01 running position without g_position key not found error
+                # Hence, I decide to try to assign it's volume to 0.01 lot, see if this
+                # helps me catch the bug
+                self.lotsize = 0.01
                 break
 
 
@@ -169,6 +175,15 @@ class RunningPosition:
         # No need remove from list in here, it already handled by stopRunningPosition()
         with g_lock:
             # Remove it from g_position
+            # There's a case where i hit entry & hit SL immediately
+            # Then this i think is lai bu ji save into g_positions
+            # Then dictionary complain key not found
+            # Then script stopped here, no unsubscribe, no delete g_subscribe etc.
+            # Ok i fixed the code by moving running_position.g_positions[position.positionId] = ({"Object": obj})
+            # to right after this object class creation
+            # I think for now, can safely comment out this code first
+            # while self.positionId not in g_positions[self.positionId]:
+            #     continue
             del g_positions[self.positionId]
 
             # Check & remove subscription if no more user left

@@ -167,12 +167,19 @@ if __name__ == "__main__":
             # print(res)
             # print("==================================\n")
 
-            executionType = res.executionType
+            # executionType = res.executionType
             positionStatus = res.position.positionStatus
-            if executionType == ProtoOAExecutionType.Value('ORDER_ACCEPTED') and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_OPEN'):
+            isServerEvent = res.isServerEvent
+
+            if isServerEvent == True and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_OPEN'):
                 """
                 New position created & running
                 Entered a trade
+
+                Known Issue
+                if you TPP, the leftover position is treated as opened a new position
+                and getRunningPOsition runs again
+                And it is known that, the new position, will have the same position ID as previous
                 """
                 current_time = time.time()
                 dt = datetime.fromtimestamp(current_time, g_mytimezone)
@@ -180,9 +187,26 @@ if __name__ == "__main__":
                 formatted_time = dt.strftime("%H%M")
                 print(f"[{formatted_time}] getRunningPositions")
                 getRunningPositions()
-            if positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED'):
+
+            elif isServerEvent == True and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED'):
                 """
                 Position closed, either hit TP or SL
+
+                Known issue
+                once u TPP, everything goes well
+                but if hit breakeven, it run stopRunningPosition again
+                But ok, i believe after TPP, it is left 0.01 lot and it will skip
+
+                
+                I also notice, sometimes, i randomly get isServerEvent == True and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED')
+                For twice, i rmb is after TPP and set BE
+                Then script somehow trigger stopRunningPosition
+                And also, my running position is 0.01, but somehow, it able to close my position
+
+                I also rmb when i put print(res)
+                It output values when i did nothing, i was watching the screen, waiting it hit my limit order
+                I couldn't understand what cause it to receive the message,
+                Maybe i need stronger checking protection
                 """
                 current_time = time.time()
                 dt = datetime.fromtimestamp(current_time, g_mytimezone)
@@ -196,7 +220,7 @@ if __name__ == "__main__":
                 # I scare the script is too overloaded, need reduce latency
                 # If a problem can be solved in simple way, let it be that way
                 stopRunningPosition(res.position.positionId)
-                
+
                 # Call again to make it run "No running order" & clears g_subscribe
                 # In case g_subscribe is not cleared
                 # Maybe no need first? I dk
@@ -234,7 +258,7 @@ if __name__ == "__main__":
             # Open order at 830am (Set pending order lotsize 0.02)
             time_checks = [time2(4, 0), time2(8, 30)]
 
-            # If today is monday, only market open, no closing, 
+            # If today is monday, only market open, no closing,
             # because before monday (which is sun) already closed
             # What i want to say is, saturday morning 2am already closed until monday 830am
             if current_weekday == "Monday":
@@ -485,7 +509,11 @@ if __name__ == "__main__":
             else:
                 # Ensure reset it back to None
                 running_position.g_subscribe.clear()
-                print("No running order")
+                current_time = time.time()
+                dt = datetime.fromtimestamp(current_time, g_mytimezone)
+                # Format the time as "HHMM", GMT+8
+                formatted_time = dt.strftime("%H%M")
+                print(f"[{formatted_time}] No running order")
                 return
 
             if CLOSE_ALL:
@@ -507,12 +535,15 @@ if __name__ == "__main__":
             # I will use this list to help me not to double subscribe to a symbolid
             subscribed_list = []
             for position in positionList:
+
                 # Check if exists in list
                 if position.positionId in running_position.g_positions:
                     continue
+
                 if position.stopLoss == 0:
                     print(f"PositionId:{position.positionId}, stopLoss is 0. Abort.")
                     continue
+
                 symbol = utility.read_symbol_id(position.tradeData.symbolId, ACCOUNT_TYPE)
                 # Safety check, make sure config has the asset
                 # I will only check one for the sake of simplicity,
@@ -524,17 +555,29 @@ if __name__ == "__main__":
 
                 volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
                 lotsize = round(position.tradeData.volume * volume_to_pip_converter, 2)
+
                 # You can't TPP with lotsize 0.01
                 if lotsize == 0.01:
                     continue
-                print(f"PositionId:{position.positionId} Symbol:{symbol} Position created.")
+
+                current_time = time.time()
+                dt = datetime.fromtimestamp(current_time, g_mytimezone)
+                # Format the time as "HHMM", GMT+8
+                formatted_time = dt.strftime("%H%M")
+                if position.positionId in running_position.g_positions:
+                    print(f"PositionId:{position.positionId} Symbol:{symbol} Lotsize:{running_position.g_positions[position.positionId]['Object'].lotsize} already exist in g_position!")
+                    continue
+                else:
+                    print(f"[{formatted_time}] PositionId:{position.positionId} Symbol:{symbol} Lotsize:{lotsize} Position created.")
                 obj = running_position.RunningPosition(position.positionId, position.tradeData.symbolId, symbol, position.tradeData.volume, position.tradeData.tradeSide, position.price, position.stopLoss, position.takeProfit)
+                running_position.g_positions[position.positionId] = ({"Object": obj})
+
                 if position.tradeData.symbolId not in running_position.g_subscribe and position.tradeData.symbolId not in subscribed_list:
                     subscribed_list.append(position.tradeData.symbolId)
                     running_position.g_command_queue.put(f"sub {position.tradeData.symbolId}")
                 thread = threading.Thread(target=obj.run, name = str(position.positionId))
                 thread.start()
-                running_position.g_positions[position.positionId] = ({"Object": obj})
+
                 # Check if SL trigger is opposite or not, if is not, set it to opposite
                 if position.stopLossTriggerMethod != ProtoOAOrderTriggerMethod.Value('OPPOSITE'):
                     print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is not OPPOSITE. Set to OPPOISTE now.")
@@ -638,6 +681,15 @@ if __name__ == "__main__":
         # This is for the case where 0.01lot runningposition gets closed.
         if positionId not in running_position.g_positions:
             return
+        
+        # Because i still encounter issue 0.01 lot gets closed by my script
+        # And is without error saynig g_positions no such positionId key exsts
+        if running_position.g_positions[positionId]["Object"].lotsize == 0.01:
+            print(f"PositionId:{positionId}, Symbol:{running_position.g_positions[positionId]['Object'].symbol} lotsize 0.01 alive lol")
+            print(f"For now, i wont do anything, you want restart script you restart. I will print list for you")
+            running_position.g_command_queue.put("p")
+            running_position.g_command_queue.put("pp")
+            return
 
         running_position.g_positions[positionId]["Object"].alive = False
         del running_position.g_positions[positionId]
@@ -739,7 +791,7 @@ if __name__ == "__main__":
         Regarding set BE + few pips
         I prefer you do it at the caller of this function
         BEcause this function has been called by multiple cases
-        eg: 
+        eg:
         1. Some call it to set OPPOSITE trigger method SL
         2. Some call it to set BE
         Hence, i prefer the caller, if you set BE, just pass in entry + few pips SL
@@ -753,20 +805,6 @@ if __name__ == "__main__":
         request.stopLoss = round(float(entryPrice), 2)
         request.takeProfit = round(float(takeProfit), 2)
         request.stopLossTriggerMethod = ProtoOAOrderTriggerMethod.Value(SLTriggerMethod)
-        deferred = client.send(request, clientMsgId=clientMsgId)
-        deferred.addErrback(onError)
-
-    def setLotSize(lotsize, clientMsgId=None):
-        """
-        This will get list of pending orders
-        Then call amendOrder_setLotSize to set lotsize
-        """
-        global g_lotsize
-        global SET_LOTSIZE
-        SET_LOTSIZE =True
-        g_lotsize = round(float(lotsize), 2)
-        request = ProtoOAReconcileReq()
-        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
@@ -843,17 +881,17 @@ if __name__ == "__main__":
         """
         """
         print("\n")
-        print("Subscription list now :")
-        for s in running_position.g_subscribe.values():
-            print(f"{s}")
+        print("Running list now :")
+        for p in running_position.g_positions.values():
+            print(f"PositionId:{p['Object'].positionId}, Symbol: {p['Object'].symbol}")
 
     def printSubscriptionList():
         """
         """
         print("\n")
-        print("Running list now :")
-        for p in running_position.g_positions.keys():
-            print(f"{p}")
+        print("Subscription list now :")
+        for s in running_position.g_subscribe.values():
+            print(f"{s}")
 
     def refresh_RAM():
         """
@@ -919,7 +957,6 @@ if __name__ == "__main__":
         "p": printSubscriptionList, # p = print subscription list
         "s": getSymbolList, # Update symbol files, call `sd symbolId`
         "sd": getSymbolDetail, # sd = symbol detail,
-        "lt": setLotSize, # lt = lotsize, call `lt lotsize`
         "ltoid": amendOrder_setLotSize, # ltid = lotsize with order ID, call `ltoid orderId lotsize`
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
@@ -933,7 +970,7 @@ if __name__ == "__main__":
                 # Format the time as "HHMM", GMT+8
                 formatted_time = dt.strftime("%H%M")
                 print("\n=====================================\n")
-                userInput = input(f"[{formatted_time}] Command (Rmb Termux eats 1 char): ")
+                userInput = input(f"[{formatted_time}] Cmd (Rmb Termux eats 1 char): ")
                 running_position.g_command_queue.put(userInput)
         # !CTRL C!
         # To detech & handle CTRL C, but this will not work

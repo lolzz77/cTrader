@@ -130,8 +130,6 @@ isServerEvent: false
 
 
 // Buy order hit but havent enter trade
-// Keyword `executionType: ORDER_FILLED`
-// & positionStatus: POSITION_STATUS_OPEN
 Message received: payloadType = 2126 (PROTO_OA_EXECUTION_EVENT)
 
  ctidTraderAccountId: xxxxxxx
@@ -217,8 +215,6 @@ isServerEvent: false
 
 
 // Buy order hit & entered trade
-// Keyword `executionType: ORDER_ACCEPTED`
-// & positionStatus: POSITION_STATUS_OPEN
 Message received: payloadType = 2126 (PROTO_OA_EXECUTION_EVENT)
 
  ctidTraderAccountId: xxxxxxx
@@ -368,3 +364,67 @@ deal {
 }
 isServerEvent: true
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Cancel limit order
+ctidTraderAccountId: xxxxx
+executionType: ORDER_CANCELLED
+position {
+  positionId: 749127
+  tradeData {
+    symbolId: 127
+    volume: 0
+    tradeSide: BUY
+    guaranteedStopLoss: false
+  }
+  positionStatus: POSITION_STATUS_CLOSED
+  swap: 0
+  price: 0.0
+  commission: 0
+  marginRate: 0.0
+  mirroringCommission: 0
+  guaranteedStopLoss: false
+  usedMargin: 0
+  moneyDigits: 2
+  trailingStopLoss: false
+}
+order {
+  orderId: 1495778
+  tradeData {
+    symbolId: 127
+    volume: 20
+    tradeSide: BUY
+    openTimestamp: 1748614968779
+    guaranteedStopLoss: false
+  }
+  orderType: LIMIT
+  orderStatus: ORDER_STATUS_CANCELLED
+  executedVolume: 0
+  utcLastUpdateTimestamp: 1748614976052
+  closingOrder: false
+  limitPrice: 24052.08
+  clientOrderId: "xxxxxx"
+  timeInForce: GOOD_TILL_CANCEL
+  positionId: 749127
+  relativeStopLoss: 600000
+  relativeTakeProfit: 6000000
+  trailingStopLoss: false
+}
+isServerEvent: false
