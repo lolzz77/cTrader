@@ -53,6 +53,10 @@ g_subscribe_count = 0
 # Pending Orders
 g_pending = {}
 
+# This helps me keep track what is the last time_checks i checked
+# If already done, then can skip the market open/close checking shit
+g_time_checks_record = { "None" : -1 }
+
 # From .env file, get the variable
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
 APP_CLIENT_SECRET = os.getenv('APP_CLIENT_SECRET')
@@ -154,6 +158,7 @@ if __name__ == "__main__":
         global g_positions
         global g_subscribe
         global g_pending
+        global g_time_checks_record
 
         if message.payloadType in gPayloadIgnoreList:
             return
@@ -210,62 +215,82 @@ if __name__ == "__main__":
             formatted_time = dt.strftime("%H%M")
             current_weekday = now.strftime("%A")
 
+            lotsize = 0
+
             # Define standard times
+            # 4AM & 830AM
+            # Close order at 4am (Set pending order lotsize 100)
+            # Open order at 830am (Set pending order lotsize 0.02)
             time_checks = [time2(4, 0), time2(8, 30)]
 
-            # Adjust for Friday, close earlier
-            if current_weekday == "Friday":
-                time_checks = [time2(2, 0), time2(8, 30)]
+            # If today is monday, only market open, no closing, 
+            # because before monday (which is sun) already closed
+            # What i want to say is, saturday morning 2am already closed until monday 830am
+            if current_weekday == "Monday":
+                time_checks = [None, time2(8, 30)]
+                if current_time > time_checks[1]:
+                    if current_weekday not in g_time_checks_record:
+                        print(f"Today is {current_weekday} {formatted_time}. Market opening.")
+                        lotsize = 0.02
+                        g_time_checks_record = {current_weekday : lotsize}
 
-            # Define exceptions
-            exceptions = {
-                "Saturday": [time2(8, 30)],
-                "Sunday": [time2(4, 0), time2(8, 30)]
-            }
+            # If today is saturday, only market close. See above & you know what 7 im saying
+            elif current_weekday == "Saturday":
+                time_checks = [time2(2, 0), None]
+                if current_time > time_checks[0]:
+                    if current_weekday not in g_time_checks_record:
+                        print(f"Today is {current_weekday} {formatted_time}. Market closing. Also closing running positions.")
+                        lotsize = 100
+                        g_time_checks_record = {current_weekday : lotsize}
 
-            # Remove exception times based on the current weekday
-            if current_weekday in exceptions:
-                time_checks = [t for t in time_checks if t not in exceptions[current_weekday]]
+            # If today is sunday, None
+            elif current_weekday == "Sunday":
+                time_checks = []
+                if current_weekday not in g_time_checks_record:
+                    g_time_checks_record = {current_weekday : lotsize}
 
-            if len(time_checks) == 1:
-                print(f"Today is saturday")
-                return
-
-            if len(time_checks) == 0:
-                print(f"Today is sunday")
-                return
-
-
-            # Market closing
-            if MARKET_CLOSE_SET_LIAO == False:
-                # If market close, set lotsize to maximum
+            # Normal day, my time_checks shall have close & open time
+            else:
+                # Matket closing
                 if current_time > time_checks[0] and current_time < time_checks[1]:
-                    print(f"Today is {current_weekday} {formatted_time}. Market closing.")
-                    MARKET_CLOSE_SET_LIAO = True
-                    MARKET_OPEN_SET_LIAO = False
-                    running_position.g_command_queue.put(f"lt 100")
+                    if current_weekday not in g_time_checks_record or g_time_checks_record.get(current_weekday) != 100:
+                        print(f"Today is {current_weekday} {formatted_time}. Market closing.")
+                        lotsize = 100
+                        g_time_checks_record = {current_weekday : lotsize}
+                # Market opening
+                elif current_time > time_checks[1]:
+                    if current_weekday not in g_time_checks_record or g_time_checks_record.get(current_weekday) != 0.02:
+                        print(f"Today is {current_weekday} {formatted_time}. Market opening.")
+                        lotsize = 0.02
+                        g_time_checks_record = {current_weekday : lotsize}
+                else:
+                    print(f"Unhandled time. current_weekday:{current_weekday}, formatted_time:{formatted_time}")
+                    g_time_checks_record = {current_weekday : -1}
 
-                    # If friday, Close all running positions
-                    if current_weekday == "Friday":
-                        print(f"Today is {current_weekday} {formatted_time}. Closing all running orders")
-                        CLOSE_ALL = True
-                        getRunningPositions()
 
-            # Market open
-            if MARKET_OPEN_SET_LIAO == False:
-                # If market open, check if lotsize is equal to 0.02, if not, set to 0.02
-                if current_time > time_checks[1] and current_time < time2(23, 59):
-                    print(f"Today is {current_weekday} {formatted_time}. Market opening.")
-                    MARKET_CLOSE_SET_LIAO = False
-                    MARKET_OPEN_SET_LIAO = True
-                    
-                    # By this time, g_pending should have been populated
-                    if len(g_pending) == 0:
-                        return
+            # After a lot of checking above, here handles the aftermath
+            if lotsize != 0:
+                if len(g_pending) != 0:
                     for value in g_pending.values():
-                        if value["Object"].tradeData.volume == int(utility.gConfigData[f"VOLUME_PER_LOT_{value['symbol']}"]) * 2:
+                        volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
+                        # Same lotsize, no need adjust
+                        if value["Object"].tradeData.volume * volume_to_pip_converter == lotsize:
                             continue
-                        amendOrder_setLotSize(value["Object"], value["symbol"], 0.02)
+                        # Divide, eg: (x = x / 4) is same as (x /= 4)
+                        # Gotta update this g_pending, else next time they detect still same volume & send command again
+                        value["Object"].tradeData.volume /= volume_to_pip_converter
+                        amendOrder_setLotSize(value["Object"], value["symbol"], lotsize)
+
+                # Close all running position
+                # I want to run getRunningPositions after amendOrder_setLotSize
+                # Because amendOrder will modify g_pending
+                # getRunningPositions will clear & reinsert g_pending
+                # If these 2 terbalik, then g_pending, which freshly refreshed, will get overwritten by amendOrder
+                # Tho, I dk whether the message receive, will be in order or not.
+                # Because u know, both getRunningPositions and amendOrder_setLotSize will send command to server
+                if current_weekday == "Saturday":
+                    CLOSE_ALL = True
+                    getRunningPositions()
 
             return
 
@@ -426,6 +451,7 @@ if __name__ == "__main__":
             res = Protobuf.extract(message)
             positionList = []
             pendingOrderList = []
+            g_pending.clear()
 
             pendingOrderList = res.order
             if len(pendingOrderList) != 0:

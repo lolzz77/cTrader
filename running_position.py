@@ -41,6 +41,7 @@ class RunningPosition:
         # The number, that, use (volume * this converter) will get lotsize
         # eg: XAUUSD, 0.4lot = 4000 volume. (4000 * this converter = 0.4) lotisze
         # The formula to get this converter = 0.01 lotisze / VOLUME_PER_0.01_LOT
+        # Do not put round(num, 2) here, the output may have many decimal
         self.volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
         self.lotsize = round(volume * self.volume_to_pip_converter, 2)
 
