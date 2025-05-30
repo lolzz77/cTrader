@@ -708,7 +708,14 @@ if __name__ == "__main__":
         """
         Set BE
         And set trade side to default
-        TODO: Set BE + few pips
+
+        Regarding set BE + few pips
+        I prefer you do it at the caller of this function
+        BEcause this function has been called by multiple cases
+        eg: 
+        1. Some call it to set OPPOSITE trigger method SL
+        2. Some call it to set BE
+        Hence, i prefer the caller, if you set BE, just pass in entry + few pips SL
 
         This also can be used to set SL trigger method to OPPOSITE, without setting BE
         That is, you set original stopLoss, takeProfit, but set SLTriggerMethod to "OPPOSITE"

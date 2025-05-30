@@ -38,6 +38,12 @@ class RunningPosition:
         self.tp_sl_bid_or_ask = "bid"if self.tradeSide == ProtoOATradeSide.Value('BUY') else "ask"
         self.sl_direction_bias = 1 if self.tradeSide == ProtoOATradeSide.Value('BUY') else -1
 
+
+        # Entry price plus + 1 pip, for set BE use
+        self.entryPricePlusPips = entryPrice + (round(float(utility.gConfigData[f"PRICE_PER_PIP_{symbol}"]), 2) * self.sl_direction_bias)
+
+
+
         # The number, that, use (volume * this converter) will get lotsize
         # eg: XAUUSD, 0.4lot = 4000 volume. (4000 * this converter = 0.4) lotisze
         # The formula to get this converter = 0.01 lotisze / VOLUME_PER_0.01_LOT
@@ -93,29 +99,9 @@ class RunningPosition:
             runningPip = 0
             # The documentation mention bid & ask are specified in 1/100000 unit
             runningPip = round(((g_subscribe[self.symbolId][self.tp_sl_bid_or_ask]/100000) - self.entryPrice) / self.price_per_pip, 2) * self.sl_direction_bias
-            # Take partial profit & set BE & set SL trigger is default (trade)
-            if runningPip >= self.tpp_pips:
-                """
-                There is 1 problem with this
-                If g_subscribe for some reason is not cleared due to race condition
-                This will straight away TRUE & TPP immediately after you enter trade
-                & set BE, then because your price still at entry then set BE fail
-                TODO
-                1. We need find a way to guarantee g_subscribe gets cleared
-                2. Maybe a command to refresh g_subscribe?
-                
-                !NOTE!
-                There's 2nd problem
-                What if you accidentally ran the script in 2 different sessions?
-                Eg: 1 in your PC, 1 in your phone
-                Hmmm
-                """
-                print(f"PositionId:{self.positionId} Symbol:{self.symbol} TPP")
-                # Set TPP
-                g_command_queue.put(f"tpp {self.positionId} {self.tpp_lotsize_in_volume}")
-                # Set BE, set stopLoss = entryPrice
-                g_command_queue.put(f"ap {self.positionId} {self.entryPrice} {self.takeProfit}")
-                break
+
+
+
 
             ##### FOR TESTING USE #####
             # import time
@@ -142,8 +128,39 @@ class RunningPosition:
             # # Set TPP
             # g_command_queue.put(f"tpp {self.positionId} {self.tpp_lotsize_in_volume}")
             # # Set BE, set stopLoss = entryPrice
-            # g_command_queue.put(f"ap {self.positionId} {self.entryPrice} {self.takeProfit}")
+            # g_command_queue.put(f"ap {self.positionId} {self.entryPricePlusPips} {self.takeProfit}")
             # break
+
+
+
+
+            # Take partial profit & set BE & set SL trigger is default (trade)
+            if runningPip >= self.tpp_pips:
+                """
+                There is 1 problem with this
+                If g_subscribe for some reason is not cleared due to race condition
+                This will straight away TRUE & TPP immediately after you enter trade
+                & set BE, then because your price still at entry then set BE fail
+                TODO
+                1. We need find a way to guarantee g_subscribe gets cleared
+                2. Maybe a command to refresh g_subscribe?
+                
+                !NOTE!
+                There's 2nd problem
+                What if you accidentally ran the script in 2 different sessions?
+                Eg: 1 in your PC, 1 in your phone
+                Hmmm
+                """
+                print(f"PositionId:{self.positionId} Symbol:{self.symbol} TPP")
+                # Set TPP
+                g_command_queue.put(f"tpp {self.positionId} {self.tpp_lotsize_in_volume}")
+                # Set BE, set stopLoss = entryPrice
+                g_command_queue.put(f"ap {self.positionId} {self.entryPricePlusPips} {self.takeProfit}")
+                break
+
+
+
+
         self.destroy()
 
     def destroy(self):
