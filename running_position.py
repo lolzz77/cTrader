@@ -116,6 +116,34 @@ class RunningPosition:
                 # Set BE, set stopLoss = entryPrice
                 g_command_queue.put(f"ap {self.positionId} {self.entryPrice} {self.takeProfit}")
                 break
+
+            ##### FOR TESTING USE #####
+            # import time
+            # if self.symbol == "DAXEUR":
+            #     time.sleep(2)
+            # else:
+            #     time.sleep(10)
+            # """
+            # There is 1 problem with this
+            # If g_subscribe for some reason is not cleared due to race condition
+            # This will straight away TRUE & TPP immediately after you enter trade
+            # & set BE, then because your price still at entry then set BE fail
+            # TODO
+            # 1. We need find a way to guarantee g_subscribe gets cleared
+            # 2. Maybe a command to refresh g_subscribe?
+            
+            # !NOTE!
+            # There's 2nd problem
+            # What if you accidentally ran the script in 2 different sessions?
+            # Eg: 1 in your PC, 1 in your phone
+            # Hmmm
+            # """
+            # print(f"PositionId:{self.positionId} Symbol:{self.symbol} TPP")
+            # # Set TPP
+            # g_command_queue.put(f"tpp {self.positionId} {self.tpp_lotsize_in_volume}")
+            # # Set BE, set stopLoss = entryPrice
+            # g_command_queue.put(f"ap {self.positionId} {self.entryPrice} {self.takeProfit}")
+            # break
         self.destroy()
 
     def destroy(self):
@@ -123,6 +151,9 @@ class RunningPosition:
 
         # No need remove from list in here, it already handled by stopRunningPosition()
         with g_lock:
+            # Remove it from g_position
+            del g_positions[self.positionId]
+
             # Check & remove subscription if no more user left
             g_subscribe[self.symbolId]["NumOfUser"] -= int(1)
             if g_subscribe[self.symbolId]["NumOfUser"] == int(0):

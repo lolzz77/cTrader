@@ -105,17 +105,6 @@ def sendProtoOASubscribeSpotsReq(symbolId, clientMsgId = None):
     deferred = client.send(request, clientMsgId = clientMsgId)
     deferred.addErrback(onError)
 
-def sendProtoOAUnsubscribeSpotsReq(symbolId, clientMsgId = None):
-    """
-    This is UNSUBSCRIBE
-    """
-    request = ProtoOAUnsubscribeDepthQuotesReq()
-    request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-    request.symbolId.append(int(symbolId))
-    deferred = client.send(request, clientMsgId = clientMsgId)
-    deferred.addErrback(onError)
-
-
 def onError(failure): # Call back for errors
     print("Message Error: ", failure)
 
@@ -424,7 +413,7 @@ if __name__ == "__main__":
                             del running_position.g_subscribe[t]
 
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
-            print(f"Unsubscribe symbol, Payload Name: {payloadName}")
+            print(f"Unsubscribe symbol.")
 
         elif message.payloadType == ProtoOASpotEvent().payloadType:
             """
