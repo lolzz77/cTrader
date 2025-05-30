@@ -163,9 +163,9 @@ if __name__ == "__main__":
             """
             res = Protobuf.extract(message)
 
-            print("\n==================================")
-            print(res)
-            print("==================================\n")
+            # print("\n==================================")
+            # print(res)
+            # print("==================================\n")
 
             executionType = res.executionType
             positionStatus = res.position.positionStatus
@@ -174,11 +174,21 @@ if __name__ == "__main__":
                 New position created & running
                 Entered a trade
                 """
+                current_time = time.time()
+                dt = datetime.fromtimestamp(current_time, g_mytimezone)
+                # Format the time as "HHMM", GMT+8
+                formatted_time = dt.strftime("%H%M")
+                print(f"[{formatted_time}] getRunningPositions")
                 getRunningPositions()
             if positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED'):
                 """
                 Position closed, either hit TP or SL
                 """
+                current_time = time.time()
+                dt = datetime.fromtimestamp(current_time, g_mytimezone)
+                # Format the time as "HHMM", GMT+8
+                formatted_time = dt.strftime("%H%M")
+                print(f"[{formatted_time}] stopRunningPosition")
                 # Because, if you have 0.01lot left running, once it closed,
                 # will trigger this block also
                 # My handling will be, check if g_position has the runningposition
@@ -918,8 +928,12 @@ if __name__ == "__main__":
     def executeUserCommand():
         try:
             while True:
+                current_time = time.time()
+                dt = datetime.fromtimestamp(current_time, g_mytimezone)
+                # Format the time as "HHMM", GMT+8
+                formatted_time = dt.strftime("%H%M")
                 print("\n=====================================\n")
-                userInput = input("Command (Reminder Termux eats 1 char): ")
+                userInput = input(f"[{formatted_time}] Command (Rmb Termux eats 1 char): ")
                 running_position.g_command_queue.put(userInput)
         # !CTRL C!
         # To detech & handle CTRL C, but this will not work
