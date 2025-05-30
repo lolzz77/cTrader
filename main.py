@@ -272,13 +272,13 @@ if __name__ == "__main__":
             if lotsize != 0:
                 if len(g_pending) != 0:
                     for value in g_pending.values():
-                        volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
+                        volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{value['symbol']}"])
                         # Same lotsize, no need adjust
                         if value["Object"].tradeData.volume * volume_to_pip_converter == lotsize:
                             continue
                         # Divide, eg: (x = x / 4) is same as (x /= 4)
                         # Gotta update this g_pending, else next time they detect still same volume & send command again
-                        value["Object"].tradeData.volume /= volume_to_pip_converter
+                        value["Object"].tradeData.volume = int(lotsize / volume_to_pip_converter)
                         amendOrder_setLotSize(value["Object"], value["symbol"], lotsize)
 
                 # Close all running position
