@@ -162,6 +162,11 @@ if __name__ == "__main__":
             !Note! It will still running
             """
             res = Protobuf.extract(message)
+
+            print("\n==================================")
+            print(res)
+            print("==================================\n")
+
             executionType = res.executionType
             positionStatus = res.position.positionStatus
             if executionType == ProtoOAExecutionType.Value('ORDER_ACCEPTED') and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_OPEN'):
@@ -174,7 +179,14 @@ if __name__ == "__main__":
                 """
                 Position closed, either hit TP or SL
                 """
+                # Because, if you have 0.01lot left running, once it closed,
+                # will trigger this block also
+                # My handling will be, check if g_position has the runningposition
+                # if no, skip. I lazy to check res.position.tradeData.volume,
+                # I scare the script is too overloaded, need reduce latency
+                # If a problem can be solved in simple way, let it be that way
                 stopRunningPosition(res.position.positionId)
+                
                 # Call again to make it run "No running order" & clears g_subscribe
                 # In case g_subscribe is not cleared
                 # Maybe no need first? I dk
@@ -612,6 +624,11 @@ if __name__ == "__main__":
         It will be handled in the object destroy() function
         """
         global g_positions
+
+        # This is for the case where 0.01lot runningposition gets closed.
+        if positionId not in running_position.g_positions:
+            return
+
         running_position.g_positions[positionId]["Object"].alive = False
         del running_position.g_positions[positionId]
 
