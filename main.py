@@ -132,6 +132,10 @@ if __name__ == "__main__":
 
         print(f"\n[{formatted_time}] Disconnected: {reason}")
 
+        # Let's try reconenct back
+        # I dk whether is this a good way but lets try
+        reactor.callLater(3, callable=User_Reconnect)
+
     def onMessageReceived(client, message): # Callback for receiving all messages
         # Initially i put at `if elif`
         # Just realized, it is within function
@@ -664,6 +668,9 @@ if __name__ == "__main__":
         # Terminate your main thread script
         reactor.callLater(3, callable=terminate_script)
 
+    def User_Reconnect():
+        client.startService()
+
     def terminate_script():
         os._exit(0)
 
@@ -954,7 +961,11 @@ if __name__ == "__main__":
         "cur": getCurrentAccount, # Get current acc
         "renew": renewAccessToken, # Renew access & refresh token
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
-        "qq": User_Disconnect,
+
+        # For now, disable this command, use CTRL D to disconnect
+        # Because in disconnect message receive, i put reconnect
+        # "qq": User_Disconnect,
+
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
