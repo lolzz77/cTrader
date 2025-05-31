@@ -657,8 +657,15 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def disconnect(clientMsgId=None): # Disconnect the client
-        client._disconnected("User exited the connection")
+    def User_Disconnect(clientMsgId=None): # disconnect the client
+        client.stopService()
+        # After disconnect
+        # Your main thread script still running.
+        # Terminate your main thread script
+        reactor.callLater(3, callable=terminate_script)
+
+    def terminate_script():
+        os._exit(0)
 
     def getRunningPositions(clientMsgId=None):
         """
@@ -923,7 +930,7 @@ if __name__ == "__main__":
         print("cur: getCurrentAccount, # Get current acc")
         print("renew: renewAccessToken, # Renew access & refresh token")
         print("hb: setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`")
-        print("qq: disconnect,")
+        print("qq: User_Disconnect,")
         print("m: getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary")
         print("pp: printRunningList, # p = print running list")
         print("p: printSubscriptionList, # p = print subscription list")
@@ -947,7 +954,7 @@ if __name__ == "__main__":
         "cur": getCurrentAccount, # Get current acc
         "renew": renewAccessToken, # Renew access & refresh token
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
-        "qq": disconnect,
+        "qq": User_Disconnect,
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
