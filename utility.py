@@ -20,19 +20,20 @@ class SymbolJsonUpdate(Enum):
                 return key.name
         return None
 
-def read_symbol_id(symbol_id_to_search, account_type, to_print=False):
+def read_symbol_file(account_type, to_print=False):
     """
     account_type = demo or live
     """
     global gSymbolData
-    if gSymbolData is None:
-        filename = SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
-        with open(filename, "r", encoding="utf-8") as json_file:
-            content = json.load(json_file)  # Load JSON into a dictionary
-        # Convert (str) key into (int) key
-        gSymbolData = {int(k): v for k, v in content.items()}
 
-    return gSymbolData[symbol_id_to_search]
+    if gSymbolData is not None:
+        return
+
+    filename = SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
+    with open(filename, "r", encoding="utf-8") as json_file:
+        content = json.load(json_file)  # Load JSON into a dictionary
+    # Convert (str) key into (int) key
+    gSymbolData = {int(k): v for k, v in content.items()}
 
 def read_config_file(reload=False):
     global gConfigData
@@ -55,6 +56,10 @@ def read_config_file(reload=False):
 def convert_txt_to_json(txt_path, account_type):
     """
     account_type = demo or live
+    Read TXT file
+    Convert to JSON
+    Before write, compare data same or not
+    Write into JSON
     """
     filename_txt = txt_path
     with open(filename_txt, "r", encoding="utf-8") as file:
@@ -76,7 +81,7 @@ def convert_txt_to_json(txt_path, account_type):
     # Convert (str) key, into (int) key
     symbols_old_dict = {int(k): v for k, v in data_dict.items()}
 
-
+    # Same data, nothing to update, return
     if symbols_new_ID_first_dict == symbols_old_dict:
         print(f"Symbols ID is up to date")
         return SymbolJsonUpdate.NO_UPDATE, None

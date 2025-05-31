@@ -64,6 +64,8 @@ ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
 ACCOUNT_TYPE = os.getenv('ACCOUNT_TYPE')
 CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
 
+utility.read_symbol_file(ACCOUNT_TYPE)
+
 # List of payload to ignore
 gPayloadIgnoreList = [
     ProtoOASubscribeSpotsRes().payloadType,
@@ -146,7 +148,6 @@ if __name__ == "__main__":
         global CLOSE_ALL
         global g_subscribe_count
         global FIRST_TIME_BOOT_UP
-        global UPDATING_SYMBOL
         global gAuthPrintOnly
         global g_positions
         global g_subscribe
@@ -201,7 +202,7 @@ if __name__ == "__main__":
                 but if hit breakeven, it run stopRunningPosition again
                 But ok, i believe after TPP, it is left 0.01 lot and it will skip
 
-                
+
                 I also notice, sometimes, i randomly get isServerEvent == True and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED')
                 For twice, i rmb is after TPP and set BE
                 Then script somehow trigger stopRunningPosition
@@ -370,15 +371,22 @@ if __name__ == "__main__":
                 # First of all, stop the subscription, else it keeps accessing the dict
                 if running_position.g_subscribe:
                     UPDATING_SYMBOL = True
-                    print(f"Restarting everything!")
+                    print(f"Symbol has update. Restarting everything!")
+
+                    # Kill all running positions, they wont TPP or whatsoever, just get destroyed
                     if running_position.g_positions:
                         for p in running_position.g_positions.values():
-                            p.get('Object').alive = False
+                            p.get('Object').alive = True
                         # Give script some time to process
                         time.sleep(2)
+
                     # Unsubscribe them all!
+                    # Cleanup of g_subscribe will be handled in the unsubscribe function
                     for s in running_position.g_subscribe.values():
                         running_position.g_command_queue.put(f"unsub {symbols_old_NAME_first_dict[s.get('symbol')]}")
+
+                utility.gSymbolData = None
+                utility.read_symbol_file()
 
             # Start monitoring running positions
             # This is so that, what if your scrip restarts, you need to check immediately
@@ -439,6 +447,8 @@ if __name__ == "__main__":
 
             if UPDATING_SYMBOL:
 
+                # Becuase i will call unsubscribe on each symbol
+                # Gonna use count to help me keep tract how many unsubscribed
                 if g_subscribe_count == 0:
                     g_subscribe_count = len(running_position.g_subscribe)
                 else:
@@ -448,6 +458,7 @@ if __name__ == "__main__":
                     running_position.g_subscribe.clear()
                     UPDATING_SYMBOL = False
                     g_subscribe_count = 0
+                    # Restart the monitoring again
                     running_position.g_command_queue.put("m")
 
             # Clean up the g_subscribe
@@ -471,7 +482,7 @@ if __name__ == "__main__":
             """
             res = Protobuf.extract(message)
             # For now, let's try ignore getting real symbol name
-            symbol = utility.read_symbol_id(res.symbolId, ACCOUNT_TYPE)
+            symbol = utility.gSymbolData[res.symbolId]
 
             # If data is 0, dont insert, later disrupt my script miscalculate or mistaken that can breakeven now
             if res.bid == 0 or res.ask == 0:
@@ -495,7 +506,7 @@ if __name__ == "__main__":
             pendingOrderList = res.order
             if len(pendingOrderList) != 0:
                 for o in pendingOrderList:
-                    symbol = utility.read_symbol_id(o.tradeData.symbolId, ACCOUNT_TYPE)
+                    symbol = utility.gSymbolData[o.tradeData.symbolId]
                     g_pending[o.orderId] = {"Object": o , "symbol": symbol}
 
             # This is for setting lotsize purposes
@@ -503,7 +514,7 @@ if __name__ == "__main__":
                 if len(pendingOrderList) == 0:
                     return
                 for order in pendingOrderList:
-                    symbol = utility.read_symbol_id(order.tradeData.symbolId, ACCOUNT_TYPE)
+                    symbol = utility.gSymbolData[order.tradeData.symbolId]
                     amendOrder_setLotSize(order, symbol, g_lotsize)
                 SET_LOTSIZE = False
                 return
@@ -528,7 +539,7 @@ if __name__ == "__main__":
                         continue
                     # What if there's 0.01 left running, right?
                     # !note! Just so you know, TPP will cause cTrader to create new ID for the running position
-                    print(f"PositionId:{position.positionId} Volume:{position.tradeData.volume} close all")
+                    print(f"PositionId:{position.positionId} Symbol:{utility.gSymbolData[position.tradeData.symbolId]} Volume:{position.tradeData.volume} closing position.")
                     running_position.g_command_queue.put(f"tpp {position.positionId} {position.tradeData.volume}")
                 CLOSE_ALL = False
 
@@ -548,7 +559,7 @@ if __name__ == "__main__":
                     print(f"PositionId:{position.positionId}, stopLoss is 0. Abort.")
                     continue
 
-                symbol = utility.read_symbol_id(position.tradeData.symbolId, ACCOUNT_TYPE)
+                symbol = utility.gSymbolData[position.tradeData.symbolId]
                 # Safety check, make sure config has the asset
                 # I will only check one for the sake of simplicity,
                 # Please, be full of integrity, if you add one symbol config,
@@ -695,7 +706,7 @@ if __name__ == "__main__":
         # This is for the case where 0.01lot runningposition gets closed.
         if positionId not in running_position.g_positions:
             return
-        
+
         # Because i still encounter issue 0.01 lot gets closed by my script
         # And is without error saynig g_positions no such positionId key exsts
         if running_position.g_positions[positionId]["Object"].lotsize == 0.01:
