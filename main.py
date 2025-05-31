@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import os
-
 from dotenv import load_dotenv
-
 from ctrader_open_api import Client, Protobuf, TcpProtocol, Auth, EndPoints
 from ctrader_open_api.endpoints import EndPoints
 from ctrader_open_api.messages.OpenApiCommonMessages_pb2 import *
@@ -21,11 +19,13 @@ import running_position
 from enum import Enum
 
 load_dotenv()
-utility.read_config_file()
+utility.read_config_file() # Read config.ini
 
-# In an order, it has relative stop loss or absolute stop loss
-# YOu have to choose one side
 class StopLossTakeProfit(Enum):
+    """
+    # In an order, it has relative stop loss or absolute stop loss
+    # You have to choose one side
+    """
     RELATIVE = 1
     ABSOLUTE = 2
 
@@ -36,51 +36,46 @@ class StopLossTakeProfit(Enum):
                 return key.name
         return None
 
-g_heartbeat = False
+FIRST_TIME_BOOT_UP = True       # To run my main command, to monitor my trade
+UPDATING_SYMBOL = False         # To handle updating symbol ID if receives from server saying symbol IDs updated
+g_subscribe_count = 0           # Use tgt with UPDATING_SYMBOL, to clear g_subscribe dictionary
+SET_LOTSIZE = False             # For command that sets lotsize only
+MARKET_CLOSE_SET_LIAO = False   # For detecting open/close market, set lotsize accordingly
+MARKET_OPEN_SET_LIAO = False    # For detecting open/close market, set lotsize accordingly
+CLOSE_ALL = False               # To close all running position once approaching market close on friday
+APP_CLIENT_ID       = os.getenv('APP_CLIENT_ID')
+APP_CLIENT_SECRET   = os.getenv('APP_CLIENT_SECRET')
+ACCESS_TOKEN        = os.getenv('ACCESS_TOKEN')
+ACCOUNT_TYPE        = os.getenv('ACCOUNT_TYPE')
+CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
+
+utility.read_symbol_file(ACCOUNT_TYPE) # Read symbolList_demo/live.json
+
+g_print_heartbeat = False # Enable print heartbeat message
 g_mytimezone = pytz.timezone("Asia/Singapore")
-
-# For RunningPosition class objects
-g_running_position_obj_threads = []
-
-FIRST_TIME_BOOT_UP = True
-UPDATING_SYMBOL = False
-SET_LOTSIZE = False
-MARKET_CLOSE_SET_LIAO = False
-MARKET_OPEN_SET_LIAO = False
-CLOSE_ALL = False
-
-g_subscribe_count = 0
-# Pending Orders
-g_pending = {}
+g_pending = {} # List of pending orders
 
 # This helps me keep track what is the last time_checks i checked
 # If already done, then can skip the market open/close checking shit
 g_time_checks_record = { "None" : -1 }
 
-# From .env file, get the variable
-APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
-APP_CLIENT_SECRET = os.getenv('APP_CLIENT_SECRET')
-ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
-ACCOUNT_TYPE = os.getenv('ACCOUNT_TYPE')
-CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
+# When you run `acc`, it will set this to TRUE
+# Then it will set it back to false
+# Purpose is to print your accounts only
+# When you run `auth`, it wont modify this variable,
+# leads to authenticating your acc
+gAuthPrintOnly = False
 
-utility.read_symbol_file(ACCOUNT_TYPE)
+# For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
+g_auth_acc = []
 
-# List of payload to ignore
+# List of server message to ignore
 gPayloadIgnoreList = [
     ProtoOASubscribeSpotsRes().payloadType,
     ProtoOAAccountLogoutRes().payloadType,
     # ProtoHeartbeatEvent().payloadType,
     # ProtoOAExecutionEvent().payloadType
 ]
-
-# When you run `acc`, it will set this to TRUE
-# Then it will set it back to false
-# When you run `auth`, it wont modify this variable,
-# leads to authenticating your acc
-gAuthPrintOnly = False
-# For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
-g_auth_acc = []
 
 hostType = ACCOUNT_TYPE
 hostType = hostType.lower()
@@ -233,7 +228,7 @@ if __name__ == "__main__":
             return
 
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
-            if g_heartbeat:
+            if g_print_heartbeat:
                 current_time = time.time()
                 dt = datetime.fromtimestamp(current_time, g_mytimezone)
 
@@ -511,11 +506,12 @@ if __name__ == "__main__":
 
             # This is for setting lotsize purposes
             if SET_LOTSIZE:
-                if len(pendingOrderList) == 0:
-                    return
-                for order in pendingOrderList:
-                    symbol = utility.gSymbolData[order.tradeData.symbolId]
-                    amendOrder_setLotSize(order, symbol, g_lotsize)
+                # Reason i do `if != 0` rather than `if == 0 return`
+                # Niama, so close, i forgot to put SET_LOTSIZE = False in the `if == 0 return`
+                if len(pendingOrderList) != 0:
+                    for order in pendingOrderList:
+                        symbol = utility.gSymbolData[order.tradeData.symbolId]
+                        amendOrder_setLotSize(order, symbol, g_lotsize)
                 SET_LOTSIZE = False
                 return
 
@@ -902,6 +898,29 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
+    def setLotSize(lotsize, clientMsgId=None):
+        """
+        This is for pending orders
+        """
+        global g_lotsize
+        global SET_LOTSIZE
+        SET_LOTSIZE = True
+
+        g_lotsize = round(float(lotsize), 2)
+        request = ProtoOAReconcileReq()
+        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+        deferred = client.send(request, clientMsgId=clientMsgId)
+        deferred.addErrback(onError)
+
+    def printPendingList():
+        """
+        """
+        print("\n")
+        print("Pending list now :")
+        for o in g_pending.values():
+            volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{o['symbol']}"])
+            print(f"OrderId:{o['Object'].orderId}, Symbol: {o['symbol']}, Lotsize: {o['Object'].tradeData.volume * volume_to_pip_converter}")
+
     def printRunningList():
         """
         """
@@ -934,8 +953,8 @@ if __name__ == "__main__":
         deferred.addErrback(onError)
 
     def setHeartbeat(value, clientMsgId=None):
-        global g_heartbeat
-        g_heartbeat = int(value)
+        global g_print_heartbeat
+        g_print_heartbeat = int(value)
 
     def showHelp():
         print()
@@ -948,11 +967,13 @@ if __name__ == "__main__":
         print("cur: getCurrentAccount, # Get current acc")
         print("renew: renewAccessToken, # Renew access & refresh token")
         print("hb: setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`")
-        print("qq: User_Disconnect,")
-        print("m: getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary")
-        print("pp: printRunningList, # p = print running list")
-        print("p: printSubscriptionList, # p = print subscription list")
+        print("m: getRunningPositions, # m = monitor, monitor ur trade. Your main command")
+        print("ppp: printPendingList,")
+        print("pp: printRunningList,")
+        print("p: printSubscriptionList,")
         print("s: getSymbolList, # Update symbol files")
+        print("sd: getSymbolDetail, # sd = symbol detail, call `sd symbolId`")
+        print("lt: setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`")
         print("r: refresh_RAM, # Refresh global variable with latest value")
         print("test: test,")
 
@@ -982,11 +1003,13 @@ if __name__ == "__main__":
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
         "ap": sendAmendRunningPosition, # Amend Running Position, call `ap positionId stopLoss takeProfit "TRADE"`
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
-        "pp": printRunningList, # p = print running list
-        "p": printSubscriptionList, # p = print subscription list
-        "s": getSymbolList, # Update symbol files, call `sd symbolId`
-        "sd": getSymbolDetail, # sd = symbol detail,
+        "ppp": printPendingList,
+        "pp": printRunningList,
+        "p": printSubscriptionList,
+        "s": getSymbolList, # Update symbol files
+        "sd": getSymbolDetail, # sd = symbol detail, call `sd symbolId`
         "ltoid": amendOrder_setLotSize, # ltid = lotsize with order ID, call `ltoid orderId lotsize`
+        "lt": setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`
         "r": refresh_RAM, # Refresh global variable with latest value
         "test": test,
     }
