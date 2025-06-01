@@ -7,11 +7,11 @@ import threading
 # If i defined it in main.py,
 # calling g_command_queue.put() has no effect i dk why
 g_command_queue = queue.Queue()
+
 # list of running positions
-# The dict key is the Running PositionId, the data afterwards has RunningPosition object
 g_positions = {}
+
 # list of symbols bid/ask price
-# The dict key is the symbolID, the data afterwards has Symbol name, bid, ask, NumOfUsers
 g_subscribe = {}
 
 # Lock for multithread
@@ -36,19 +36,18 @@ class RunningPosition:
         # Buy, TP/SL at bid price
         # Sell, TP/SL at ask price
         self.tp_sl_bid_or_ask = "bid"if self.tradeSide == ProtoOATradeSide.Value('BUY') else "ask"
-        self.sl_direction_bias = 1 if self.tradeSide == ProtoOATradeSide.Value('BUY') else -1
 
+        self.sl_direction_bias = 1 if self.tradeSide == ProtoOATradeSide.Value('BUY') else -1
 
         # Entry price plus + 1 pip, for set BE use
         self.entryPricePlusPips = entryPrice + (round(float(utility.gConfigData[f"PRICE_PER_PIP_{symbol}"]), 2) * self.sl_direction_bias)
-
-
 
         # The number, that, use (volume * this converter) will get lotsize
         # eg: XAUUSD, 0.4lot = 4000 volume. (4000 * this converter = 0.4) lotisze
         # The formula to get this converter = 0.01 lotisze / VOLUME_PER_0.01_LOT
         # Do not put round(num, 2) here, the output may have many decimal
         self.volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
+
         self.lotsize = round(volume * self.volume_to_pip_converter, 2)
 
         # If you have 0.02 lots, your total Stop Loss is x2
@@ -59,7 +58,8 @@ class RunningPosition:
 
 
 
-        ############# SET TPP HERE ##############
+
+        ############# SET TPP HERE BEGIN ##############
         # This is set TPP after it run your total stop loss pip
         # Eg: 0.02 lot, SL 25 pips. Means total 50pips
         # I will TPP once 0.01 run 50pips
@@ -71,6 +71,7 @@ class RunningPosition:
         # This is set TPP after RRR 1
         # To protect my mentality
         self.tpp_pips = self.stopLossPip
+        ############# SET TPP HERE END ##############
 
 
 
@@ -91,7 +92,7 @@ class RunningPosition:
                 print(f"PositionId:{self.positionId} Symbol:{self.symbol} hit SL or Symbol Update.")
                 break
             if self.closeAll:
-                print(f"PositionId:{self.positionId} Symbol:{self.symbol} Close ALL!")
+                print(f"PositionId:{self.positionId} Symbol:{self.symbol} Closing position!")
                 g_command_queue.put(f"tpp {self.positionId} {self.volume}")
                 break
             if self.symbolId not in g_subscribe:
@@ -117,7 +118,7 @@ class RunningPosition:
             # TODO
             # 1. We need find a way to guarantee g_subscribe gets cleared
             # 2. Maybe a command to refresh g_subscribe?
-            
+
             # !NOTE!
             # There's 2nd problem
             # What if you accidentally ran the script in 2 different sessions?
@@ -144,7 +145,7 @@ class RunningPosition:
                 TODO
                 1. We need find a way to guarantee g_subscribe gets cleared
                 2. Maybe a command to refresh g_subscribe?
-                
+
                 !NOTE!
                 There's 2nd problem
                 What if you accidentally ran the script in 2 different sessions?
@@ -156,16 +157,13 @@ class RunningPosition:
                 g_command_queue.put(f"tpp {self.positionId} {self.tpp_lotsize_in_volume}")
                 # Set BE, set stopLoss = entryPrice
                 g_command_queue.put(f"ap {self.positionId} {self.entryPricePlusPips} {self.takeProfit}")
-                
+
                 # Because i suspect the script still randomly gets to trigger to close
                 # my leftover 0.01 running position without g_position key not found error
                 # Hence, I decide to try to assign it's volume to 0.01 lot, see if this
                 # helps me catch the bug
                 self.lotsize = 0.01
                 break
-
-
-
 
         self.destroy()
 

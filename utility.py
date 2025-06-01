@@ -4,8 +4,8 @@ import re
 import json
 from enum import Enum
 
-gSymbolData = None
-gConfigData = None
+gSymbolData = None # Hold symbolList_demo/live.json data
+gConfigData = None # Hold config.ini data
 
 SYMBOL_LIST_JSON_FILENAME = "symbolList_"
 
@@ -39,7 +39,7 @@ def read_config_file(reload=False):
     global gConfigData
     if (gConfigData is not None) and (reload == False):
         return
-    
+
     # Initialize the parser
     config = configparser.ConfigParser()
 

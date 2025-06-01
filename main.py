@@ -131,7 +131,8 @@ if __name__ == "__main__":
 
         # Let's try reconenct back
         # I dk whether is this a good way but lets try
-        reactor.callLater(3, callable=User_Reconnect)
+        # Tested on real scenario, it didtn work
+        # reactor.callLater(3, callable=User_Reconnect)
 
     def onMessageReceived(client, message): # Callback for receiving all messages
         # Initially i put at `if elif`
@@ -148,6 +149,7 @@ if __name__ == "__main__":
         global g_subscribe
         global g_pending
         global g_time_checks_record
+        global gSymbolData
 
         if message.payloadType in gPayloadIgnoreList:
             return
@@ -286,12 +288,18 @@ if __name__ == "__main__":
 
             # Normal day, my time_checks shall have close & open time
             else:
+
                 # Matket closing
                 if current_time > time_checks[0] and current_time < time_checks[1]:
-                    if current_weekday not in g_time_checks_record or g_time_checks_record.get(current_weekday) != 100:
-                        print(f"Today is {current_weekday} {formatted_time}. Market closing.")
-                        lotsize = 100
-                        g_time_checks_record = {current_weekday : lotsize}
+                    # Let's comment this out for now
+                    # From my observation, around 3am will face disconnection til 645am
+                    # Let's only handle saturday morning market close for the moment
+                    pass
+                    # if current_weekday not in g_time_checks_record or g_time_checks_record.get(current_weekday) != 100:
+                    #     print(f"Today is {current_weekday} {formatted_time}. Market closing.")
+                    #     lotsize = 100
+                    #     g_time_checks_record = {current_weekday : lotsize}
+
                 # Market opening
                 elif current_time > time_checks[1]:
                     if current_weekday not in g_time_checks_record or g_time_checks_record.get(current_weekday) != 0.02:
@@ -675,9 +683,6 @@ if __name__ == "__main__":
         # Terminate your main thread script
         reactor.callLater(3, callable=terminate_script)
 
-    def User_Reconnect():
-        client.startService()
-
     def terminate_script():
         os._exit(0)
 
@@ -993,11 +998,7 @@ if __name__ == "__main__":
         "cur": getCurrentAccount, # Get current acc
         "renew": renewAccessToken, # Renew access & refresh token
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
-
-        # For now, disable this command, use CTRL D to disconnect
-        # Because in disconnect message receive, i put reconnect
-        # "qq": User_Disconnect,
-
+        "qq": User_Disconnect,
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
