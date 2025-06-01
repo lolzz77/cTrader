@@ -1032,8 +1032,8 @@ if __name__ == "__main__":
             print(f"CTRL C is pressed")
         # Detect CTRL D
         except EOFError:
-            print(f"Terminate script forcefully.")
-            os._exit(0)
+            print(f"Disconnect & Terminate script")
+            User_Disconnect()
 
     def processCommand():
         while True:
