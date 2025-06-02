@@ -44,9 +44,9 @@ class RunningPosition:
 
         # The number, that, use (volume * this converter) will get lotsize
         # eg: XAUUSD, 0.4lot = 4000 volume. (4000 * this converter = 0.4) lotisze
-        # The formula to get this converter = 0.01 lotisze / VOLUME_PER_0.01_LOT
+        # The formula to get this converter = 0.01 lotisze / MIN_LOT
         # Do not put round(num, 2) here, the output may have many decimal
-        self.volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
+        self.volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"MIN_LOT_{symbol}"])
 
         self.lotsize = round(volume * self.volume_to_pip_converter, 2)
 
@@ -76,9 +76,9 @@ class RunningPosition:
 
 
         # Lotsize to take partial profit
-        # Just take volume & minus 1 VOLUME_PER_LOT
+        # Just take volume & minus 1 MIN_LOT
         # When closing position, you have to use volume
-        self.tpp_lotsize_in_volume = volume - int(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
+        self.tpp_lotsize_in_volume = volume - int(utility.gConfigData[f"MIN_LOT_{symbol}"])
 
     def run(self):
         while self.symbolId not in g_subscribe:

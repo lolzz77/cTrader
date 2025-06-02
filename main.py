@@ -319,7 +319,7 @@ if __name__ == "__main__":
             if lotsize != 0:
                 if len(g_pending) != 0:
                     for value in g_pending.values():
-                        volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{value['symbol']}"])
+                        volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"MIN_LOT_{value['symbol']}"])
                         # Same lotsize, no need adjust
                         if value["Object"].tradeData.volume * volume_to_pip_converter == lotsize:
                             continue
@@ -614,7 +614,7 @@ if __name__ == "__main__":
                     print(f"Symbol {symbol} has incomplete config.ini. Abort.")
                     continue
 
-                volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{symbol}"])
+                volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"MIN_LOT_{symbol}"])
                 lotsize = round(position.tradeData.volume * volume_to_pip_converter, 2)
 
                 # You can't TPP with lotsize 0.01
@@ -929,7 +929,7 @@ if __name__ == "__main__":
             print(f"takeProfit:{_ProtoOAOrder.takeProfit}")
             return
 
-        volume_per_lot = f"VOLUME_PER_LOT_{symbol}"
+        min_lot = f"MIN_LOT_{symbol}"
 
         is_limit_order = False
         if _ProtoOAOrder.orderType == ProtoOAOrderType.Value('LIMIT'):
@@ -938,15 +938,15 @@ if __name__ == "__main__":
         if not is_limit_order:
             print(f"Warning: OrderId:{_ProtoOAOrder.orderId} Symbol:{symbol} orderType is {ProtoOAOrderType.Name(_ProtoOAOrder.orderType)} order. I will skip this one")
             return
-        if volume_per_lot not in utility.gConfigData:
-            print(f"Warning: volume_per_lot:{volume_per_lot} is not defined for this Symbol:{symbol}. Skip.")
+        if min_lot not in utility.gConfigData:
+            print(f"Warning: min_lot:{min_lot} is not defined for this Symbol:{symbol}. Skip.")
             return
 
         print(f"OrderId: {_ProtoOAOrder.orderId}")
         print(f"Symbol: {symbol}")
         print(f"tradeSide: {ProtoOATradeSide.Name(_ProtoOAOrder.tradeData.tradeSide)}")
         print(f"StopLossTakeProfit: {StopLossTakeProfit.getName(_StopLossTakeProfit)}")
-        print(f"volume_per_lot: {volume_per_lot}:{int(utility.gConfigData[volume_per_lot])}")
+        print(f"MIN_LOT: {min_lot}:{int(utility.gConfigData[min_lot])}")
         print(f"Existing lotsize:{_ProtoOAOrder.tradeData.volume}")
         print(f"Passed in lotsize:{lotsize}")
         print(f"=============================\n")
@@ -968,7 +968,7 @@ if __name__ == "__main__":
         else:
             request.stopLoss   = _ProtoOAOrder.stopLoss
             request.takeProfit = _ProtoOAOrder.takeProfit
-        request.volume = int(int(utility.gConfigData[volume_per_lot]) * 100 * lotsize)
+        request.volume = int(int(utility.gConfigData[min_lot]) * 100 * lotsize)
         if _ProtoOAOrder.expirationTimestamp != 0:
             request.expirationTimestamp = _ProtoOAOrder.expirationTimestamp
         request.trailingStopLoss = _ProtoOAOrder.trailingStopLoss
@@ -995,7 +995,7 @@ if __name__ == "__main__":
         print("\n")
         print("Pending list now :")
         for o in g_pending.values():
-            volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"VOLUME_PER_LOT_{o['symbol']}"])
+            volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"MIN_LOT_{o['symbol']}"])
             print(f"OrderId:{o['Object'].orderId}, Symbol: {o['symbol']}, Lotsize: {o['Object'].tradeData.volume * volume_to_pip_converter}")
 
     def printRunningList():
@@ -1079,7 +1079,7 @@ if __name__ == "__main__":
         "qq": User_Disconnect,
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
-        "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
+        "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check MIN_LOT_SYMBOL in config.ini)
         "ap": sendAmendRunningPosition, # Amend Running Position, call `ap positionId stopLoss takeProfit 'TRADE'`
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
 
