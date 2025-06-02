@@ -507,6 +507,7 @@ if __name__ == "__main__":
             g_pending.clear()
 
             pendingOrderList = res.order
+            print(f"Pending Order: {len(pendingOrderList)}")
             if len(pendingOrderList) != 0:
                 for o in pendingOrderList:
                     symbol = utility.gSymbolData[o.tradeData.symbolId]
@@ -606,7 +607,7 @@ if __name__ == "__main__":
                     # Usually this happens when I trying to test demo
                     running_position.g_command_queue.put(f"ap {position.positionId} {position.stopLoss} {position.takeProfit} OPPOSITE")
                 else:
-                    print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is not OPPOSITE. Set to OPPOISTE now.")
+                    print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is OPPOSITE.")
 
         else:
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
