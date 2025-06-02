@@ -767,6 +767,7 @@ if __name__ == "__main__":
 
         # This is for the case where 0.01lot runningposition gets closed.
         if positionId not in running_position.g_positions:
+            print(f"PositionId:{positionId} not in g_positions. Skip.")
             return
 
         # Because i still encounter issue 0.01 lot gets closed by my script
