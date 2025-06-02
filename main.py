@@ -379,7 +379,7 @@ if __name__ == "__main__":
                     # Kill all running positions, they wont TPP or whatsoever, just get destroyed
                     if running_position.g_positions:
                         for p in running_position.g_positions.values():
-                            p.get('Object').alive = True
+                            p.get('Object').alive = False
                         # Give script some time to process
                         time.sleep(2)
 
@@ -605,6 +605,8 @@ if __name__ == "__main__":
                     # Dont worry, this means you didnt set TP
                     # Usually this happens when I trying to test demo
                     running_position.g_command_queue.put(f"ap {position.positionId} {position.stopLoss} {position.takeProfit} OPPOSITE")
+                else:
+                    print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is not OPPOSITE. Set to OPPOISTE now.")
 
         else:
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
@@ -718,7 +720,8 @@ if __name__ == "__main__":
             return
 
         running_position.g_positions[positionId]["Object"].alive = False
-        del running_position.g_positions[positionId]
+        # Dont delete here, let it be deleted in to obejct itself
+        # del running_position.g_positions[positionId]
 
     def getSymbolList(clientMsgId=None):
         request = ProtoOASymbolsListReq()
