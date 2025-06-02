@@ -619,6 +619,7 @@ if __name__ == "__main__":
 
                 # You can't TPP with lotsize 0.01
                 if lotsize == 0.01:
+                    print(f"PositionId:{position.positionId} running, is 0.01 lot. Skip.")
                     continue
 
                 current_time = time.time()
