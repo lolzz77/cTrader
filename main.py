@@ -153,7 +153,9 @@ if __name__ == "__main__":
         global g_pending
         global g_time_checks_record
         global gSymbolData
+        global gSymbolDataSwap
         global ProtoOASymbolByIdRes_PRINT_ONLY
+        global gConfigData
 
         if message.payloadType in gPayloadIgnoreList:
             return
@@ -392,7 +394,9 @@ if __name__ == "__main__":
                     for s in running_position.g_subscribe.values():
                         running_position.g_command_queue.put(f"unsub {utility.gSymbolDataSwap[s.get('symbol')]}")
 
+                # Update the global data that hold the symbol detail
                 utility.gSymbolData = None
+                utility.gSymbolDataSwap = None
                 utility.read_symbol_file()
 
             # Start monitoring running positions
@@ -436,6 +440,9 @@ if __name__ == "__main__":
 
                 utility.write_config_file(section, key_min, min_lot)
                 utility.write_config_file(section, key_max, max_lot)
+            
+            utility.gConfigData = None
+            utility.read_config_file()
 
         elif message.payloadType == ProtoOARefreshTokenRes().payloadType:
             res = Protobuf.extract(message)
@@ -498,8 +505,17 @@ if __name__ == "__main__":
 
                 if g_subscribe_count <= 0:
                     running_position.g_subscribe.clear()
-                    UPDATING_SYMBOL = False
                     g_subscribe_count = 0
+                    
+                    symbolIdList = []
+                    for s in g_favourite_symbol:
+                        symbolId = utility.gSymbolDataSwap[s]
+                        symbolIdList.append(symbolId)
+
+                    updateSymbolDetailList(symbolIdList)
+
+                    # Update the gConfigData will be handled in the response of the function above
+
                     # Restart the monitoring again
                     running_position.g_command_queue.put("m")
 
@@ -856,6 +872,17 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
+    def updateSymbolDetailList(symbolIdList, clientMsgId=None):
+        """
+        Update symbol to config.ini, but with list
+        """
+        request = ProtoOASymbolByIdReq()
+        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+        for id in symbolIdList:
+            request.symbolId.append(int(id))
+        deferred = client.send(request, clientMsgId=clientMsgId)
+        deferred.addErrback(onError)
+
     def getSymbolIDs(favourite = True):
         """
         favourite = True
@@ -1062,11 +1089,13 @@ if __name__ == "__main__":
         print("test: test,")
 
     def test(clientMsgId=None):
-        pass
-        # request = ProtoOAGetPositionUnrealizedPnLReq()
-        # request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-        # deferred = client.send(request, clientMsgId=clientMsgId)
-        # deferred.addErrback(onError)
+        # pass
+        symbolIdList = []
+        for s in g_favourite_symbol:
+            symbolId = utility.gSymbolDataSwap[s]
+            symbolIdList.append(symbolId)
+
+        updateSymbolDetailList(symbolIdList)
 
     commands = {
         "help": showHelp,
@@ -1092,6 +1121,7 @@ if __name__ == "__main__":
         "gsd": getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`
         "us": updateSymbolList, # us = update symbol list json file
         "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`
+        "usdl": updateSymbolDetailList, # usdl = update symbol detail with list of symbolIds to config.ini, call `us [41, 42, 43...]`
 
         "ltoid": amendOrder_setLotSize, # ltid = lotsize with order ID, call `ltoid orderId lotsize`
         "lt": setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`
