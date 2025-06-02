@@ -72,6 +72,8 @@ def write_config_file(section, key, value):
     config = CommentedConfigParser()
     config.read(CONFIG_FILENAME)
 
+    existing_value = None
+
     # Check if the section and key exist before updating
     if config.has_section(section) and config.has_option(section, key):
         existing_value = config.get(section, key)
@@ -89,8 +91,8 @@ def write_config_file(section, key, value):
         config.write(file)
 
     print(f"Updated:")
-    print(f"Previous: [{section}] {key} = {existing_value}")
-    print(f"After   : [{section}] {key} = {value}")
+    print(f"Before: [{section}] {key} = {existing_value}")
+    print(f"After : [{section}] {key} = {value}")
 
 def convert_txt_to_json(txt_path, account_type):
     """
