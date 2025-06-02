@@ -428,7 +428,7 @@ if __name__ == "__main__":
             symbolList = res.symbol
             for s in symbolList:
                 symbol = utility.gSymbolData[s.symbolId]
-                section = "DEFAULT"
+                section = "SYMBOL_SECTION"
                 key_min = f"MIN_LOT_{symbol}"
                 key_max = f"MAX_LOT_{symbol}"
                 min_lot = s.minVolume
