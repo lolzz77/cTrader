@@ -70,6 +70,7 @@ def write_config_file(section, key, value):
     global gConfigData
 
     config = CommentedConfigParser()
+    config.optionxform = str  # Preserve case sensitivity
     config.read(CONFIG_FILENAME)
 
     existing_value = None
