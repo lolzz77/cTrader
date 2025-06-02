@@ -316,6 +316,7 @@ if __name__ == "__main__":
                     # Lets comment this out for now, it keeps printing
                     # print(f"Unhandled time. current_weekday:{current_weekday}, formatted_time:{formatted_time}")
                     # g_time_checks_record = {current_weekday : -1}
+                    pass
 
 
             # After a lot of checking above, here handles the aftermath
