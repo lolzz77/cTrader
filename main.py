@@ -425,15 +425,17 @@ if __name__ == "__main__":
 
             # Update the symbol to config.ini
             #!NOTE! Gonna make sure symbol ID gets updated
-            symbol = utility.gSymbolData[res.symbol.symbolId]
-            section = "DEFAULT"
-            key_min = f"MIN_LOT_{symbol}"
-            key_max = f"MAX_LOT_{symbol}"
-            min_lot = res.symbol.minVolume
-            max_lot = res.symbol.maxVolume
+            symbolList = res.symbol
+            for s in symbolList:
+                symbol = utility.gSymbolData[s.symbolId]
+                section = "DEFAULT"
+                key_min = f"MIN_LOT_{symbol}"
+                key_max = f"MAX_LOT_{symbol}"
+                min_lot = s.minVolume
+                max_lot = s.maxVolume
 
-            utility.write_config_file(section, key_min, min_lot)
-            utility.write_config_file(section, key_max, max_lot)
+                utility.write_config_file(section, key_min, min_lot)
+                utility.write_config_file(section, key_max, max_lot)
 
         elif message.payloadType == ProtoOARefreshTokenRes().payloadType:
             res = Protobuf.extract(message)
