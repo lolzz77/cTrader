@@ -60,6 +60,8 @@ g_pending = {} # List of pending orders
 # If already done, then can skip the market open/close checking shit
 g_time_checks_record = { "None" : -1 }
 
+g_favourite_symbol = ["XAUUSD", "DAXEUR", "NDXUSD", "DJIUSD"]
+
 # When you run `acc`, it will set this to TRUE
 # Then it will set it back to false
 # Purpose is to print your accounts only
@@ -345,7 +347,7 @@ if __name__ == "__main__":
             and the RunningPosition class!
             """
             print(f"Symbol change! Update!")
-            running_position.g_command_queue.put("s")
+            running_position.g_command_queue.put("us")
             return
 
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
@@ -360,7 +362,7 @@ if __name__ == "__main__":
 
             # Call symbol update command
             # Who knows during your offline, they updated the symbol IDs lol
-            running_position.g_command_queue.put("s")
+            running_position.g_command_queue.put("us")
 
         elif message.payloadType == ProtoOASymbolsListRes().payloadType:
             res = Protobuf.extract(message)
@@ -368,7 +370,7 @@ if __name__ == "__main__":
             filename = "symbolList_" + ACCOUNT_TYPE + ".txt"
             with open(filename, "w") as file:
                 file.write(str(symbol_data))
-            result, symbols_old_NAME_first_dict = utility.convert_txt_to_json(filename, ACCOUNT_TYPE)
+            result = utility.convert_txt_to_json(filename, ACCOUNT_TYPE)
 
             if result == utility.SymbolJsonUpdate.HAS_UPDATE:
                 # You have a lot of shit to update..
@@ -388,7 +390,7 @@ if __name__ == "__main__":
                     # Unsubscribe them all!
                     # Cleanup of g_subscribe will be handled in the unsubscribe function
                     for s in running_position.g_subscribe.values():
-                        running_position.g_command_queue.put(f"unsub {symbols_old_NAME_first_dict[s.get('symbol')]}")
+                        running_position.g_command_queue.put(f"unsub {utility.gSymbolDataSwap[s.get('symbol')]}")
 
                 utility.gSymbolData = None
                 utility.read_symbol_file()
@@ -404,11 +406,15 @@ if __name__ == "__main__":
             """
             Symbol entity details
             Mainly is to get the MinVolume and MaxVolume, for lotsize
-            
+
             There is 1 problem with this
             If you have 4 symbols, you need to call it 4 times
             I believe it's not healthy for bootup script
             I think is better keep this as "manual trgger"
+
+            Update: It will return a list
+            res.symbol[0....].symbolId
+            Hence, can just call it 1 time
             """
             res = Protobuf.extract(message)
 
@@ -855,7 +861,7 @@ if __name__ == "__main__":
         """
         for id, symbol in utility.gSymbolData.items():
             if favourite:
-                if symbol in ["XAUUSD", "DAXUER", "DJIUSD", "NDXUSD"]:
+                if symbol in g_favourite_symbol:
                     print(f"ID:{id}, Symbol:{symbol}")
             else:
                     print(f"ID:{id}, Symbol:{symbol}")
@@ -1068,13 +1074,16 @@ if __name__ == "__main__":
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
         "ap": sendAmendRunningPosition, # Amend Running Position, call `ap positionId stopLoss takeProfit "TRADE"`
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
+
         "ppp": printPendingList,
         "pp": printRunningList,
         "p": printSubscriptionList,
-        "us": updateSymbolList, # us = update symbol list json file
-        "gsd": getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`
-        "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`
+        
         "gsl": getSymbolIDs, # gsl = get symbol list. List the symbol and their ID
+        "gsd": getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`
+        "us": updateSymbolList, # us = update symbol list json file
+        "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`
+
         "ltoid": amendOrder_setLotSize, # ltid = lotsize with order ID, call `ltoid orderId lotsize`
         "lt": setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`
         "r": refresh_RAM, # Refresh global variable with latest value
