@@ -1044,12 +1044,18 @@ if __name__ == "__main__":
         print("cur: getCurrentAccount, # Get current acc")
         print("renew: renewAccessToken, # Renew access & refresh token")
         print("hb: setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`")
-        print("m: getRunningPositions, # m = monitor, monitor ur trade. Your main command")
+        print("qq: User_Disconnect,")
+        print("m: getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary")
+
         print("ppp: printPendingList,")
         print("pp: printRunningList,")
         print("p: printSubscriptionList,")
-        print("s: updateSymbolList, # Update symbol files")
-        print("sd: getSymbolDetail, # sd = symbol detail, call `sd symbolId`")
+
+        print("gsl: getSymbolIDs, # gsl = get symbol list. List the symbol and their ID")
+        print("gsd: getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`")
+        print("us: updateSymbolList, # us = update symbol list json file")
+        print("usd: updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`")
+
         print("lt: setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`")
         print("r: refresh_RAM, # Refresh global variable with latest value")
         print("test: test,")
@@ -1074,7 +1080,7 @@ if __name__ == "__main__":
         "sub": sendProtoOASubscribeSpotsReq, # subscribe to asset, call it like this `sub 41`
         "unsub": sendProtoOAUnsubscribeSpotsReq, # UNsubscribe to asset, call it like this `unsub 41`
         "tpp": sendCloseReq, # Take partial profit, call like this `tpp positionid volume` (In volume, check VOLUME_PER_PIP_SYMBOL in config.ini)
-        "ap": sendAmendRunningPosition, # Amend Running Position, call `ap positionId stopLoss takeProfit "TRADE"`
+        "ap": sendAmendRunningPosition, # Amend Running Position, call `ap positionId stopLoss takeProfit 'TRADE'`
         "m": getRunningPositions, # m = monitor, to monitor your running position, and TPP if necessary
 
         "ppp": printPendingList,

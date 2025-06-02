@@ -81,7 +81,7 @@ def write_config_file(section, key, value):
 
         # If value is the same, exit function without writing
         if existing_value == str(value):
-            print(f"No update needed: [{section}] {key} is already {value}")
+            print(f"No update needed: [{key}] is already {value}")
             return
 
     # Update the value only if different
