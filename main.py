@@ -43,6 +43,7 @@ SET_LOTSIZE = False             # For command that sets lotsize only
 MARKET_CLOSE_SET_LIAO = False   # For detecting open/close market, set lotsize accordingly
 MARKET_OPEN_SET_LIAO = False    # For detecting open/close market, set lotsize accordingly
 CLOSE_ALL = False               # To close all running position once approaching market close on friday
+ProtoOASymbolByIdRes_PRINT_ONLY = False # When you get symbol detail, but you want to print only
 APP_CLIENT_ID       = os.getenv('APP_CLIENT_ID')
 APP_CLIENT_SECRET   = os.getenv('APP_CLIENT_SECRET')
 ACCESS_TOKEN        = os.getenv('ACCESS_TOKEN')
@@ -150,6 +151,7 @@ if __name__ == "__main__":
         global g_pending
         global g_time_checks_record
         global gSymbolData
+        global ProtoOASymbolByIdRes_PRINT_ONLY
 
         if message.payloadType in gPayloadIgnoreList:
             return
@@ -398,6 +400,35 @@ if __name__ == "__main__":
                 running_position.g_command_queue.put("m")
                 FIRST_TIME_BOOT_UP = False
 
+        elif message.payloadType == ProtoOASymbolByIdRes().payloadType:
+            """
+            Symbol entity details
+            Mainly is to get the MinVolume and MaxVolume, for lotsize
+            
+            There is 1 problem with this
+            If you have 4 symbols, you need to call it 4 times
+            I believe it's not healthy for bootup script
+            I think is better keep this as "manual trgger"
+            """
+            res = Protobuf.extract(message)
+
+            if ProtoOASymbolByIdRes_PRINT_ONLY:
+                ProtoOASymbolByIdRes_PRINT_ONLY = False
+                print(res)
+                return
+
+            # Update the symbol to config.ini
+            #!NOTE! Gonna make sure symbol ID gets updated
+            symbol = utility.gSymbolData[res.symbol.symbolId]
+            section = "DEFAULT"
+            key_min = f"MIN_LOT_{symbol}"
+            key_max = f"MAX_LOT_{symbol}"
+            min_lot = res.symbol.minVolume
+            max_lot = res.symbol.maxVolume
+
+            utility.write_config_file(section, key_min, min_lot)
+            utility.write_config_file(section, key_max, max_lot)
+
         elif message.payloadType == ProtoOARefreshTokenRes().payloadType:
             res = Protobuf.extract(message)
             updates = {"ACCESS_TOKEN":res.accessToken, "REFRESH_TOKEN":res.refreshToken}
@@ -499,8 +530,10 @@ if __name__ == "__main__":
                 else:
                     running_position.g_subscribe[res.symbolId] = {"symbol": str(symbol), "bid": int(res.bid), "ask": int(res.ask), "NumOfUser": int(0)}
 
-        # Get list of pending orders and running positions of account
         elif message.payloadType == ProtoOAReconcileRes().payloadType:
+            """
+            Get list of pending orders and running positions of account
+            """
             res = Protobuf.extract(message)
             positionList = []
             pendingOrderList = []
@@ -724,7 +757,7 @@ if __name__ == "__main__":
         # Dont delete here, let it be deleted in to obejct itself
         # del running_position.g_positions[positionId]
 
-    def getSymbolList(clientMsgId=None):
+    def updateSymbolList(clientMsgId=None):
         request = ProtoOASymbolsListReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
@@ -795,11 +828,38 @@ if __name__ == "__main__":
         chargeSwapAtWeekends: false
         }
         """
+        global ProtoOASymbolByIdRes_PRINT_ONLY
+
+        ProtoOASymbolByIdRes_PRINT_ONLY = True
         request = ProtoOASymbolByIdReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         request.symbolId.append(int(symbolId))
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
+
+    def updateSymbolDetail(symbolId, clientMsgId=None):
+        """
+        Update symbol to config.ini
+        """
+        request = ProtoOASymbolByIdReq()
+        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+        request.symbolId.append(int(symbolId))
+        deferred = client.send(request, clientMsgId=clientMsgId)
+        deferred.addErrback(onError)
+
+    def getSymbolIDs(favourite = True):
+        """
+        favourite = True
+        Print my favourite symbols only
+        Else, all
+        """
+        for id, symbol in utility.gSymbolData.items():
+            if favourite:
+                if symbol in ["XAUUSD", "DAXUER", "DJIUSD", "NDXUSD"]:
+                    print(f"ID:{id}, Symbol:{symbol}")
+            else:
+                    print(f"ID:{id}, Symbol:{symbol}")
+
 
     def sendCloseReq(positionId, volume, clientMsgId=None):
         """
@@ -980,7 +1040,7 @@ if __name__ == "__main__":
         print("ppp: printPendingList,")
         print("pp: printRunningList,")
         print("p: printSubscriptionList,")
-        print("s: getSymbolList, # Update symbol files")
+        print("s: updateSymbolList, # Update symbol files")
         print("sd: getSymbolDetail, # sd = symbol detail, call `sd symbolId`")
         print("lt: setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`")
         print("r: refresh_RAM, # Refresh global variable with latest value")
@@ -1011,8 +1071,10 @@ if __name__ == "__main__":
         "ppp": printPendingList,
         "pp": printRunningList,
         "p": printSubscriptionList,
-        "s": getSymbolList, # Update symbol files
-        "sd": getSymbolDetail, # sd = symbol detail, call `sd symbolId`
+        "us": updateSymbolList, # us = update symbol list json file
+        "gsd": getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`
+        "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`
+        "gsl": getSymbolIDs, # gsl = get symbol list. List the symbol and their ID
         "ltoid": amendOrder_setLotSize, # ltid = lotsize with order ID, call `ltoid orderId lotsize`
         "lt": setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`
         "r": refresh_RAM, # Refresh global variable with latest value
