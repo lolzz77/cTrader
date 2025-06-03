@@ -2,7 +2,6 @@ import json
 import configparser
 from commentedconfigparser import CommentedConfigParser
 import re
-import json
 from enum import Enum
 
 gSymbolData = None # Hold symbolList_demo/live.json data
