@@ -60,7 +60,7 @@ g_pending = {} # List of pending orders
 # If already done, then can skip the market open/close checking shit
 g_time_checks_record = { "None" : -1 }
 
-g_favourite_symbol = ["XAUUSD", "DAXEUR", "NDXUSD", "DJIUSD"]
+g_favourite_symbol = ["XAUUSD", "DAXEUR", "NDXUSD", "DJIUSD", "NIKJPY"]
 
 # When you run `acc`, it will set this to TRUE
 # Then it will set it back to false
@@ -1141,6 +1141,7 @@ if __name__ == "__main__":
                 formatted_time = dt.strftime("%H%M")
                 print("\n=====================================\n")
                 userInput = input(f"[{formatted_time}] Cmd (Rmb Termux eats 1 char): ")
+                print(f"Cmd typed: {userInput}")
                 running_position.g_command_queue.put(userInput)
         # !CTRL C!
         # To detech & handle CTRL C, but this will not work
