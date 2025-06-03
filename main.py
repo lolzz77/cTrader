@@ -107,6 +107,9 @@ def sendProtoOASubscribeSpotsReq(symbolId, clientMsgId = None):
 
 def onError(failure): # Call back for errors
     print("Message Error: ", failure)
+    print(f"Attempting to restart service")
+    client.stopService()
+    client.startService()
 
 if __name__ == "__main__":
 
@@ -362,7 +365,9 @@ if __name__ == "__main__":
 
         elif message.payloadType == ProtoOAAccountAuthRes().payloadType:
             protoOAAccountAuthRes = Protobuf.extract(message)
-            print(f"Account {protoOAAccountAuthRes.ctidTraderAccountId} has been authorized")
+            # If no such environment, it will be "None"
+            nickname = os.getenv(f'A_{protoOAAccountAuthRes.ctidTraderAccountId}')
+            print(f"Account [{protoOAAccountAuthRes.ctidTraderAccountId}: {nickname}] has been authorized")
 
             # Call symbol update command
             # Who knows during your offline, they updated the symbol IDs lol
@@ -442,7 +447,7 @@ if __name__ == "__main__":
 
                 utility.write_config_file(section, key_min, min_lot)
                 utility.write_config_file(section, key_max, max_lot)
-            
+
             utility.gConfigData = None
             utility.read_config_file()
 
@@ -508,7 +513,7 @@ if __name__ == "__main__":
                 if g_subscribe_count <= 0:
                     running_position.g_subscribe.clear()
                     g_subscribe_count = 0
-                    
+
                     symbolIdList = []
                     for s in g_favourite_symbol:
                         symbolId = utility.gSymbolDataSwap[s]
@@ -1119,7 +1124,7 @@ if __name__ == "__main__":
         "ppp": printPendingList,
         "pp": printRunningList,
         "p": printSubscriptionList,
-        
+
         "gsl": getSymbolIDs, # gsl = get symbol list. List the symbol and their ID
         "gsd": getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`
         "us": updateSymbolList, # us = update symbol list json file
