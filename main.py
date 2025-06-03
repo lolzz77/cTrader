@@ -107,9 +107,11 @@ def sendProtoOASubscribeSpotsReq(symbolId, clientMsgId = None):
 
 def onError(failure): # Call back for errors
     print("Message Error: ", failure)
-    print(f"Attempting to restart service")
-    client.stopService()
-    client.startService()
+
+    # Tried... it wont reconnect successfully..
+    # print(f"Attempting to restart service")
+    # client.stopService()
+    # client.startService()
 
 if __name__ == "__main__":
 
@@ -473,10 +475,7 @@ if __name__ == "__main__":
             for index, acc in enumerate(accounts):
                 traderLogin = acc.traderLogin
                 ctidTraderAccountId = acc.ctidTraderAccountId
-                key = f"A_{traderLogin}"
-                nickname = "None"
-                if key in utility.gConfigData:
-                    nickname = utility.gConfigData[key]
+                nickname = os.getenv(f'A_{ctidTraderAccountId}')
                 g_auth_acc.append({"no": index, "traderLogin": traderLogin, "ctidTraderAccountId": ctidTraderAccountId, "nickname": nickname})
                 # print(f"Authenticating traderLogin:{traderLogin} ctidTraderAccountId:{ctidTraderAccountId} Nickname:{nickname}")
                 if gAuthPrintOnly == False:
