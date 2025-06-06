@@ -1111,13 +1111,13 @@ if __name__ == "__main__":
         print("test: test,")
 
     def test(clientMsgId=None):
-        # pass
-        symbolIdList = []
-        for s in g_favourite_symbol:
-            symbolId = utility.gSymbolDataSwap[s]
-            symbolIdList.append(symbolId)
+        pass
+        # symbolIdList = []
+        # for s in g_favourite_symbol:
+        #     symbolId = utility.gSymbolDataSwap[s]
+        #     symbolIdList.append(symbolId)
 
-        updateSymbolDetailList(symbolIdList)
+        # updateSymbolDetailList(symbolIdList)
 
     commands = {
         "help": showHelp,
