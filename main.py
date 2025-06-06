@@ -179,6 +179,11 @@ if __name__ == "__main__":
             # print("\n==================================")
             # print(res)
             # print("==================================\n")
+            # This is to tell me whether did my script pick up a running order
+            # I encountered an issue where my ordder got hit during this script
+            # disconnection, and once the script up, it didnt pick up the running
+            # order
+            print(f"ProtoOAExecutionEvent")
 
             # executionType = res.executionType
             positionStatus = res.position.positionStatus
@@ -249,6 +254,16 @@ if __name__ == "__main__":
                 formatted_time = dt.strftime("%H%M")
 
                 print(f"[{formatted_time}] Heartbeat Received.")
+
+            # this is to combat the issue where, during 214am my script disconnected
+            # Then i got position entered at 630am
+            # Then my position has reached TPP level
+            # Then this script wakes up at 645am
+            # But then, it failed to get the position
+            # I dk why, but i guess, the best approach is
+            # Run it everytime i receive heartbeat
+            # !NOTE! I havent test this
+            running_position.g_command_queue.put("m")
 
             # Set limit order 100lot and 0.02lot in specified time
             # Everyday, 4am set to 100lot, 830am set 0.02lot
