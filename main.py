@@ -1,5 +1,23 @@
 #!/usr/bin/env python
 
+"""
+How the system works
+1. 4 threads
+- MainThread
+- Thread-6 (executeUserCommand)
+- Thread-7 (processCommand)
+- PoolThread-twisted.internet.reactor-0
+
+MainThread will always be the one to handle message received.
+Hence, message receiving is single-threaded.
+
+When you type command that will send request, that request sending
+will be handled by that thread, sending command has no authentication
+issue, cos the sender only need to tell server which trader ID.
+Server will be the one authenticate the request.
+Hence, which thread sending request is not a problem.
+"""
+
 import os
 from dotenv import load_dotenv
 from ctrader_open_api import Client, Protobuf, TcpProtocol, Auth, EndPoints
@@ -62,12 +80,31 @@ g_time_checks_record = { "None" : -1 }
 
 g_favourite_symbol = ["XAUUSD", "DAXEUR", "NDXUSD", "DJIUSD", "NIKJPY"]
 
+# For command processing
+# My rules, the list index contains the following
+# [0] - function name
+# [1] - parameters to pass to function
+# [2] - The payload ENUM, this is for handling function that sends requests
+# [3] - For debugging [2] purposes, this holds the comment to tell me the
+# one whom trigger this task to keep waiting for server reply is triggered by whom
+# to the server. If this is set, [0] shall be None
+g_task_queue = []
+
+# For those task that sends request to server
+# The server returns data, this holds the data
+g_data_dict = {}
+
 # When you run `acc`, it will set this to TRUE
 # Then it will set it back to false
 # Purpose is to print your accounts only
 # When you run `auth`, it wont modify this variable,
 # leads to authenticating your acc
 gAuthPrintOnly = False
+
+# For user input handling
+# If new print has printed onto console
+# Then ask user to retype their shit
+NEW_PRINT_HAS_HAPPENED = False
 
 # For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
 g_auth_acc = []
@@ -87,64 +124,54 @@ appClientSecret = APP_CLIENT_SECRET
 
 client = Client(EndPoints.PROTOBUF_LIVE_HOST if hostType.lower() == "live" else EndPoints.PROTOBUF_DEMO_HOST, EndPoints.PROTOBUF_PORT, TcpProtocol)
 
-def sendProtoOASubscribeSpotsReq(symbolId, clientMsgId = None):
-    """
-    ctidTraderAccountId: xxxxx
-    symbolId: 41
-    bid: 318645000
-    ask: 318677000
-
-    If already subscribed, dont subscribe again, subscribe once,
-    the server will keep sending you data already
-    """
-
-    request = ProtoOASubscribeSpotsReq()
-    request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
-    request.symbolId.append(int(symbolId))
-    request.subscribeToSpotTimestamp = False
-    deferred = client.send(request, clientMsgId = clientMsgId)
-    deferred.addErrback(onError)
-
-def onError(failure): # Call back for errors
-    print("Message Error: ", failure)
-
-    # Tried... it wont reconnect successfully..
-    # print(f"Attempting to restart service")
-    # client.stopService()
-    # client.startService()
-
 if __name__ == "__main__":
 
-    def connected(client): # Callback for client connection
+    def connected(client):
+        """
+        # Callback for client connection
+        """
+        global g_task_queue
         current_time = time.time()
         dt = datetime.fromtimestamp(current_time, g_mytimezone)
-
-        # Format the time as "HHMM", GMT+8
         formatted_time = dt.strftime("%H%M")
-        print(f"\n[{formatted_time}]Connected. ACCOUNT_TYPE:{ACCOUNT_TYPE}")
-        request = ProtoOAApplicationAuthReq()
-        request.clientId = appClientId
-        request.clientSecret = appClientSecret
-        deferred = client.send(request)
-        deferred.addErrback(onError)
+        print(f"\n[{formatted_time}] Connected. ACCOUNT_TYPE:{ACCOUNT_TYPE}")
+        
+        # Startup tasks! Yay!
+        # Authenticate API
+        g_task_queue.append([send_Authenticate_API, None, None, None])
+        g_task_queue.append([None, None, ProtoOAApplicationAuthRes().payloadType, "Call by send_Authenticate_API"])
+        
+        if CURRENT_CTIDTRADERACCOUNTID is not None:
+            # Authenticate account
+            g_task_queue.append([send_Auth_Account, None, None, None])
+            g_task_queue.append([None, None, ProtoOAAccountAuthRes().payloadType, "Call by send_Auth_Account"])
+        
+        # Check is there any symbol update
+        g_task_queue.append([send_Get_Symbol_List, None, None, None])
+        g_task_queue.append([None, None, ProtoOASymbolsListRes().payloadType, "Call by send_Get_Symbol_List"])
+        g_task_queue.append([Update_Symbol_List_Json, None, None, None])
+        
+        # g_task_queue.append([Update_Symbol_List_Json, None, None, None])
 
-    def disconnected(client, reason): # Callback for client disconnection
+    def disconnected(client, reason):
+        """
+        # Callback for client disconnection
+        """
         current_time = time.time()
         dt = datetime.fromtimestamp(current_time, g_mytimezone)
-
-        # Format the time as "HHMM", GMT+8
         formatted_time = dt.strftime("%H%M")
-
         print(f"\n[{formatted_time}] Disconnected: {reason}")
 
-        # Let's try reconenct back
-        # I dk whether is this a good way but lets try
-        # Tested on real scenario, it didtn work
-        # reactor.callLater(3, callable=User_Reconnect)
+    def onError(failure):
+        """
+        # Call back for errors
+        """
+        print("Message Error: ", failure)
 
-    def onMessageReceived(client, message): # Callback for receiving all messages
-        # Initially i put at `if elif`
-        # Just realized, it is within function
+    def onMessageReceived(client, message):
+        """
+        # Callback for receiving all messages
+        """
         global UPDATING_SYMBOL
         global SET_LOTSIZE
         global MARKET_CLOSE_SET_LIAO
@@ -161,19 +188,22 @@ if __name__ == "__main__":
         global gSymbolDataSwap
         global ProtoOASymbolByIdRes_PRINT_ONLY
         global gConfigData
+        global g_task_queue
+        global NEW_PRINT_HAS_HAPPENED
 
         if message.payloadType in gPayloadIgnoreList:
-            return
+            pass
 
         elif message.payloadType == ProtoOAExecutionEvent().payloadType:
             """
             To detect whether buy/sell limit is hit & entered trade
             And to detect whether the position is still running
-            !Note! If you have 0.05 lot, you tpp 0.03 lot
-            !Note! Then you tpp 0.01 lot
-            !Note! What's left is 0.01 running
-            !Note! It will still running
+
+            I will use this to help me
+            1. Set SL trigger method to OPPOSITE if it is not OPPOSITE
+            2. Close running position on Saturday morning
             """
+            NEW_PRINT_HAS_HAPPENED = True
             res = Protobuf.extract(message)
 
             # print("\n==================================")
@@ -196,154 +226,71 @@ if __name__ == "__main__":
 
                 Known Issue
                 if you TPP, the leftover position is treated as opened a new position
-                and getRunningPOsition runs again
+                and getRunningPosition runs again
                 And it is known that, the new position, will have the same position ID as previous
                 """
-                current_time = time.time()
-                dt = datetime.fromtimestamp(current_time, g_mytimezone)
-                # Format the time as "HHMM", GMT+8
-                formatted_time = dt.strftime("%H%M")
-                print(f"[{formatted_time}] getRunningPositions")
                 getRunningPositions()
-
-            elif isServerEvent == True and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED'):
-                """
-                Position closed, either hit TP or SL
-
-                Known issue
-                once u TPP, everything goes well
-                but if hit breakeven, it run stopRunningPosition again
-                But ok, i believe after TPP, it is left 0.01 lot and it will skip
-
-
-                I also notice, sometimes, i randomly get isServerEvent == True and positionStatus == ProtoOAPositionStatus.Value('POSITION_STATUS_CLOSED')
-                For twice, i rmb is after TPP and set BE
-                Then script somehow trigger stopRunningPosition
-                And also, my running position is 0.01, but somehow, it able to close my position
-
-                I also rmb when i put print(res)
-                It output values when i did nothing, i was watching the screen, waiting it hit my limit order
-                I couldn't understand what cause it to receive the message,
-                Maybe i need stronger checking protection
-                """
-                current_time = time.time()
-                dt = datetime.fromtimestamp(current_time, g_mytimezone)
-                # Format the time as "HHMM", GMT+8
-                formatted_time = dt.strftime("%H%M")
-                print(f"[{formatted_time}] stopRunningPosition")
-                # Because, if you have 0.01lot left running, once it closed,
-                # will trigger this block also
-                # My handling will be, check if g_position has the runningposition
-                # if no, skip. I lazy to check res.position.tradeData.volume,
-                # I scare the script is too overloaded, need reduce latency
-                # If a problem can be solved in simple way, let it be that way
-                stopRunningPosition(res.position.positionId)
-
-                # Call again to make it run "No running order" & clears g_subscribe
-                # In case g_subscribe is not cleared
-                # Maybe no need first? I dk
-                # getRunningPositions()
-            return
 
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if g_print_heartbeat:
+                NEW_PRINT_HAS_HAPPENED = True
                 current_time = time.time()
                 dt = datetime.fromtimestamp(current_time, g_mytimezone)
-
-                # Format the time as "HHMM", GMT+8
                 formatted_time = dt.strftime("%H%M")
-
                 print(f"[{formatted_time}] Heartbeat Received.")
 
-            # this is to combat the issue where, during 214am my script disconnected
-            # Then i got position entered at 630am
-            # Then my position has reached TPP level
-            # Then this script wakes up at 645am
-            # But then, it failed to get the position
-            # I dk why, but i guess, the best approach is
-            # Run it everytime i receive heartbeat
-            # !NOTE! I havent test this
-            running_position.g_command_queue.put("m")
+            # 1. Modify Pending Order lotsizes according to time
+            # 2. Close all running order according to time
 
-            # Set limit order 100lot and 0.02lot in specified time
-            # Everyday, 4am set to 100lot, 830am set 0.02lot
-            # Friday special, 2am set to 100lot
-            # If is saturday 830am, dont do anything, until monday 830am
-            # Only modify pending order
             now = datetime.now(g_mytimezone)
-            current_time = now.time()  # Get the current time as a time object
+            current_time = now.time()
             current_time_for_myself = time.time()
             dt = datetime.fromtimestamp(current_time_for_myself, g_mytimezone)
-            # Format the time as "HHMM", GMT+8
             formatted_time = dt.strftime("%H%M")
             current_weekday = now.strftime("%A")
 
             lotsize = 0
 
-            # Define standard times
-            # 4AM & 830AM
-            # Close order at 4am (Set pending order lotsize 100)
-            # Open order at 830am (Set pending order lotsize 0.02)
-            time_checks = [time2(4, 0), time2(8, 30)]
-
-            # If today is monday, only market open, no closing,
-            # because before monday (which is sun) already closed
-            # What i want to say is, saturday morning 2am already closed until monday 830am
+            # Market open, set lotsize to my lotsize
             if current_weekday == "Monday":
-                time_checks = [None, time2(8, 30)]
-                if current_time > time_checks[1]:
+                time_checks = time2(8, 30)
+                if current_time > time_checks:
                     if current_weekday not in g_time_checks_record:
-                        print(f"Today is {current_weekday} {formatted_time}. Market opening.")
-                        lotsize = 0.02
+                        NEW_PRINT_HAS_HAPPENED = True
+                        print(f"Today is {current_weekday} {formatted_time}. Market opening. Set all pending order lotsize to {utility.gConfigData['LOTSIZE']}.")
+                        lotsize = utility.gConfigData["LOTSIZE"]
                         g_time_checks_record = {current_weekday : lotsize}
 
-            # If today is saturday, only market close. See above & you know what 7 im saying
+            # Market closing, weekend, close all running positions too
             elif current_weekday == "Saturday":
-                time_checks = [time2(2, 0), None]
-                if current_time > time_checks[0]:
+                time_checks = time2(2, 0)
+                if current_time > time_checks:
                     if current_weekday not in g_time_checks_record:
-                        print(f"Today is {current_weekday} {formatted_time}. Market closing. Also closing running positions.")
+                        NEW_PRINT_HAS_HAPPENED = True
+                        print(f"Today is {current_weekday} {formatted_time}. Market closing. Set all pending order lotsize to max. Also close all running order.")
                         lotsize = 100
                         g_time_checks_record = {current_weekday : lotsize}
 
-            # If today is sunday, None
-            elif current_weekday == "Sunday":
-                time_checks = []
-                if current_weekday not in g_time_checks_record:
-                    g_time_checks_record = {current_weekday : lotsize}
-
-            # Normal day, my time_checks shall have close & open time
             else:
-
-                # Matket closing
-                if current_time > time_checks[0] and current_time < time_checks[1]:
-                    # Let's comment this out for now
-                    # From my observation, around 3am will face disconnection til 645am
-                    # Let's only handle saturday morning market close for the moment
-                    pass
-                    # if current_weekday not in g_time_checks_record or g_time_checks_record.get(current_weekday) != 100:
-                    #     print(f"Today is {current_weekday} {formatted_time}. Market closing.")
-                    #     lotsize = 100
-                    #     g_time_checks_record = {current_weekday : lotsize}
-
-                # Market opening
-                elif current_time > time_checks[1]:
-                    if current_weekday not in g_time_checks_record or g_time_checks_record.get(current_weekday) != 0.02:
-                        print(f"Today is {current_weekday} {formatted_time}. Market opening.")
-                        lotsize = 0.02
-                        g_time_checks_record = {current_weekday : lotsize}
-                else:
-                    # Lets comment this out for now, it keeps printing
-                    # print(f"Unhandled time. current_weekday:{current_weekday}, formatted_time:{formatted_time}")
-                    # g_time_checks_record = {current_weekday : -1}
-                    pass
-
+                if current_weekday not in g_time_checks_record:
+                    NEW_PRINT_HAS_HAPPENED = True
+                    print(f"Today is {current_weekday} {formatted_time}.")
+                    g_time_checks_record = {current_weekday : lotsize}
 
             # After a lot of checking above, here handles the aftermath
             if lotsize != 0:
                 if len(g_pending) != 0:
+                    NEW_PRINT_HAS_HAPPENED = True
+                    MAX_MIN_LOT = "MIN_LOT_"
+                    if lotsize == 100:
+                        """
+                        I scare for some symbol, lotsize 100 is not their maximum so.
+                        I rather use MAX_LOT_SYMBOL
+                        """
+                        MAX_MIN_LOT = "MAX_LOT_"
                     for value in g_pending.values():
-                        volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"MIN_LOT_{value['symbol']}"])
+                        # Get MIN_LOT_XAUUSD from config.ini
+                        volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"{MAX_MIN_LOT}{value['symbol']}"])
                         # Same lotsize, no need adjust
                         if value["Object"].tradeData.volume * volume_to_pip_converter == lotsize:
                             continue
@@ -360,25 +307,21 @@ if __name__ == "__main__":
                 # Tho, I dk whether the message receive, will be in order or not.
                 # Because u know, both getRunningPositions and amendOrder_setLotSize will send command to server
                 if current_weekday == "Saturday":
+                    NEW_PRINT_HAS_HAPPENED = True
                     CLOSE_ALL = True
                     getRunningPositions()
-
-            return
 
         elif message.payloadType == ProtoOAPayloadType.Value('PROTO_OA_SYMBOL_CHANGED_EVENT'):
             """
             SYMBOL CHANGED! Update SYMBOL JSON & Update YOUR g_position, g_subscribe,
             and the RunningPosition class!
             """
+            NEW_PRINT_HAS_HAPPENED = True
             print(f"Symbol change! Update!")
-            running_position.g_command_queue.put("us")
-            return
+            running_position.g_command_queue.put({"userInput":"us"})
 
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
             print(f"API Application authorized")
-            if CURRENT_CTIDTRADERACCOUNTID is not None:
-                sendProtoOAAccountAuthReq()
-            return
 
         elif message.payloadType == ProtoOAAccountAuthRes().payloadType:
             protoOAAccountAuthRes = Protobuf.extract(message)
@@ -388,47 +331,11 @@ if __name__ == "__main__":
 
             # Call symbol update command
             # Who knows during your offline, they updated the symbol IDs lol
-            running_position.g_command_queue.put("us")
+            # running_position.g_command_queue.put({"userInput":"us"})
 
         elif message.payloadType == ProtoOASymbolsListRes().payloadType:
             res = Protobuf.extract(message)
-            symbol_data = res.symbol
-            filename = "symbolList_" + ACCOUNT_TYPE + ".txt"
-            with open(filename, "w") as file:
-                file.write(str(symbol_data))
-            result = utility.convert_txt_to_json(filename, ACCOUNT_TYPE)
-
-            if result == utility.SymbolJsonUpdate.HAS_UPDATE:
-                # You have a lot of shit to update..
-                # tbh, i prefer you just clear everything and restart again LOL
-                # First of all, stop the subscription, else it keeps accessing the dict
-                if running_position.g_subscribe:
-                    UPDATING_SYMBOL = True
-                    print(f"Symbol has update. Restarting everything!")
-
-                    # Kill all running positions, they wont TPP or whatsoever, just get destroyed
-                    if running_position.g_positions:
-                        for p in running_position.g_positions.values():
-                            p.get('Object').alive = False
-                        # Give script some time to process
-                        time.sleep(2)
-
-                    # Unsubscribe them all!
-                    # Cleanup of g_subscribe will be handled in the unsubscribe function
-                    for s in running_position.g_subscribe.values():
-                        running_position.g_command_queue.put(f"unsub {utility.gSymbolDataSwap[s.get('symbol')]}")
-
-                # Update the global data that hold the symbol detail
-                utility.gSymbolData = None
-                utility.gSymbolDataSwap = None
-                utility.read_symbol_file()
-
-            # Start monitoring running positions
-            # This is so that, what if your scrip restarts, you need to check immediately
-            # whether got running positions or not
-            if FIRST_TIME_BOOT_UP:
-                running_position.g_command_queue.put("m")
-                FIRST_TIME_BOOT_UP = False
+            g_data_dict[ProtoOASymbolsListRes().payloadType] = res
 
         elif message.payloadType == ProtoOASymbolByIdRes().payloadType:
             """
@@ -449,24 +356,24 @@ if __name__ == "__main__":
             if ProtoOASymbolByIdRes_PRINT_ONLY:
                 ProtoOASymbolByIdRes_PRINT_ONLY = False
                 print(res)
-                return
 
-            # Update the symbol to config.ini
-            #!NOTE! Gonna make sure symbol ID gets updated
-            symbolList = res.symbol
-            for s in symbolList:
-                symbol = utility.gSymbolData[s.symbolId]
-                section = "SYMBOL_SECTION"
-                key_min = f"MIN_LOT_{symbol}"
-                key_max = f"MAX_LOT_{symbol}"
-                min_lot = s.minVolume
-                max_lot = s.maxVolume
+            else:
+                # Update the symbol to config.ini
+                #!NOTE! Gonna make sure symbol ID gets updated
+                symbolList = res.symbol
+                for s in symbolList:
+                    symbol = utility.gSymbolData[s.symbolId]
+                    section = "SYMBOL_SECTION"
+                    key_min = f"MIN_LOT_{symbol}"
+                    key_max = f"MAX_LOT_{symbol}"
+                    min_lot = s.minVolume
+                    max_lot = s.maxVolume
 
-                utility.write_config_file(section, key_min, min_lot)
-                utility.write_config_file(section, key_max, max_lot)
+                    utility.write_config_file(section, key_min, min_lot)
+                    utility.write_config_file(section, key_max, max_lot)
 
-            utility.gConfigData = None
-            utility.read_config_file()
+                utility.gConfigData = None
+                utility.read_config_file()
 
         elif message.payloadType == ProtoOARefreshTokenRes().payloadType:
             res = Protobuf.extract(message)
@@ -565,15 +472,15 @@ if __name__ == "__main__":
 
             # If data is 0, dont insert, later disrupt my script miscalculate or mistaken that can breakeven now
             if res.bid == 0 or res.ask == 0:
-                return
-
-            # If exists, just update the bid/ask price, else, write into dictionary
-            with running_position.g_lock:
-                if res.symbolId in running_position.g_subscribe:
-                    running_position.g_subscribe[res.symbolId]["bid"] = int(res.bid)
-                    running_position.g_subscribe[res.symbolId]["ask"] = int(res.ask)
-                else:
-                    running_position.g_subscribe[res.symbolId] = {"symbol": str(symbol), "bid": int(res.bid), "ask": int(res.ask), "NumOfUser": int(0)}
+                pass
+            else:
+                # If exists, just update the bid/ask price, else, write into dictionary
+                with running_position.g_lock:
+                    if res.symbolId in running_position.g_subscribe:
+                        running_position.g_subscribe[res.symbolId]["bid"] = int(res.bid)
+                        running_position.g_subscribe[res.symbolId]["ask"] = int(res.ask)
+                    else:
+                        running_position.g_subscribe[res.symbolId] = {"symbol": str(symbol), "bid": int(res.bid), "ask": int(res.ask), "NumOfUser": int(0)}
 
         elif message.payloadType == ProtoOAReconcileRes().payloadType:
             """
@@ -600,6 +507,7 @@ if __name__ == "__main__":
                         symbol = utility.gSymbolData[order.tradeData.symbolId]
                         amendOrder_setLotSize(order, symbol, g_lotsize)
                 SET_LOTSIZE = False
+                # TODO, remove return
                 return
 
             if len(res.position) != 0:
@@ -609,9 +517,9 @@ if __name__ == "__main__":
                 running_position.g_subscribe.clear()
                 current_time = time.time()
                 dt = datetime.fromtimestamp(current_time, g_mytimezone)
-                # Format the time as "HHMM", GMT+8
                 formatted_time = dt.strftime("%H%M")
                 print(f"[{formatted_time}] No running order")
+                # TODO, remove return
                 return
 
             if CLOSE_ALL:
@@ -661,7 +569,6 @@ if __name__ == "__main__":
 
                 current_time = time.time()
                 dt = datetime.fromtimestamp(current_time, g_mytimezone)
-                # Format the time as "HHMM", GMT+8
                 formatted_time = dt.strftime("%H%M")
                 if position.positionId in running_position.g_positions:
                     print(f"PositionId:{position.positionId} Symbol:{symbol} Lotsize:{running_position.g_positions[position.positionId]['Object'].lotsize} already exist in g_position!")
@@ -692,6 +599,12 @@ if __name__ == "__main__":
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
             print(f"Message received: payloadType = {message.payloadType} ({payloadName})")
             print("\n", Protobuf.extract(message))
+            NEW_PRINT_HAS_HAPPENED = True
+
+        if len(g_task_queue) != 0:
+            if g_task_queue[0][2] is not None:
+                if g_task_queue[0][2] == message.payloadType:
+                    g_task_queue[0][2] = None
 
     def setAccount(index):
         """
@@ -707,7 +620,7 @@ if __name__ == "__main__":
         # if CURRENT_CTIDTRADERACCOUNTID is not None:
         #     sendProtoOAAccountLogoutReq()
         CURRENT_CTIDTRADERACCOUNTID = g_auth_acc[int(index)]["ctidTraderAccountId"]
-        sendProtoOAAccountAuthReq()
+        send_Auth_Account()
 
     def sendProtoOAVersionReq(clientMsgId = None):
         request = ProtoOAVersionReq()
@@ -744,10 +657,28 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def sendProtoOAAccountAuthReq(clientMsgId = None):
+    def send_Auth_Account(clientMsgId = None):
         request = ProtoOAAccountAuthReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         request.accessToken = ACCESS_TOKEN
+        deferred = client.send(request, clientMsgId = clientMsgId)
+        deferred.addErrback(onError)
+
+    def sendProtoOASubscribeSpotsReq(symbolId, clientMsgId = None):
+        """
+        ctidTraderAccountId: xxxxx
+        symbolId: 41
+        bid: 318645000
+        ask: 318677000
+
+        If already subscribed, dont subscribe again, subscribe once,
+        the server will keep sending you data already
+        """
+
+        request = ProtoOASubscribeSpotsReq()
+        request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
+        request.symbolId.append(int(symbolId))
+        request.subscribeToSpotTimestamp = False
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
@@ -772,6 +703,11 @@ if __name__ == "__main__":
         """
         This is for pending orders
         """
+        current_time = time.time()
+        dt = datetime.fromtimestamp(current_time, g_mytimezone)
+        formatted_time = dt.strftime("%H%M")
+        print(f"[{formatted_time}] getRunningPositions")
+
         request = ProtoOAReconcileReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
@@ -785,6 +721,11 @@ if __name__ == "__main__":
         It will be handled in the object destroy() function
         """
         global g_positions
+
+        current_time = time.time()
+        dt = datetime.fromtimestamp(current_time, g_mytimezone)
+        formatted_time = dt.strftime("%H%M")
+        print(f"[{formatted_time}] stopRunningPosition")
 
         # This is for the case where 0.01lot runningposition gets closed.
         if positionId not in running_position.g_positions:
@@ -804,7 +745,7 @@ if __name__ == "__main__":
         # Dont delete here, let it be deleted in to obejct itself
         # del running_position.g_positions[positionId]
 
-    def updateSymbolList(clientMsgId=None):
+    def send_Get_Symbol_List(clientMsgId=None):
         request = ProtoOASymbolsListReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
@@ -1025,6 +966,47 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
+    def send_Authenticate_API():
+        request = ProtoOAApplicationAuthReq()
+        request.clientId = appClientId
+        request.clientSecret = appClientSecret
+        deferred = client.send(request)
+        deferred.addErrback(onError)
+
+    def Update_Symbol_List_Json():
+        symbol_data = g_data_dict[ProtoOASymbolsListRes().payloadType]
+        del g_data_dict[ProtoOASymbolsListRes().payloadType]
+        
+        filename = "symbolList_" + ACCOUNT_TYPE + ".txt"
+        with open(filename, "w") as file:
+            file.write(str(symbol_data))
+        result = utility.convert_txt_to_json(filename, ACCOUNT_TYPE)
+
+        if result == utility.SymbolJsonUpdate.HAS_UPDATE:
+            # You have a lot of shit to update..
+            # tbh, i prefer you just clear everything and restart again LOL
+            # First of all, stop the subscription, else it keeps accessing the dict
+            if running_position.g_subscribe:
+                UPDATING_SYMBOL = True
+                print(f"Symbol has update. Restarting everything!")
+
+                # Kill all running positions, they wont TPP or whatsoever, just get destroyed
+                if running_position.g_positions:
+                    for p in running_position.g_positions.values():
+                        p.get('Object').alive = False
+                    # Give script some time to process
+                    time.sleep(2)
+
+                # Unsubscribe them all!
+                # Cleanup of g_subscribe will be handled in the unsubscribe function
+                for s in running_position.g_subscribe.values():
+                    running_position.g_command_queue.put(f"unsub {utility.gSymbolDataSwap[s.get('symbol')]}")
+
+            # Update the global data that hold the symbol detail
+            utility.gSymbolData = None
+            utility.gSymbolDataSwap = None
+            utility.read_symbol_file()
+
     def setLotSize(lotsize, clientMsgId=None):
         """
         This is for pending orders
@@ -1103,7 +1085,7 @@ if __name__ == "__main__":
 
         print("gsl: getSymbolIDs, # gsl = get symbol list. List the symbol and their ID")
         print("gsd: getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`")
-        print("us: updateSymbolList, # us = update symbol list json file")
+        print("us: send_Get_Symbol_List, # us = update symbol list json file")
         print("usd: updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`")
 
         print("lt: setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`")
@@ -1111,13 +1093,13 @@ if __name__ == "__main__":
         print("test: test,")
 
     def test(clientMsgId=None):
-        # pass
-        symbolIdList = []
-        for s in g_favourite_symbol:
-            symbolId = utility.gSymbolDataSwap[s]
-            symbolIdList.append(symbolId)
+        pass
+        # symbolIdList = []
+        # for s in g_favourite_symbol:
+        #     symbolId = utility.gSymbolDataSwap[s]
+        #     symbolIdList.append(symbolId)
 
-        updateSymbolDetailList(symbolIdList)
+        # updateSymbolDetailList(symbolIdList)
 
     commands = {
         "help": showHelp,
@@ -1141,7 +1123,7 @@ if __name__ == "__main__":
 
         "gsl": getSymbolIDs, # gsl = get symbol list. List the symbol and their ID
         "gsd": getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`
-        "us": updateSymbolList, # us = update symbol list json file
+        "us": send_Get_Symbol_List, # us = update symbol list json file
         "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`
         "usdl": updateSymbolDetailList, # usdl = update symbol detail with list of symbolIds to config.ini, call `us [41, 42, 43...]`
 
@@ -1152,16 +1134,53 @@ if __name__ == "__main__":
     }
 
     def executeUserCommand():
+        global g_task_queue
+        global NEW_PRINT_HAS_HAPPENED
+
+        # For starting, wait until connected,
+        # The function handle connection will
+        # add entries into this queue
+        while len(g_task_queue) == 0:
+            continue
+
         try:
             while True:
-                current_time = time.time()
-                dt = datetime.fromtimestamp(current_time, g_mytimezone)
-                # Format the time as "HHMM", GMT+8
-                formatted_time = dt.strftime("%H%M")
-                print("\n=====================================\n")
-                userInput = input(f"[{formatted_time}] Cmd (Rmb Termux eats 1 char): ")
-                print(f"Cmd typed: {userInput}")
-                running_position.g_command_queue.put(userInput)
+                while len(g_task_queue) == 0:
+                    current_time = time.time()
+                    dt = datetime.fromtimestamp(current_time, g_mytimezone)
+                    formatted_time = dt.strftime("%H%M")
+                    print("\n=====================================\n")
+                    userInput = input(f"[{formatted_time}] Cmd (Rmb Termux eats 1 char): ")
+                    print(f"Cmd typed: {userInput}")
+
+                    # You have to find out which message receives will be receiving from
+                    # server and does not require user to issue command
+                    # eg: Heartbeat
+                    if NEW_PRINT_HAS_HAPPENED:
+                        print(f"A new print to console message has happened. Retype your command")
+                        NEW_PRINT_HAS_HAPPENED = False
+                        continue
+
+                    userInputSplit = userInput.split(" ")
+                    if not userInputSplit:
+                        print("Command split error: ", userInput)
+                        continue
+
+                    command = userInputSplit[0]
+                    parameters = None
+                    try:
+                        parameters = [parameter if parameter[0] != "*" else parameter[1:] for parameter in userInputSplit[1:]]
+                    except:
+                        print("Invalid parameters: ", userInput)
+                        continue
+
+                    if command not in commands:
+                        print("Invalid Command: ", userInput)
+                        continue
+
+                    g_task_queue.append([commands[command], parameters, None, None])
+
+
         # !CTRL C!
         # To detech & handle CTRL C, but this will not work
         # Due to `reactor.run` is being treated as main thread
@@ -1173,23 +1192,42 @@ if __name__ == "__main__":
             User_Disconnect()
 
     def processCommand():
+        global g_task_queue
+        
         while True:
-            userInput = running_position.g_command_queue.get() # Get command from queue
-            userInputSplit = userInput.split(" ")
-            if not userInputSplit:
-                print("Command split error: ", userInput)
-                continue
-            command = userInputSplit[0]
-            try:
-                parameters = [parameter if parameter[0] != "*" else parameter[1:] for parameter in userInputSplit[1:]]
-            except:
-                print("Invalid parameters: ", userInput)
-                continue
-            if command in commands:
-                commands[command](*parameters)
-            else:
-                print("Invalid Command: ", userInput)
-                continue
+            while len(g_task_queue) != 0:
+                
+                # Usually [2] is waiting for server to reply
+                # Wait until server finish replying
+                # There's a reason why i dont use current_task = g_task_queue[0]
+                # and then check current_task instead
+                # Because once received server reply, i will modify the g_task_queue
+                # If i use current_task, forever stuck in loop
+                if g_task_queue[0][2] is not None:
+                    while g_task_queue[0][2] is not None:
+                        continue
+                    # One done replying, this task is done, next
+                    g_task_queue.pop(0)
+                    continue
+
+                current_task = g_task_queue[0]
+                
+                # [0] is function, if is None, means the current task
+                # is waiting for server to reply to me
+                function = current_task[0]
+                parameters = current_task[1]
+                if parameters is None:
+                    parameters = []
+                    
+                # Run the function
+                function(*parameters)
+                
+                # After run the function only then you pop it
+                # if not ah, the executeUserCommand thread will
+                # prompt for user input before you finish executing
+                # the previous command
+                g_task_queue.pop(0)
+
 
     # Start user console command
     thread_user_input = threading.Thread(target=executeUserCommand)
