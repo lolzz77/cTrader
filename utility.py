@@ -3,13 +3,7 @@ import configparser
 from commentedconfigparser import CommentedConfigParser
 import re
 from enum import Enum
-
-gSymbolData = None # Hold symbolList_demo/live.json data
-gSymbolDataSwap = None # Swap the key & value, so i can search wtih symbolName, get their ID
-gConfigData = None # Hold config.ini data
-
-SYMBOL_LIST_JSON_FILENAME = "symbolList_"
-CONFIG_FILENAME = "config.ini"
+from globalpy import GlobalVar
 
 class SymbolJsonUpdate(Enum):
     NO_UPDATE = 1
@@ -26,23 +20,19 @@ def read_symbol_file(account_type, to_print=False):
     """
     account_type = demo or live
     """
-    global gSymbolData
-    global gSymbolDataSwap
-
-    if gSymbolData is not None:
+    if GlobalVar.g_Symbol_Data_ID_As_Key is not None:
         return
 
-    filename = SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
+    filename = GlobalVar.SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
     with open(filename, "r", encoding="utf-8") as json_file:
         content = json.load(json_file)  # Load JSON into a dictionary
     # Convert (str) key into (int) key
-    gSymbolData = {int(k): v for k, v in content.items()}
+    GlobalVar.g_Symbol_Data_ID_As_Key = {int(k): v for k, v in content.items()}
     # Swap keys and values
-    gSymbolDataSwap = {v: k for k, v in gSymbolData.items()}
+    GlobalVar.g_Symbol_Data_Name_As_Key = {v: k for k, v in GlobalVar.g_Symbol_Data_ID_As_Key.items()}
 
 def read_config_file(reload=False):
-    global gConfigData
-    if (gConfigData is not None) and (reload == False):
+    if (GlobalVar.g_Config_Data is not None) and (reload == False):
         return
 
     # Initialize the parser
@@ -52,10 +42,10 @@ def read_config_file(reload=False):
     config.optionxform = str
 
     # Read the config.ini file
-    config.read(CONFIG_FILENAME)
+    config.read(GlobalVar.CONFIG_FILENAME)
 
     # Convert the configuration into a dictionary
-    gConfigData = {key: value for section in config.sections() for key, value in config[section].items()}
+    GlobalVar.g_Config_Data = {key: value for section in config.sections() for key, value in config[section].items()}
 
 def write_config_file(section, key, value):
     """
@@ -66,11 +56,9 @@ def write_config_file(section, key, value):
     Key = Name
     Value = Ali
     """
-    global gConfigData
-
     config = CommentedConfigParser()
     config.optionxform = str  # Preserve case sensitivity
-    config.read(CONFIG_FILENAME)
+    config.read(GlobalVar.CONFIG_FILENAME)
 
     existing_value = None
 
@@ -87,7 +75,7 @@ def write_config_file(section, key, value):
     config.set(str(section), str(key), str(value))
 
     # Save the file while keeping comments
-    with open(CONFIG_FILENAME, "w") as file:
+    with open(GlobalVar.CONFIG_FILENAME, "w") as file:
         config.write(file)
 
     print(f"Updated:")
@@ -102,8 +90,6 @@ def convert_txt_to_json(txt_path, account_type):
     Before write, compare data same or not
     Write into JSON
     """
-    global gSymbolDataSwap
-
     with open(txt_path, "r", encoding="utf-8") as file:
         content = file.read()
 
@@ -114,7 +100,7 @@ def convert_txt_to_json(txt_path, account_type):
     symbols_new_ID_first_dict = {int(symbol_id): symbol_name for symbol_id, symbol_name in pattern}
 
     # Check if data is same or not, read the existing JSON before writing it
-    filename_ID_first_json = SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
+    filename_ID_first_json = GlobalVar.SYMBOL_LIST_JSON_FILENAME + account_type + ".json"
     symbols_old_dict = {}
     with open(filename_ID_first_json, "r", encoding="utf-8") as json_file:
         data_dict = json.load(json_file)
@@ -132,7 +118,7 @@ def convert_txt_to_json(txt_path, account_type):
         json.dump(symbols_new_ID_first_dict, json_file, indent=4)
 
     # Swap keys and values
-    gSymbolDataSwap = {v: k for k, v in symbols_new_ID_first_dict.items()}
+    GlobalVar.g_Symbol_Data_Name_As_Key = {v: k for k, v in symbols_new_ID_first_dict.items()}
 
     print("Data successfully written to symbolist.json!")
     return SymbolJsonUpdate.HAS_UPDATE

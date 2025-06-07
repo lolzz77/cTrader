@@ -29,8 +29,8 @@ class RunningPosition:
         self.entryPrice = entryPrice
         self.stopLoss = stopLoss
         self.takeProfit = takeProfit
-        self.price_per_pip = float(utility.gConfigData[f"PRICE_PER_PIP_{symbol}"])
-        self.relative_per_pip = int(utility.gConfigData[f"RELATIVE_PER_PIP_{symbol}"])
+        self.price_per_pip = float(GlobalVar.g_Config_Data[f"PRICE_PER_PIP_{symbol}"])
+        self.relative_per_pip = int(GlobalVar.g_Config_Data[f"RELATIVE_PER_PIP_{symbol}"])
         self.stopLossPip = abs(round(((self.entryPrice - self.stopLoss) / self.price_per_pip), 2))
 
         # Buy, TP/SL at bid price
@@ -40,13 +40,13 @@ class RunningPosition:
         self.sl_direction_bias = 1 if self.tradeSide == ProtoOATradeSide.Value('BUY') else -1
 
         # Entry price plus + 1 pip, for set BE use
-        self.entryPricePlusPips = entryPrice + (round(float(utility.gConfigData[f"PRICE_PER_PIP_{symbol}"]), 2) * self.sl_direction_bias)
+        self.entryPricePlusPips = entryPrice + (round(float(GlobalVar.g_Config_Data[f"PRICE_PER_PIP_{symbol}"]), 2) * self.sl_direction_bias)
 
         # The number, that, use (volume * this converter) will get lotsize
         # eg: XAUUSD, 0.4lot = 4000 volume. (4000 * this converter = 0.4) lotisze
         # The formula to get this converter = 0.01 lotisze / MIN_LOT
         # Do not put round(num, 2) here, the output may have many decimal
-        self.volume_to_pip_converter = 0.01 / float(utility.gConfigData[f"MIN_LOT_{symbol}"])
+        self.volume_to_pip_converter = 0.01 / float(GlobalVar.g_Config_Data[f"MIN_LOT_VOLUME_{symbol}"])
 
         self.lotsize = round(volume * self.volume_to_pip_converter, 2)
 
@@ -78,7 +78,7 @@ class RunningPosition:
         # Lotsize to take partial profit
         # Just take volume & minus 1 MIN_LOT
         # When closing position, you have to use volume
-        self.tpp_lotsize_in_volume = volume - int(utility.gConfigData[f"MIN_LOT_{symbol}"])
+        self.tpp_lotsize_in_volume = volume - int(GlobalVar.g_Config_Data[f"MIN_LOT_VOLUME_{symbol}"])
 
     def run(self):
         while self.symbolId not in g_subscribe:
@@ -168,8 +168,6 @@ class RunningPosition:
         self.destroy()
 
     def destroy(self):
-        global g_subscribe
-
         # No need remove from list in here, it already handled by stopRunningPosition()
         with g_lock:
             # Remove it from g_position
