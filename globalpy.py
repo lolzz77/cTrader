@@ -1,5 +1,6 @@
 import os
 import pytz
+from enum import Enum
 
 class GlobalVar():
     APP_CLIENT_ID       = os.getenv('APP_CLIENT_ID')
@@ -40,10 +41,36 @@ class GlobalVar():
 
     # For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
     g_auth_acc                  = []
-    
+
     g_Symbol_Data_ID_As_Key     = None # Hold symbolList_demo/live.json data
     g_Symbol_Data_Name_As_Key   = None # Swap the key & value, so i can search wtih symbolName, get their ID
     g_Config_Data               = None # Hold config.ini data
 
     SYMBOL_LIST_JSON_FILENAME   = "symbolList_"
     CONFIG_FILENAME             = "config.ini"
+
+class SymbolJsonUpdate(Enum):
+    NO_UPDATE = 1
+    HAS_UPDATE = 2
+
+    @classmethod
+    def getName(cls, value):
+        for key in cls:
+            if key.value == value:
+                return key.name
+        return None
+
+class StopLossTakeProfit(Enum):
+    """
+    # In an order, it has relative stop loss or absolute stop loss
+    # You have to choose one side
+    """
+    RELATIVE = 1
+    ABSOLUTE = 2
+
+    @classmethod
+    def getName(cls, value):
+        for key in cls:
+            if key.value == value:
+                return key.name
+        return None

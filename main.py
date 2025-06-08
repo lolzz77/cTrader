@@ -33,27 +33,11 @@ import utility
 import fileinput
 import threading
 import time
-import running_position
 from enum import Enum
-from globalpy import GlobalVar
+from globalpy import GlobalVar, SymbolJsonUpdate, StopLossTakeProfit
 
 utility.read_config_file() # Read config.ini
 utility.read_symbol_file(GlobalVar.ACCOUNT_TYPE) # Read symbolList_demo/live.json
-
-class StopLossTakeProfit(Enum):
-    """
-    # In an order, it has relative stop loss or absolute stop loss
-    # You have to choose one side
-    """
-    RELATIVE = 1
-    ABSOLUTE = 2
-
-    @classmethod
-    def getName(cls, value):
-        for key in cls:
-            if key.value == value:
-                return key.name
-        return None
 
 # List of server message to ignore
 gPayloadIgnoreList = [
@@ -76,14 +60,14 @@ if __name__ == "__main__":
         dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
         formatted_time = dt.strftime("%H%M")
         print(f"\n[{formatted_time}] Connected. ACCOUNT_TYPE:{GlobalVar.ACCOUNT_TYPE}")
-        
+
         # Startup tasks! Yay!
         handle_Authenticate_API()
         if GlobalVar.CURRENT_CTIDTRADERACCOUNTID is not None:
             handle_Authenticate_Account()
         handle_symbol_update()
         GlobalVar.START_USER_COMMAND = True
-        
+
     def disconnected(client, reason):
         """
         Callback for client disconnection
@@ -123,7 +107,7 @@ if __name__ == "__main__":
             res = Protobuf.extract(message)
             GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType] = res
 
-            print(f"[{formatted_time}] ProtoOAExecutionEvent")
+            print(f"\n\n[{formatted_time}] ProtoOAExecutionEvent")
 
             positionStatus = res.position.positionStatus
             isServerEvent = res.isServerEvent
@@ -137,7 +121,7 @@ if __name__ == "__main__":
                 if you TPP, the leftover position is treated as opened a new position
                 and getRunningPosition runs again
                 And it is known that, the new position, will have the same position ID as previous
-                
+
                 TODO: You gotta find a way to detect if user enter market position directly
                 Need to handle the SL set to opposite
                 """
@@ -146,7 +130,7 @@ if __name__ == "__main__":
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if GlobalVar.g_print_heartbeat:
                 GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-                print(f"[{formatted_time}] Heartbeat Received.")
+                print(f"\n\n[{formatted_time}] Heartbeat Received.")
             handle_time_checks()
 
         elif message.payloadType == ProtoOAPayloadType.Value('PROTO_OA_SYMBOL_CHANGED_EVENT'):
@@ -154,7 +138,7 @@ if __name__ == "__main__":
             SYMBOL CHANGED! Update SYMBOL JSON
             """
             GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-            print(f"[{formatted_time}] Symbol change! Update!")
+            print(f"\n\n[{formatted_time}] Symbol change! Update!")
             handle_symbol_update()
 
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
@@ -192,10 +176,10 @@ if __name__ == "__main__":
             """
             res = Protobuf.extract(message)
             GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType] = res
-            
+
         else:
             payloadName = ProtoOAPayloadType.Name(message.payloadType)
-            print(f"[{formatted_time}] Message received: payloadType = {message.payloadType} ({payloadName})")
+            print(f"\n\n[{formatted_time}] Message received: payloadType = {message.payloadType} ({payloadName})")
             print("\n", Protobuf.extract(message))
             GlobalVar.NEW_PRINT_HAS_HAPPENED = True
 
@@ -204,18 +188,20 @@ if __name__ == "__main__":
                 if GlobalVar.g_task_queue[0][2] == message.payloadType:
                     GlobalVar.g_task_queue[0][2] = None
 
-    def setAccount(index):
+    def setAccount(index, clientMsgId = None):
         """
         index is GlobalVar.g_auth_acc index
         call `acc` and you know what 7 im saying
         """
+        index = int(index)
+
         if len(GlobalVar.g_auth_acc) == 0:
             print("Call `acc` first, to get account list")
             return
 
         # if GlobalVar.CURRENT_CTIDTRADERACCOUNTID is not None:
         #     sendProtoOAAccountLogoutReq()
-        GlobalVar.CURRENT_CTIDTRADERACCOUNTID = GlobalVar.g_auth_acc[int(index)]["ctidTraderAccountId"]
+        GlobalVar.CURRENT_CTIDTRADERACCOUNTID = GlobalVar.g_auth_acc[index]["ctidTraderAccountId"]
         GlobalVar.g_task_queue.append([send_Auth_Account, None, None, None])
 
     def sendProtoOAVersionReq(clientMsgId = None):
@@ -239,7 +225,7 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def handle_print_all_accounts():
+    def handle_print_all_accounts(clientMsgId = None):
         GlobalVar.g_task_queue.append([getAllAccounts, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAGetAccountListByAccessTokenRes().payloadType, "Call by getAllAccounts"])
         GlobalVar.g_task_queue.append([print_all_accoutns, None, None, None])
@@ -269,14 +255,17 @@ if __name__ == "__main__":
         # Terminate your main thread script
         reactor.callLater(3, callable=terminate_script)
 
-    def terminate_script():
+    def terminate_script(clientMsgId = None):
         os._exit(0)
 
     def send_close_all_running_positions(positionEntity, clientMsgId=None):
+        if not isinstance(positionEntity, ProtoOAPosition):
+            raise TypeError(f"Expected ProtoOAPosition, but got {type(positionEntity).__name__}")
+
         positionId = positionEntity.positionId
         symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key[positionEntity.tradeData.symbolId]
         volume = positionEntity.tradeData.volume
-        
+
         print(f"PositionId:{position.positionId} Symbol:{symbol_name} Volume:{volume} closing position.")
 
         request = ProtoOAClosePositionReq()
@@ -286,32 +275,10 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def handle_close_all_running_positions():
-        res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
-        positionList = res.position
-        
-        for position in positionList:
-            param = [position]
-            GlobalVar.g_task_queue.append([send_close_all_running_positions, param, None, None])
-
-    def getRunningPositions(clientMsgId=None):
-        """
-        This is for pending orders
-        """
-        current_time = time.time()
-        dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
-        formatted_time = dt.strftime("%H%M")
-        print(f"[{formatted_time}] getRunningPositions")
-
-        request = ProtoOAReconcileReq()
-        request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
-        deferred = client.send(request, clientMsgId=clientMsgId)
-        deferred.addErrback(onError)
-        
-    def handle_refresh_token():
+    def handle_refresh_token(clientMsgId = None):
         res = GlobalVar.g_data_dict[ProtoOARefreshTokenRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOARefreshTokenRes().payloadType]
-        
+
         updates = {"ACCESS_TOKEN":res.accessToken, "REFRESH_TOKEN":res.refreshToken}
         res = None
         with fileinput.FileInput(".env", inplace=True) as file:
@@ -325,10 +292,10 @@ if __name__ == "__main__":
         refresh_RAM()
         print("New accessToken & refreshToken updated")
 
-    def Set_RunningPosition_StopLoss_To_Opposite():
+    def Set_RunningPosition_StopLoss_To_Opposite(clientMsgId = None):
         res = GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType]
         del GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType]
-        
+
         positionList = res.position
 
         for position in positionList:
@@ -350,52 +317,19 @@ if __name__ == "__main__":
             else:
                 print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is OPPOSITE.")
 
-    def send_Get_List_Of_Running_And_Pending_Orders():
+    def send_Get_List_Of_Running_And_Pending_Orders(clientMsgId = None):
         request = ProtoOAReconcileReq()
         request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-
-    def stopRunningPosition(positionId, clientMsgId=None):
-        """
-        Remove position from g_position since it hit SL or TP
-        What about g_subscribe?
-        Once this object is set to False
-        It will be handled in the object destroy() function
-        """
-        current_time = time.time()
-        dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
-        formatted_time = dt.strftime("%H%M")
-        print(f"[{formatted_time}] stopRunningPosition")
-
-        # This is for the case where 0.01lot runningposition gets closed.
-        if positionId not in running_position.g_positions:
-            print(f"PositionId:{positionId} not in g_positions. Skip.")
-            return
-
-        # Because i still encounter issue 0.01 lot gets closed by my script
-        # And is without error saynig g_positions no such positionId key exsts
-        if running_position.g_positions[positionId]["Object"].lotsize == 0.01:
-            print(f"PositionId:{positionId}, Symbol:{running_position.g_positions[positionId]['Object'].symbol} lotsize 0.01 alive lol")
-            print(f"For now, i wont do anything, you want restart script you restart. I will print list for you")
-            running_position.g_command_queue.put("p")
-            running_position.g_command_queue.put("pp")
-            return
-
-        running_position.g_positions[positionId]["Object"].alive = False
-        # Dont delete here, let it be deleted in to obejct itself
-        # del running_position.g_positions[positionId]
-
-    def handle_Authenticate_Account():
+    def handle_Authenticate_Account(clientMsgId = None):
         GlobalVar.g_task_queue.append([send_Auth_Account, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAAccountAuthRes().payloadType, "Call by send_Auth_Account"])
-        
 
-    def handle_Authenticate_API():
+    def handle_Authenticate_API(clientMsgId = None):
         GlobalVar.g_task_queue.append([send_Authenticate_API, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAApplicationAuthRes().payloadType, "Call by send_Authenticate_API"])
-        
 
     def send_Get_Symbol_List(clientMsgId=None):
         request = ProtoOASymbolsListReq()
@@ -406,101 +340,108 @@ if __name__ == "__main__":
     def getSymbolDetail(symbolId, clientMsgId=None):
         """
         """
+        symbolId = int(symbolId)
         param = [symbolId]
         GlobalVar.g_task_queue.append([send_Get_Symbol_Detail, param, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, "Call by send_Get_Symbol_Detail"])
         GlobalVar.g_task_queue.append([print_symbol_detail, None, None, None])
 
-    def print_symbol_detail():
+    def print_symbol_detail(clientMsgId = None):
         res = GlobalVar.g_data_dict[ProtoOASymbolByIdRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOASymbolByIdRes().payloadType]
         print(res)
 
-    def update_lotsize_for_pending_order_no_delete_dict(lotsize):
+    def update_lotsize_for_pending_order_no_delete_dict(lotsize, clientMsgId = None):
         """
         """
+        lotsize = round(float(lotsize), 2)
         res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
         # No delete for this function
         # del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
-        
+
         orderList = res.order
         if len(orderList) == 0:
             print(f"No pending orders")
             return
-        
+
         for order in orderList:
             # Get MIN_LOT_XAUUSD from config.ini
             symbol_name         = GlobalVar.g_Symbol_Data_ID_As_Key[order.tradeData.symbolId]
             MIN_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MIN_LOT_VOLUME_{symbol_name}"])
             MAX_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"])
             volume_to_pip_converter = 0.01 / float(MIN_LOT_VALUE)
-            
+
             # Check whether is same lotsize or not
             # If lotsize is 100, just use the maximum volume from config.ini
             if lotsize == 100:
                 if order.tradeData.volume == MAX_LOT_VALUE:
                     continue
                 order.tradeData.volume = MAX_LOT_VALUE
-                
+
             else:
                 if order.tradeData.volume * volume_to_pip_converter == lotsize:
                     continue
                 order.tradeData.volume = int(lotsize / volume_to_pip_converter)
-            
-            print(f"Pending order change lotsize to {lotsize} lot")
-            param = [order]
-            GlobalVar.g_task_queue.append([send_Amend_Pending_Order_Lotsize, param, None, None])
-            
-    def update_lotsize_for_pending_order(lotsize):
-        """
-        """
-        res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
-        del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
-        
-        orderList = res.order
-        if len(orderList) == 0:
-            print(f"No pending orders")
-            return
-        
-        for order in orderList:
-            # Get MIN_LOT_XAUUSD from config.ini
-            symbol_name         = GlobalVar.g_Symbol_Data_ID_As_Key[order.tradeData.symbolId]
-            MIN_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MIN_LOT_VOLUME_{symbol_name}"])
-            MAX_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"])
-            volume_to_pip_converter = 0.01 / float(MIN_LOT_VALUE)
-            
-            # Check whether is same lotsize or not
-            # If lotsize is 100, just use the maximum volume from config.ini
-            if lotsize == 100:
-                if order.tradeData.volume == MAX_LOT_VALUE:
-                    continue
-                order.tradeData.volume = MAX_LOT_VALUE
-                
-            else:
-                if order.tradeData.volume * volume_to_pip_converter == lotsize:
-                    continue
-                order.tradeData.volume = int(lotsize / volume_to_pip_converter)
-            
+
             print(f"Pending order change lotsize to {lotsize} lot")
             param = [order]
             GlobalVar.g_task_queue.append([send_Amend_Pending_Order_Lotsize, param, None, None])
 
+    def update_lotsize_for_pending_order(lotsize, clientMsgId = None):
+        """
+        """
+        lotsize = round(float(lotsize), 2)
+        res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+        del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+
+        orderList = res.order
+        if len(orderList) == 0:
+            print(f"No pending orders")
+            return
+
+        for order in orderList:
+            # Get MIN_LOT_XAUUSD from config.ini
+            symbol_name         = GlobalVar.g_Symbol_Data_ID_As_Key[order.tradeData.symbolId]
+            MIN_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MIN_LOT_VOLUME_{symbol_name}"])
+            MAX_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"])
+            volume_to_pip_converter = 0.01 / float(MIN_LOT_VALUE)
+
+            # Check whether is same lotsize or not
+            # If lotsize is 100, just use the maximum volume from config.ini
+            if lotsize == 100:
+                if order.tradeData.volume == MAX_LOT_VALUE:
+                    continue
+                order.tradeData.volume = MAX_LOT_VALUE
+
+            else:
+                if order.tradeData.volume * volume_to_pip_converter == lotsize:
+                    continue
+                order.tradeData.volume = int(lotsize / volume_to_pip_converter)
+
+            print(f"Pending order change lotsize to {lotsize} lot")
+            param = [order]
+            GlobalVar.g_task_queue.append([send_Amend_Pending_Order_Lotsize, param, None, None])
 
     def updateSymbolDetail(symbolId, clientMsgId=None):
         """
         Update symbol to config.ini, but only accept single symbolID
         """
+        symbolId = int(symbolId)
         param = [symbolId]
         GlobalVar.g_task_queue.append([send_Get_Symbol_Detail, param, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, None])
         GlobalVar.g_task_queue.append([Update_Symbol_Detail, None, None, None])
 
-    def getSymbolIDs(favourite = True):
+    def getSymbolIDs(favourite = True, clientMsgId = None):
         """
         favourite = True
         Print my favourite symbols only
         Else, all
         """
+        # I will call function like this `getSymbolIDs 0`
+        # "0" will be passed as string into function
+        # It will evaluate to False
+        favourite = bool(int(favourite)) if favourite.isdigit() else False
         for id, symbol in GlobalVar.g_Symbol_Data_ID_As_Key.items():
             if favourite:
                 if symbol in GlobalVar.g_favourite_symbol:
@@ -524,15 +465,20 @@ if __name__ == "__main__":
         This also can be used to set SL trigger method to OPPOSITE, without setting BE
         That is, you set original stopLoss, takeProfit, but set SLTriggerMethod to "OPPOSITE"
         """
+        positionId = int(positionId)
+        entryPrice = round(float(entryPrice), 2)
+        takeProfit = round(float(takeProfit), 2)
+        SLTriggerMethod = str(SLTriggerMethod)
+
         request = ProtoOAAmendPositionSLTPReq()
         request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
-        request.positionId = int(positionId)
-        request.stopLoss = round(float(entryPrice), 2)
-        request.takeProfit = round(float(takeProfit), 2)
+        request.positionId  = positionId
+        request.stopLoss    = entryPrice
+        request.takeProfit  = takeProfit
         request.stopLossTriggerMethod = ProtoOAOrderTriggerMethod.Value(SLTriggerMethod)
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
-        
+
     def send_Amend_Pending_Order_Lotsize(orderEntity, clientMsgId=None):
         """
         !Note!
@@ -542,6 +488,9 @@ if __name__ == "__main__":
         after running this function, the trigger method still same, that is
         opposite.
         """
+        if not isinstance(orderEntity, ProtoOAOrder):
+            raise TypeError(f"Expected ProtoOAOrder, but got {type(orderEntity).__name__}")
+
         symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key[orderEntity.tradeData.symbolId]
 
         _StopLossTakeProfit = -1
@@ -582,14 +531,14 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def send_Authenticate_API():
+    def send_Authenticate_API(clientMsgId = None):
         request = ProtoOAApplicationAuthReq()
         request.clientId = GlobalVar.APP_CLIENT_ID
         request.clientSecret = GlobalVar.APP_CLIENT_SECRET
         deferred = client.send(request)
         deferred.addErrback(onError)
 
-    def handle_time_checks():
+    def handle_time_checks(clientMsgId = None):
         """
         1. Modify Pending Order lotsizes according to time
         2. Close all running order according to time
@@ -610,7 +559,7 @@ if __name__ == "__main__":
             if current_time > time_checks:
                 if current_weekday not in GlobalVar.g_time_checks_record:
                     GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-                    print(f"Today is {current_weekday} {formatted_time}. Market opening. Set all pending order lotsize to {GlobalVar.g_Config_Data['LOTSIZE']}.")
+                    print(f"\n\nToday is {current_weekday} {formatted_time}. Market opening. Set all pending order lotsize to {GlobalVar.g_Config_Data['LOTSIZE']}.")
                     lotsize = GlobalVar.g_Config_Data["LOTSIZE"]
                     GlobalVar.g_time_checks_record = {current_weekday : lotsize}
 
@@ -621,14 +570,14 @@ if __name__ == "__main__":
             if current_time > time_checks:
                 if current_weekday not in GlobalVar.g_time_checks_record:
                     GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-                    print(f"Today is {current_weekday} {formatted_time}. Market closing. Set all pending order lotsize to max. Also close all running order.")
+                    print(f"\n\nToday is {current_weekday} {formatted_time}. Market closing. Set all pending order lotsize to max. Also close all running order.")
                     lotsize = 100
                     GlobalVar.g_time_checks_record = {current_weekday : lotsize}
 
         else:
             if current_weekday not in GlobalVar.g_time_checks_record:
                 GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-                print(f"Today is {current_weekday} {formatted_time}.")
+                print(f"\n\nToday is {current_weekday} {formatted_time}.")
                 GlobalVar.g_time_checks_record = {current_weekday : lotsize}
 
         # After a lot of checking above, here handles the aftermath
@@ -644,27 +593,28 @@ if __name__ == "__main__":
             if current_weekday == "Saturday":
                 GlobalVar.g_task_queue.append([send_close_all_running_positions, None, None, None])
 
+            # Manual delete
             del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
 
-    def Update_Symbol_List_Json():
+    def Update_Symbol_List_Json(clientMsgId = None):
         symbol_data = GlobalVar.g_data_dict[ProtoOASymbolsListRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOASymbolsListRes().payloadType]
-        
+
         filename = "symbolList_" + GlobalVar.ACCOUNT_TYPE + ".txt"
         with open(filename, "w") as file:
             file.write(str(symbol_data))
         result = utility.convert_txt_to_json(filename, GlobalVar.ACCOUNT_TYPE)
 
-        if result == utility.SymbolJsonUpdate.HAS_UPDATE:
+        if result == SymbolJsonUpdate.HAS_UPDATE:
             # Update the global data that hold the symbol detail
             GlobalVar.g_Symbol_Data_ID_As_Key = None
             GlobalVar.g_Symbol_Data_Name_As_Key = None
             utility.read_symbol_file(GlobalVar.ACCOUNT_TYPE)
 
-    def print_all_accoutns():
+    def print_all_accoutns(clientMsgId = None):
         res = GlobalVar.g_data_dict[ProtoOAGetAccountListByAccessTokenRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOAGetAccountListByAccessTokenRes().payloadType]
-        
+
         accounts = res.ctidTraderAccount
         GlobalVar.g_auth_acc.clear()
         for index, acc in enumerate(accounts):
@@ -676,7 +626,7 @@ if __name__ == "__main__":
         for acc in GlobalVar.g_auth_acc:
             print(acc)
 
-    def authenticate_all_accounts():
+    def authenticate_all_accounts(clientMsgId = None):
         res = GlobalVar.g_data_dict[ProtoOAGetAccountListByAccessTokenRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOAGetAccountListByAccessTokenRes().payloadType]
 
@@ -690,14 +640,17 @@ if __name__ == "__main__":
             setAccount(index)
 
     def send_Get_Symbol_Detail(symbolIdList, clientMsgId=None):
+        # Convert non-list input into a list
+        if not isinstance(symbolIdList, list):
+            symbolIdList = [symbolIdList]
         request = ProtoOASymbolByIdReq()
         request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
         for symbolId in symbolIdList:
             request.symbolId.append(int(symbolId))
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
-        
-    def Update_Symbol_Detail():
+
+    def Update_Symbol_Detail(clientMsgId = None):
         # Update the symbol to config.ini
         #!NOTE! Gonna make sure symbol ID gets updated
         res = GlobalVar.g_data_dict[ProtoOASymbolByIdRes().payloadType]
@@ -717,7 +670,7 @@ if __name__ == "__main__":
         GlobalVar.g_Config_Data = None
         utility.read_config_file()
 
-    def handle_symbol_update():
+    def handle_symbol_update(clientMsgId = None):
         GlobalVar.g_task_queue.append([send_Get_Symbol_List, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolsListRes().payloadType, "Call by send_Get_Symbol_List"])
         GlobalVar.g_task_queue.append([Update_Symbol_List_Json, None, None, None])
@@ -736,40 +689,30 @@ if __name__ == "__main__":
         """
         This is for pending orders
         """
+        lotsize = round(float(lotsize), 2)
         param = [lotsize]
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         # I will delete the dict myself, manually, at the end of this function
         GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
-    def printPendingList():
+    def print_g_data_dict(clientMsgId = None):
         """
         """
-        print("\n")
-        print("Pending list now :")
-        for o in g_pending.values():
-            volume_to_pip_converter = 0.01 / float(GlobalVar.g_Config_Data[f"MIN_LOT_VOLUME_{o['symbol']}"])
-            print(f"OrderId:{o['Object'].orderId}, Symbol: {o['symbol']}, Lotsize: {o['Object'].tradeData.volume * volume_to_pip_converter}")
+        print("g_data_dict:")
+        for key, value in GlobalVar.g_data_dict.items():
+            print(f"{key}: {value}")
+            
+    def print_g_time_checks_record(clientMsgId = None):
+        """
+        """
+        print("g_time_checks_record:")
+        for key, value in GlobalVar.g_time_checks_record.items():
+            print(f"{key}: {value}")
 
-    def printRunningList():
+    def refresh_RAM(clientMsgId = None):
         """
-        """
-        print("\n")
-        print("Running list now :")
-        for p in running_position.g_positions.values():
-            print(f"PositionId:{p['Object'].positionId}, Symbol: {p['Object'].symbol}")
-
-    def printSubscriptionList():
-        """
-        """
-        print("\n")
-        print("Subscription list now :")
-        for s in running_position.g_subscribe.values():
-            print(f"{s}")
-
-    def refresh_RAM():
-        """
-        Reload everything into the RAM, 
+        Reload everything into the RAM,
         dont care got new update or not
         """
         utility.read_config_file(True)
@@ -777,7 +720,7 @@ if __name__ == "__main__":
         load_dotenv(override=True)
         GlobalVar.ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
 
-    def handle_renew_access_token():
+    def handle_renew_access_token(clientMsgId = None):
         GlobalVar.g_task_queue.append([send_renew_access_token, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOARefreshTokenRes().payloadType, "Call by send_renew_access_token"])
         GlobalVar.g_task_queue.append([handle_refresh_token, None, None, None])
@@ -789,9 +732,10 @@ if __name__ == "__main__":
         deferred.addErrback(onError)
 
     def setHeartbeat(value, clientMsgId=None):
+        value = int(value)
         GlobalVar.g_print_heartbeat = int(value)
 
-    def showHelp():
+    def showHelp(clientMsgId = None):
         print()
         print("Note: Some command are not shown, those shall not be executed by you")
 
@@ -821,12 +765,9 @@ if __name__ == "__main__":
         "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`
         "lt": setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`
         "r": refresh_RAM, # Refresh global variable with latest value
+        "p": print_g_data_dict,
+        "pp": print_g_time_checks_record,
         "test": test,
-
-        "ppp": printPendingList,
-        "pp": printRunningList,
-        "p": printSubscriptionList,
-
     }
 
     def executeUserCommand():
@@ -847,7 +788,7 @@ if __name__ == "__main__":
                     # server and does not require user to issue command
                     # eg: Heartbeat
                     if GlobalVar.NEW_PRINT_HAS_HAPPENED:
-                        print(f"A new print to console message has happened. Retype your command")
+                        print(f"\n\nA new print to console message has happened. Retype your command")
                         GlobalVar.NEW_PRINT_HAS_HAPPENED = False
                         continue
 
@@ -884,7 +825,7 @@ if __name__ == "__main__":
     def processCommand():
         while True:
             while len(GlobalVar.g_task_queue) != 0:
-                
+
                 # Usually [2] is waiting for server to reply
                 # Wait until server finish replying
                 # There's a reason why i dont use current_task = GlobalVar.g_task_queue[0]
@@ -899,17 +840,17 @@ if __name__ == "__main__":
                     continue
 
                 current_task = GlobalVar.g_task_queue[0]
-                
+
                 # [0] is function, if is None, means the current task
                 # is waiting for server to reply to me
                 function = current_task[0]
                 parameters = current_task[1]
                 if parameters is None:
                     parameters = []
-                    
+
                 # Run the function
                 function(*parameters)
-                
+
                 # After run the function only then you pop it
                 # if not ah, the executeUserCommand thread will
                 # prompt for user input before you finish executing

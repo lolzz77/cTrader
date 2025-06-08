@@ -3,18 +3,7 @@ import configparser
 from commentedconfigparser import CommentedConfigParser
 import re
 from enum import Enum
-from globalpy import GlobalVar
-
-class SymbolJsonUpdate(Enum):
-    NO_UPDATE = 1
-    HAS_UPDATE = 2
-
-    @classmethod
-    def getName(cls, value):
-        for key in cls:
-            if key.value == value:
-                return key.name
-        return None
+from globalpy import GlobalVar, SymbolJsonUpdate
 
 def read_symbol_file(account_type, to_print=False):
     """
@@ -51,7 +40,7 @@ def write_config_file(section, key, value):
     """
     [Biography]
     Name = Ali
-    
+
     section = Biography
     Key = Name
     Value = Ali
