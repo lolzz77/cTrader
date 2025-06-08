@@ -421,12 +421,16 @@ if __name__ == "__main__":
             param = [order]
             GlobalVar.g_task_queue.append([send_Amend_Pending_Order_Lotsize, param, None, None])
 
-    def updateSymbolDetail(symbolId, clientMsgId=None):
+    def updateSymbolDetail(symbolIdList, clientMsgId=None):
         """
-        Update symbol to config.ini, but only accept single symbolID
+        Update symbol to config.ini
         """
-        symbolId = int(symbolId)
-        param = [symbolId]
+        # Convert non-list input into a list
+        if not isinstance(symbolIdList, list):
+            symbolIdList = [symbolIdList]
+
+        param = []
+        param.append(symbolIdList)
         GlobalVar.g_task_queue.append([send_Get_Symbol_Detail, param, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, None])
         GlobalVar.g_task_queue.append([Update_Symbol_Detail, None, None, None])
@@ -642,6 +646,7 @@ if __name__ == "__main__":
         # Convert non-list input into a list
         if not isinstance(symbolIdList, list):
             symbolIdList = [symbolIdList]
+
         request = ProtoOASymbolByIdReq()
         request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
         for symbolId in symbolIdList:
@@ -678,11 +683,7 @@ if __name__ == "__main__":
             symbolIdList.append(GlobalVar.g_Symbol_Data_Name_As_Key[symbolName])
         # Because i use function(*parameter) approach
         # It will unpack the list
-        param = []
-        param.append(symbolIdList)
-        GlobalVar.g_task_queue.append([send_Get_Symbol_Detail, param, None, None])
-        GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, None])
-        GlobalVar.g_task_queue.append([Update_Symbol_Detail, None, None, None])
+        updateSymbolDetail(symbolIdList)
 
     def setLotSize(lotsize, clientMsgId=None):
         """
@@ -701,7 +702,7 @@ if __name__ == "__main__":
         print("g_data_dict:")
         for key, value in GlobalVar.g_data_dict.items():
             print(f"{key}: {value}")
-            
+
     def print_g_time_checks_record(clientMsgId = None):
         """
         """
@@ -751,26 +752,26 @@ if __name__ == "__main__":
         "help": showHelp,
         "ver": sendProtoOAVersionReq, # get API version
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
-        
+
         "qq": User_Disconnect,
-        
+
         "acc": handle_print_all_accounts, # Get all account details & print
         "set": setAccount, # Authenticate an account, call `set index`
         "cur": getCurrentAccount, # Get current set acc
         "auth": sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts
         "renew": handle_renew_access_token, # Renew access & refresh token
-        
+
         "gsl": getSymbolIDs, # gsl = get symbol list. List the symbol and their ID, call `gsl 0`, `gsl 1`
         "gsd": getSymbolDetail, # gsd = get symbol detail, call `gsd symbolId`
         "us": handle_symbol_update, # us = update symbol list json file
         "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `usd symbolId`
-        
+
         "lt": setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`
-        
+
         "p": print_g_data_dict, # Print g_data_dict
         "pp": print_g_time_checks_record, # Print g_time_checks_record
         "r": refresh_RAM, # Refresh global variable with latest value
-        
+
         "test": test,
     }
 
