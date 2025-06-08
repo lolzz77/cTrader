@@ -62,9 +62,13 @@ if __name__ == "__main__":
         print(f"\n[{formatted_time}] Connected. ACCOUNT_TYPE:{GlobalVar.ACCOUNT_TYPE}")
 
         # Startup tasks! Yay!
-        handle_Authenticate_API()
+        GlobalVar.g_task_queue.append([send_Authenticate_API, None, None, None])
+        GlobalVar.g_task_queue.append([None, None, ProtoOAApplicationAuthRes().payloadType, "Call by send_Authenticate_API"])
+
         if GlobalVar.CURRENT_CTIDTRADERACCOUNTID is not None:
-            handle_Authenticate_Account()
+            GlobalVar.g_task_queue.append([send_Auth_Account, None, None, None])
+            GlobalVar.g_task_queue.append([None, None, ProtoOAAccountAuthRes().payloadType, "Call by send_Auth_Account"])
+
         handle_symbol_update()
         GlobalVar.START_USER_COMMAND = True
 
@@ -321,14 +325,6 @@ if __name__ == "__main__":
         request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
-
-    def handle_Authenticate_Account(clientMsgId = None):
-        GlobalVar.g_task_queue.append([send_Auth_Account, None, None, None])
-        GlobalVar.g_task_queue.append([None, None, ProtoOAAccountAuthRes().payloadType, "Call by send_Auth_Account"])
-
-    def handle_Authenticate_API(clientMsgId = None):
-        GlobalVar.g_task_queue.append([send_Authenticate_API, None, None, None])
-        GlobalVar.g_task_queue.append([None, None, ProtoOAApplicationAuthRes().payloadType, "Call by send_Authenticate_API"])
 
     def send_Get_Symbol_List(clientMsgId=None):
         request = ProtoOASymbolsListReq()
@@ -880,4 +876,3 @@ if __name__ == "__main__":
     # When you type CTRL C, this thread will capture it
     # TODO Find a way to handle CTRL C
     reactor.run()
-
