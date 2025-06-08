@@ -33,7 +33,6 @@ import utility
 import fileinput
 import threading
 import time
-from enum import Enum
 from globalpy import GlobalVar, SymbolJsonUpdate, StopLossTakeProfit
 
 utility.read_config_file() # Read config.ini
@@ -677,9 +676,12 @@ if __name__ == "__main__":
         symbolIdList = []
         for symbolName in GlobalVar.g_favourite_symbol:
             symbolIdList.append(GlobalVar.g_Symbol_Data_Name_As_Key[symbolName])
-        # Because i use function(*parameter) approach
-        # It will unpack the list
-        updateSymbolDetail(symbolIdList)
+        # Let's comment this out first
+        # Gotta find a way to detect if got new symbol update then only trigger this
+        # BUT THEN, it might have risk this got new update without having the symbol ID update
+        # You know what im saying? It's best to run both update checks
+        # But for now, is better i run it manually from time to time i guess
+        # updateSymbolDetail(symbolIdList)
 
     def setLotSize(lotsize, clientMsgId=None):
         """
@@ -734,15 +736,33 @@ if __name__ == "__main__":
     def showHelp(clientMsgId = None):
         print()
         print("Note: Some command are not shown, those shall not be executed by you")
+        print("help: showHelp,")
+        print("ver: sendProtoOAVersionReq, # get API version")
+        print("hb: setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`")
+        print("")
+        print("qq: User_Disconnect,")
+        print("")
+        print("acc: handle_print_all_accounts, # Get all account details & print")
+        print("set: setAccount, # Authenticate an account, call `set index`")
+        print("cur: getCurrentAccount, # Get current set acc")
+        print("auth: sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts")
+        print("renew: handle_renew_access_token, # Renew access & refresh token")
+        print("")
+        print("gsl: getSymbolIDs, # gsl = get symbol list. List the symbol and their ID, call `gsl 0`, `gsl 1`")
+        print("gsd: getSymbolDetail, # gsd = get symbol detail, call `gsd symbolId`")
+        print("us: handle_symbol_update, # us = update symbol list json file")
+        print("usd: updateSymbolDetail, # usd = update symbol detail to config.ini, call `usd symbolId`")
+        print("")
+        print("lt: setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`")
+        print("")
+        print("p: print_g_data_dict, # Print g_data_dict")
+        print("pp: print_g_time_checks_record, # Print g_time_checks_record")
+        print("r: refresh_RAM, # Refresh global variable with latest value")
+        print("")
+        print("test: test,")
 
     def test(clientMsgId=None):
         pass
-        # symbolIdList = []
-        # for s in GlobalVar.g_favourite_symbol:
-        #     symbolId = GlobalVar.g_Symbol_Data_Name_As_Key[s]
-        #     symbolIdList.append(symbolId)
-
-        # updateSymbolDetailList(symbolIdList)
 
     commands = {
         "help": showHelp,

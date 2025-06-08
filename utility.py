@@ -2,7 +2,6 @@ import json
 import configparser
 from commentedconfigparser import CommentedConfigParser
 import re
-from enum import Enum
 from globalpy import GlobalVar, SymbolJsonUpdate
 
 def read_symbol_file(account_type, to_print=False):
