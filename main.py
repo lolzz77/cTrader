@@ -199,8 +199,6 @@ if __name__ == "__main__":
             print("Call `acc` first, to get account list")
             return
 
-        # if GlobalVar.CURRENT_CTIDTRADERACCOUNTID is not None:
-        #     sendProtoOAAccountLogoutReq()
         GlobalVar.CURRENT_CTIDTRADERACCOUNTID = GlobalVar.g_auth_acc[index]["ctidTraderAccountId"]
         GlobalVar.g_task_queue.append([send_Auth_Account, None, None, None])
 
@@ -233,7 +231,8 @@ if __name__ == "__main__":
     def getCurrentAccount(clientMsgId = None):
         """
         """
-        print(f"ctidTraderAccountId:{GlobalVar.CURRENT_CTIDTRADERACCOUNTID}")
+        nickname = os.getenv(f'A_{GlobalVar.CURRENT_CTIDTRADERACCOUNTID}')
+        print(f"ctidTraderAccountId:{GlobalVar.CURRENT_CTIDTRADERACCOUNTID} Nickname: {nickname}")
 
     def sendProtoOAAccountLogoutReq(clientMsgId = None):
         request = ProtoOAAccountLogoutReq()
@@ -750,23 +749,28 @@ if __name__ == "__main__":
 
     commands = {
         "help": showHelp,
-        "set": setAccount, # Set global variable account ID
-        "ver": sendProtoOAVersionReq, # Show version
-        "auth": sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts
-        "acc": handle_print_all_accounts, # Get all account details
-        "cur": getCurrentAccount, # Get current acc
-        "renew": handle_renew_access_token, # Renew access & refresh token
+        "ver": sendProtoOAVersionReq, # get API version
         "hb": setHeartbeat, # Set print heartbeat true or false. Call it like this `hb 1`
+        
         "qq": User_Disconnect,
-        "ap": send_Set_StopLoss_To_Opposite, # Amend Running Position, call `ap positionId stopLoss takeProfit 'TRADE'`
-        "gsl": getSymbolIDs, # gsl = get symbol list. List the symbol and their ID
-        "gsd": getSymbolDetail, # gsd = get symbol detail, call `sd symbolId`
+        
+        "acc": handle_print_all_accounts, # Get all account details & print
+        "set": setAccount, # Authenticate an account, call `set index`
+        "cur": getCurrentAccount, # Get current set acc
+        "auth": sendProtoOAGetAccountListByAccessTokenReq, # Authenticate all accounts
+        "renew": handle_renew_access_token, # Renew access & refresh token
+        
+        "gsl": getSymbolIDs, # gsl = get symbol list. List the symbol and their ID, call `gsl 0`, `gsl 1`
+        "gsd": getSymbolDetail, # gsd = get symbol detail, call `gsd symbolId`
         "us": handle_symbol_update, # us = update symbol list json file
-        "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `us symbolId`
-        "lt": setLotSize, # lt = lot. Set lot size. Call like this `lt 100`, `lt 0.01`
+        "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `usd symbolId`
+        
+        "lt": setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`
+        
+        "p": print_g_data_dict, # Print g_data_dict
+        "pp": print_g_time_checks_record, # Print g_time_checks_record
         "r": refresh_RAM, # Refresh global variable with latest value
-        "p": print_g_data_dict,
-        "pp": print_g_time_checks_record,
+        
         "test": test,
     }
 
@@ -810,7 +814,6 @@ if __name__ == "__main__":
                         continue
 
                     GlobalVar.g_task_queue.append([commands[command], parameters, None, None])
-
 
         # !CTRL C!
         # To detech & handle CTRL C, but this will not work
@@ -856,7 +859,6 @@ if __name__ == "__main__":
                 # prompt for user input before you finish executing
                 # the previous command
                 GlobalVar.g_task_queue.pop(0)
-
 
     # Start user console command
     thread_user_input = threading.Thread(target=executeUserCommand)
