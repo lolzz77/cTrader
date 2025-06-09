@@ -34,6 +34,7 @@ import fileinput
 import threading
 import time
 from globalpy import GlobalVar, SymbolJsonUpdate, StopLossTakeProfit
+import math
 
 utility.read_config_file() # Read config.ini
 utility.read_symbol_file(GlobalVar.ACCOUNT_TYPE) # Read symbolList_demo/live.json
@@ -260,22 +261,30 @@ if __name__ == "__main__":
     def terminate_script(clientMsgId = None):
         os._exit(0)
 
-    def send_close_all_running_positions(positionEntity, clientMsgId=None):
-        if not isinstance(positionEntity, ProtoOAPosition):
-            raise TypeError(f"Expected ProtoOAPosition, but got {type(positionEntity).__name__}")
+    def send_close_all_running_positions(RepeatedCompositeContainer_position, get_dict = False, clientMsgId=None):
+        if get_dict:
+            res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+            RepeatedCompositeContainer_position = res.position
 
-        positionId = positionEntity.positionId
-        symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key[positionEntity.tradeData.symbolId]
-        volume = positionEntity.tradeData.volume
+        # During debugging, i do `type(RepeatedCompositeContainer_position)`
+        # And i saw class 'google,protobuf.pyext._message.RepeatedCompositeContainer'
+        from google.protobuf.pyext._message import RepeatedCompositeContainer
+        if not isinstance(RepeatedCompositeContainer_position, RepeatedCompositeContainer):
+            raise TypeError(f"Expected ProtoOAPosition, but got {type(RepeatedCompositeContainer_position).__name__}")
 
-        print(f"PositionId:{position.positionId} Symbol:{symbol_name} Volume:{volume} closing position.")
+        for position in RepeatedCompositeContainer_position:
+            positionId = position.positionId
+            symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key[position.tradeData.symbolId]
+            volume = position.tradeData.volume
 
-        request = ProtoOAClosePositionReq()
-        request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
-        request.positionId = int(positionId)
-        request.volume = int(volume)
-        deferred = client.send(request, clientMsgId=clientMsgId)
-        deferred.addErrback(onError)
+            print(f"PositionId:{position.positionId} Symbol:{symbol_name} Volume:{volume} closing position.")
+
+            request = ProtoOAClosePositionReq()
+            request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
+            request.positionId = int(positionId)
+            request.volume = int(volume)
+            deferred = client.send(request, clientMsgId=clientMsgId)
+            deferred.addErrback(onError)
 
     def handle_refresh_token(clientMsgId = None):
         res = GlobalVar.g_data_dict[ProtoOARefreshTokenRes().payloadType]
@@ -345,13 +354,14 @@ if __name__ == "__main__":
         del GlobalVar.g_data_dict[ProtoOASymbolByIdRes().payloadType]
         print(res)
 
-    def update_lotsize_for_pending_order_no_delete_dict(lotsize, clientMsgId = None):
+    def update_lotsize_for_pending_order(lotsize, delete_dict = True, clientMsgId = None):
         """
         """
         lotsize = round(float(lotsize), 2)
         res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
-        # No delete for this function
-        # del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+
+        if delete_dict:
+            del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
 
         orderList = res.order
         if len(orderList) == 0:
@@ -375,42 +385,10 @@ if __name__ == "__main__":
             else:
                 if order.tradeData.volume * volume_to_pip_converter == lotsize:
                     continue
-                order.tradeData.volume = int(lotsize / volume_to_pip_converter)
-
-            print(f"Pending order change lotsize to {lotsize} lot")
-            param = [order]
-            GlobalVar.g_task_queue.append([send_Amend_Pending_Order_Lotsize, param, None, None])
-
-    def update_lotsize_for_pending_order(lotsize, clientMsgId = None):
-        """
-        """
-        lotsize = round(float(lotsize), 2)
-        res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
-        del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
-
-        orderList = res.order
-        if len(orderList) == 0:
-            print(f"No pending orders")
-            return
-
-        for order in orderList:
-            # Get MIN_LOT_XAUUSD from config.ini
-            symbol_name         = GlobalVar.g_Symbol_Data_ID_As_Key[order.tradeData.symbolId]
-            MIN_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MIN_LOT_VOLUME_{symbol_name}"])
-            MAX_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"])
-            volume_to_pip_converter = 0.01 / float(MIN_LOT_VALUE)
-
-            # Check whether is same lotsize or not
-            # If lotsize is 100, just use the maximum volume from config.ini
-            if lotsize == 100:
-                if order.tradeData.volume == MAX_LOT_VALUE:
-                    continue
-                order.tradeData.volume = MAX_LOT_VALUE
-
-            else:
-                if order.tradeData.volume * volume_to_pip_converter == lotsize:
-                    continue
-                order.tradeData.volume = int(lotsize / volume_to_pip_converter)
+                # lotsize = 0.02, volume_to_pip_converter = 0.00001
+                # Tried to use int(), but i get 1999 instead
+                # Hence, use math.ceil()
+                order.tradeData.volume = math.ceil(lotsize / volume_to_pip_converter)
 
             print(f"Pending order change lotsize to {lotsize} lot")
             param = [order]
@@ -581,18 +559,35 @@ if __name__ == "__main__":
         # After a lot of checking above, here handles the aftermath
         if lotsize != 0:
             GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-            param = [lotsize]
+            param = [lotsize, False]
             GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
             GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
             # I will delete the dict myself, manually, at the end of this function
-            GlobalVar.g_task_queue.append([update_lotsize_for_pending_order_no_delete_dict, param, None, None])
+            GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
             # Close all running position
             if current_weekday == "Saturday":
-                GlobalVar.g_task_queue.append([send_close_all_running_positions, None, None, None])
+                param = [None, True]
+                GlobalVar.g_task_queue.append([send_close_all_running_positions, param, None, None])
 
             # Manual delete
-            del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+            param = [ProtoOAReconcileRes().payloadType]
+            GlobalVar.g_task_queue.append([del_data_dict, param, None, None])
+
+            # Manual delete (old approach)
+            # !note! there is one danger with this approach
+            # The above, you append your task
+            # But rmb, until your this function exits,
+            # the above tasks are not run at all yet
+            # And here you deleted it before the above tasks can run
+            # So rmb, after you code "g_task_queue.append()",
+            # you should code append task after that!
+            # No more data manipulation after that!
+            # Any data manipulation shall be added into your task queue also!
+            # del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+
+    def del_data_dict(payloadEnum):
+        del GlobalVar.g_data_dict[payloadEnum]
 
     def Update_Symbol_List_Json(clientMsgId = None):
         symbol_data = GlobalVar.g_data_dict[ProtoOASymbolsListRes().payloadType]
@@ -691,7 +686,6 @@ if __name__ == "__main__":
         param = [lotsize]
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
-        # I will delete the dict myself, manually, at the end of this function
         GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
     def print_g_data_dict(clientMsgId = None):
