@@ -305,6 +305,11 @@ if __name__ == "__main__":
         res = GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType]
         del GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType]
 
+        current_time = time.time()
+        dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
+        formatted_time = dt.strftime("%H%M")
+        print(f"[{formatted_time}] Set Stoploss to Opposite")
+
         symbol = GlobalVar.g_Symbol_Data_ID_As_Key[res.position.tradeData.symbolId]
         if res.position.stopLoss == 0:
             print(f"PositionId:{res.position.positionId} Symbol:{symbol} stopLoss is 0. Abort.")
