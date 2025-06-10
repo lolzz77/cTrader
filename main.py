@@ -111,8 +111,6 @@ if __name__ == "__main__":
             res = Protobuf.extract(message)
             GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType] = res
 
-            print(f"\n\n[{formatted_time}] ProtoOAExecutionEvent")
-
             positionStatus = res.position.positionStatus
             isServerEvent = res.isServerEvent
 
