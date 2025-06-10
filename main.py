@@ -307,26 +307,23 @@ if __name__ == "__main__":
         res = GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType]
         del GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType]
 
-        positionList = res.position
+        symbol = GlobalVar.g_Symbol_Data_ID_As_Key[res.position.tradeData.symbolId]
+        if res.position.stopLoss == 0:
+            print(f"PositionId:{res.position.positionId} Symbol:{symbol} stopLoss is 0. Abort.")
+            return
 
-        for position in positionList:
-            symbol = GlobalVar.g_Symbol_Data_ID_As_Key[position.tradeData.symbolId]
-            if position.stopLoss == 0:
-                print(f"PositionId:{position.positionId} Symbol:{symbol} stopLoss is 0. Abort.")
-                continue
+        # Check if SL trigger is opposite or not, if is not, set it to opposite
+        if res.position.stopLossTriggerMethod != ProtoOAOrderTriggerMethod.Value('OPPOSITE'):
+            print(f"PositionId:{res.position.positionId} Symbol:{symbol} SL trigger is not OPPOSITE. Set to OPPOISTE now.")
+            # Note: After this command
+            # If you get description: "Protection can\'t be negative"
+            # Dont worry, this means you didnt set TP
+            # Usually this happens when I trying to test demo
 
-            # Check if SL trigger is opposite or not, if is not, set it to opposite
-            if position.stopLossTriggerMethod != ProtoOAOrderTriggerMethod.Value('OPPOSITE'):
-                print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is not OPPOSITE. Set to OPPOISTE now.")
-                # Note: After this command
-                # If you get description: "Protection can\'t be negative"
-                # Dont worry, this means you didnt set TP
-                # Usually this happens when I trying to test demo
-
-                param = [position.positionId, position.stopLoss, position.takeProfit, "OPPOSITE"]
-                GlobalVar.g_task_queue.append([send_Set_StopLoss_To_Opposite, param, None, None])
-            else:
-                print(f"PositionId:{position.positionId} Symbol:{symbol} SL trigger is OPPOSITE.")
+            param = [res.position.positionId, res.position.stopLoss, res.position.takeProfit, "OPPOSITE"]
+            GlobalVar.g_task_queue.append([send_Set_StopLoss_To_Opposite, param, None, None])
+        else:
+            print(f"PositionId:{res.position.positionId} Symbol:{symbol} SL trigger is OPPOSITE.")
 
     def send_Get_List_Of_Running_And_Pending_Orders(clientMsgId = None):
         request = ProtoOAReconcileReq()
