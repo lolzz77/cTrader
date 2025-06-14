@@ -266,9 +266,10 @@ if __name__ == "__main__":
 
         # During debugging, i do `type(RepeatedCompositeContainer_position)`
         # And i saw class 'google,protobuf.pyext._message.RepeatedCompositeContainer'
-        from google.protobuf.pyext._message import RepeatedCompositeContainer
-        if not isinstance(RepeatedCompositeContainer_position, RepeatedCompositeContainer):
-            raise TypeError(f"Expected ProtoOAPosition, but got {type(RepeatedCompositeContainer_position).__name__}")
+        # Comment first, my PC pass this code, my phone says no module named google.protobuf.pyext._message
+        # from google.protobuf.pyext._message import RepeatedCompositeContainer
+        # if not isinstance(RepeatedCompositeContainer_position, RepeatedCompositeContainer):
+        #     raise TypeError(f"Expected ProtoOAPosition, but got {type(RepeatedCompositeContainer_position).__name__}")
 
         for position in RepeatedCompositeContainer_position:
             positionId = position.positionId
@@ -541,8 +542,9 @@ if __name__ == "__main__":
 
         # Market closing, weekend, close all running positions too
         elif current_weekday == "Saturday":
-            # 2am set lotsize to maximum lotsize & close all running position
-            time_checks = time2(2, 0)
+            # 1am set lotsize to maximum lotsize & close all running position
+            # My experience, usually 214am disconnect, sometimes 123am disconnect
+            time_checks = time2(1, 0)
             if current_time > time_checks:
                 if current_weekday not in GlobalVar.g_time_checks_record:
                     GlobalVar.NEW_PRINT_HAS_HAPPENED = True
