@@ -529,8 +529,10 @@ if __name__ == "__main__":
 
         lotsize = 0
 
+        weekday_list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
         # Market open, set lotsize to my lotsize
-        if current_weekday == "Monday":
+        if current_weekday in weekday_list:
             # 830am set lotsize back to normal
             time_checks = time2(8, 30)
             if current_time > time_checks:
