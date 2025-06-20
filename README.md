@@ -38,3 +38,4 @@ ACCOUNT_TYPE="demo"
 2. `lotsize` - Set lotsize of your desired amount
 3. `tpp` - monitor your running position and take partial profit
 4. `spread` - monitor spread of asset you desired
+5. `helper` - to set lotsize every morning and close positions on sat
