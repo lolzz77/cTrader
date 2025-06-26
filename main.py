@@ -531,28 +531,26 @@ if __name__ == "__main__":
 
         weekday_list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-        # Market open, set lotsize to my lotsize
         if current_weekday in weekday_list:
-            # 830am set lotsize back to normal
-            time_checks = time2(8, 30)
-            if current_time > time_checks:
-                if current_weekday not in GlobalVar.g_time_checks_record:
-                    GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-                    print(f"\n\nToday is {current_weekday} {formatted_time}. Market opening. Set all pending order lotsize to {GlobalVar.g_Config_Data['LOTSIZE']}.")
-                    lotsize = GlobalVar.g_Config_Data["LOTSIZE"]
-                    GlobalVar.g_time_checks_record = {current_weekday : lotsize}
+            time_checks_close = time2(20, 0)
+            time_checks_open = time2(8, 30)
 
-        # Market closing, weekend, close all running positions too
-        elif current_weekday == "Saturday":
-            # 1am set lotsize to maximum lotsize & close all running position
-            # My experience, usually 214am disconnect, sometimes 123am disconnect
-            time_checks = time2(1, 0)
-            if current_time > time_checks:
+            # Market closing, weekend
+            if current_weekday == "Friday" and current_time > time_checks_close:
                 if current_weekday not in GlobalVar.g_time_checks_record:
                     GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-                    print(f"\n\nToday is {current_weekday} {formatted_time}. Market closing. Set all pending order lotsize to max. Also close all running order.")
+                    print(f"\n\nToday is {current_weekday} {formatted_time}. Market closing. Set all pending order lotsize to max.")
                     lotsize = 100
                     GlobalVar.g_time_checks_record = {current_weekday : lotsize}
+
+            # Market open, set lotsize to my lotsize
+            else:
+                if current_time > time_checks_open:
+                    if current_weekday not in GlobalVar.g_time_checks_record:
+                        GlobalVar.NEW_PRINT_HAS_HAPPENED = True
+                        print(f"\n\nToday is {current_weekday} {formatted_time}. Market opening. Set all pending order lotsize to {GlobalVar.g_Config_Data['LOTSIZE']}.")
+                        lotsize = GlobalVar.g_Config_Data["LOTSIZE"]
+                        GlobalVar.g_time_checks_record = {current_weekday : lotsize}
 
         else:
             if current_weekday not in GlobalVar.g_time_checks_record:
@@ -570,9 +568,11 @@ if __name__ == "__main__":
             GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
             # Close all running position
-            if current_weekday == "Saturday":
-                param = [None, True]
-                GlobalVar.g_task_queue.append([send_close_all_running_positions, param, None, None])
+            # Let's cancle for the moment, what if it's -P/L and you closed it, right?
+            # Let's just set lotsize to 100 on friday earlier time
+            # if current_weekday == "Saturday":
+            #     param = [None, True]
+            #     GlobalVar.g_task_queue.append([send_close_all_running_positions, param, None, None])
 
             # Manual delete
             param = [ProtoOAReconcileRes().payloadType]
