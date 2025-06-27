@@ -45,9 +45,11 @@ class GlobalVar():
     g_Symbol_Data_ID_As_Key     = None # Hold symbolList_demo/live.json data
     g_Symbol_Data_Name_As_Key   = None # Swap the key & value, so i can search wtih symbolName, get their ID
     g_Config_Data               = None # Hold config.ini data
+    g_Record_Data               = None # Hold record.txt, list of pending orders' lotsize
 
     SYMBOL_LIST_JSON_FILENAME   = "symbolList_"
     CONFIG_FILENAME             = "config.ini"
+    RECORD_FILENAME             = "record.ini"
 
 class SymbolJsonUpdate(Enum):
     NO_UPDATE = 1

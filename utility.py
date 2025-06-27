@@ -3,6 +3,7 @@ import configparser
 from commentedconfigparser import CommentedConfigParser
 import re
 from globalpy import GlobalVar, SymbolJsonUpdate
+import os
 
 def read_symbol_file(account_type, to_print=False):
     """
@@ -110,3 +111,28 @@ def convert_txt_to_json(txt_path, account_type):
 
     print("Data successfully written to symbolist.json!")
     return SymbolJsonUpdate.HAS_UPDATE
+
+def create_record_file(forceCreate = False):
+    """
+    Check if file exists, if not, create
+    """
+    if forceCreate:
+        os.remove(GlobalVar.RECORD_FILENAME)
+
+    if not os.path.exists(GlobalVar.RECORD_FILENAME):
+        with open(GlobalVar.RECORD_FILENAME, 'w') as f:
+            f.write('[HEADER]\n')
+
+def read_record_file():
+    """
+    """
+    # Initialize the parser
+    config = configparser.ConfigParser()
+
+    # Preserve the original case of keys (eg: UPPERCASE, lowercase)
+    config.optionxform = str
+
+    # Read the config.ini file
+    config.read(GlobalVar.RECORD_FILENAME)
+
+    GlobalVar.g_Record_Data = config

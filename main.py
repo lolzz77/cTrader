@@ -28,7 +28,7 @@ from ctrader_open_api.messages.OpenApiMessages_pb2 import *
 from ctrader_open_api.messages.OpenApiModelMessages_pb2 import *
 from twisted.internet import reactor
 import datetime
-from datetime import datetime, time as time2
+from datetime import datetime, time as time2, timedelta
 import utility
 import fileinput
 import threading
@@ -70,6 +70,8 @@ if __name__ == "__main__":
             GlobalVar.g_task_queue.append([None, None, ProtoOAAccountAuthRes().payloadType, "Call by send_Auth_Account"])
 
         handle_symbol_update()
+        handle_record_order()
+        GlobalVar.g_task_queue.append([check_token_expiry, None, None, None])
         GlobalVar.START_USER_COMMAND = True
 
     def disconnected(client, reason):
@@ -289,7 +291,13 @@ if __name__ == "__main__":
         res = GlobalVar.g_data_dict[ProtoOARefreshTokenRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOARefreshTokenRes().payloadType]
 
-        updates = {"ACCESS_TOKEN":res.accessToken, "REFRESH_TOKEN":res.refreshToken}
+        today = datetime.now(GlobalVar.g_mytimezone)
+        # Add 2,628,000 seconds, that's the token expiry period, saw from the website
+        future = today + timedelta(seconds=2628000)
+        # Format as DD-MMM-YY
+        formatted_date = future.strftime('%d-%b-%y')
+
+        updates = {"ACCESS_TOKEN":res.accessToken, "REFRESH_TOKEN":res.refreshToken, "LAST_UPDATED":formatted_date}
         res = None
         with fileinput.FileInput(".env", inplace=True) as file:
             for line in file:
@@ -682,6 +690,58 @@ if __name__ == "__main__":
         # But for now, is better i run it manually from time to time i guess
         # updateSymbolDetail(symbolIdList)
 
+    def tally_with_record_file():
+        res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+        del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+
+        section = 'HEADER'
+        orderList = res.order
+        GlobalVar.g_Record_Data[section].clear()
+        if len(orderList) == 0:
+            # Empty the file
+            utility.create_record_file(True)
+            return
+
+        for order in orderList:
+            symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key[order.tradeData.symbolId]
+            # Dont record those that is max lotsize, it is my strateg that, market close, set maximum lotsize
+            if order.tradeData.volume == int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"]):
+                continue
+            GlobalVar.g_Record_Data[section][str(order.orderId)] = str(order.tradeData.volume)
+
+        # No records to be updated
+        if not GlobalVar.g_Record_Data.items(section):
+            return
+
+        with open(GlobalVar.RECORD_FILENAME, 'w') as configfile:
+            GlobalVar.g_Record_Data.write(configfile)
+
+    def check_token_expiry(clientMsgId = None):
+        # Target date as string
+        target_str = os.getenv("LAST_UPDATED")
+
+        # Convert to datetime object
+        target_date = datetime.strptime(target_str, "%d-%b-%y").date()
+
+        # Get today's date
+        today = datetime.today().date()
+
+        # Calculate the difference
+        days_remaining = (target_date - today).days
+
+        print(f"Token expiry days remaining: {days_remaining}")
+        # Check if it's 5 days away
+        if days_remaining <= 5:
+            print(f"Please renew token!")
+
+    def handle_record_order(clientMsgId = None):
+        GlobalVar.g_task_queue.append([utility.create_record_file, None, None, None])
+        # You need to read record.ini file so that GlobalVar.g_Record_Data has `config` datatype
+        GlobalVar.g_task_queue.append([utility.read_record_file, None, None, None])
+        GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
+        GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
+        GlobalVar.g_task_queue.append([tally_with_record_file, None, None, None])
+
     def setLotSize(lotsize, clientMsgId=None):
         """
         This is for pending orders
@@ -705,6 +765,17 @@ if __name__ == "__main__":
         print("g_time_checks_record:")
         for key, value in GlobalVar.g_time_checks_record.items():
             print(f"{key}: {value}")
+
+    def print_g_record_data(clientMsgId = None):
+        """
+        """
+        print("g_Record_data:")
+        for section in GlobalVar.g_Record_Data.sections():
+            print(f"[{section}]")
+            for key, value in GlobalVar.g_Record_Data[section].items():
+                print(f"{key} = {value}")
+            print() # Blank line between sections
+
 
     def refresh_RAM(clientMsgId = None):
         """
@@ -784,6 +855,7 @@ if __name__ == "__main__":
 
         "p": print_g_data_dict, # Print g_data_dict
         "pp": print_g_time_checks_record, # Print g_time_checks_record
+        "ppp": print_g_record_data, # Print g_Record_Data
         "r": refresh_RAM, # Refresh global variable with latest value
 
         "test": test,
