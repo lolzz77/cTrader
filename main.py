@@ -35,6 +35,7 @@ import threading
 import time
 from globalpy import GlobalVar, SymbolJsonUpdate, StopLossTakeProfit
 import math
+import copy
 
 utility.read_config_file() # Read config.ini
 utility.read_symbol_file(GlobalVar.ACCOUNT_TYPE) # Read symbolList_demo/live.json
@@ -72,7 +73,7 @@ if __name__ == "__main__":
         handle_symbol_update()
         handle_record_order()
         GlobalVar.g_task_queue.append([check_token_expiry, None, None, None])
-        GlobalVar.START_USER_COMMAND = True
+        GlobalVar.g_task_queue.append([set_START_USER_COMMAND_True, None, None, None])
 
     def disconnected(client, reason):
         """
@@ -383,6 +384,7 @@ if __name__ == "__main__":
             MIN_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MIN_LOT_VOLUME_{symbol_name}"])
             MAX_LOT_VALUE       = int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"])
             volume_to_pip_converter = 0.01 / float(MIN_LOT_VALUE)
+            lotsize_special     = "None"
 
             # Check whether is same lotsize or not
             # If lotsize is 100, just use the maximum volume from config.ini
@@ -390,6 +392,16 @@ if __name__ == "__main__":
                 if order.tradeData.volume == MAX_LOT_VALUE:
                     continue
                 order.tradeData.volume = MAX_LOT_VALUE
+
+            elif lotsize == -1:
+                """
+                Back to their respective lotsize
+                """
+                section = 'HEADER'
+                lotsize_special = int(GlobalVar.g_Record_Data[section][order.orderId]) / MIN_LOT_VALUE / 100
+                if order.tradeData.volume * volume_to_pip_converter == lotsize_special:
+                    continue
+                order.tradeData.volume = int(GlobalVar.g_Record_Data[section][order.orderId])
 
             else:
                 if order.tradeData.volume * volume_to_pip_converter == lotsize:
@@ -399,7 +411,10 @@ if __name__ == "__main__":
                 # Hence, use math.ceil()
                 order.tradeData.volume = math.ceil(lotsize / volume_to_pip_converter)
 
-            print(f"Pending order change lotsize to {lotsize} lot")
+            if lotsize == -1:
+                print(f"Pending order {order.orderId}:{symbol_name} change lotsize to {lotsize_special} lot")
+            else:
+                print(f"Pending order {order.orderId}:{symbol_name} change lotsize to {lotsize} lot")
             param = [order]
             GlobalVar.g_task_queue.append([send_Amend_Pending_Order_Lotsize, param, None, None])
 
@@ -556,8 +571,8 @@ if __name__ == "__main__":
                 if current_time > time_checks_open:
                     if current_weekday not in GlobalVar.g_time_checks_record:
                         GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-                        print(f"\n\nToday is {current_weekday} {formatted_time}. Market opening. Set all pending order lotsize to {GlobalVar.g_Config_Data['LOTSIZE']}.")
-                        lotsize = GlobalVar.g_Config_Data["LOTSIZE"]
+                        print(f"\n\nToday is {current_weekday} {formatted_time}. Market opening. Set all pending order lotsize to their respective lotsize.")
+                        lotsize = -1
                         GlobalVar.g_time_checks_record = {current_weekday : lotsize}
 
         else:
@@ -690,16 +705,21 @@ if __name__ == "__main__":
         # But for now, is better i run it manually from time to time i guess
         # updateSymbolDetail(symbolIdList)
 
+    def set_START_USER_COMMAND_True(clientMsgId = None):
+        GlobalVar.START_USER_COMMAND = True
+
     def tally_with_record_file():
         res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
 
         section = 'HEADER'
+        temp = copy.deepcopy(GlobalVar.g_Record_Data)
+        temp[section].clear()
         orderList = res.order
-        GlobalVar.g_Record_Data[section].clear()
         if len(orderList) == 0:
             # Empty the file
             utility.create_record_file(True)
+            GlobalVar.g_Record_Data[section].clear()
             return
 
         for order in orderList:
@@ -707,14 +727,17 @@ if __name__ == "__main__":
             # Dont record those that is max lotsize, it is my strateg that, market close, set maximum lotsize
             if order.tradeData.volume == int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"]):
                 continue
-            GlobalVar.g_Record_Data[section][str(order.orderId)] = str(order.tradeData.volume)
+            temp[section][str(order.orderId)] = str(order.tradeData.volume)
 
         # No records to be updated
-        if not GlobalVar.g_Record_Data.items(section):
+        if not temp.items(section):
             return
 
         with open(GlobalVar.RECORD_FILENAME, 'w') as configfile:
-            GlobalVar.g_Record_Data.write(configfile)
+            temp.write(configfile)
+
+        # Refresh the GlobalVar.g_Record_Data
+        utility.read_record_file()
 
     def check_token_expiry(clientMsgId = None):
         # Target date as string
@@ -826,6 +849,7 @@ if __name__ == "__main__":
         print("")
         print("p: print_g_data_dict, # Print g_data_dict")
         print("pp: print_g_time_checks_record, # Print g_time_checks_record")
+        print("ppp: print_g_record_data, # Print g_Record_Data")
         print("r: refresh_RAM, # Refresh global variable with latest value")
         print("")
         print("test: test,")
