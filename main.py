@@ -580,9 +580,14 @@ if __name__ == "__main__":
                 GlobalVar.NEW_PRINT_HAS_HAPPENED = True
                 print(f"\n\nToday is {current_weekday} {formatted_time}.")
                 GlobalVar.g_time_checks_record = {current_weekday : lotsize}
+                # Allow me to do this lazy way first.., is better to seperate this from this function
+                check_token_expiry()
 
         # After a lot of checking above, here handles the aftermath
         if lotsize != 0:
+            # Allow me to do this lazy way first.., is better to seperate this from this function
+            check_token_expiry()
+
             GlobalVar.NEW_PRINT_HAS_HAPPENED = True
             param = [lotsize, False]
             GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
@@ -755,7 +760,13 @@ if __name__ == "__main__":
         print(f"Token expiry days remaining: {days_remaining}")
         # Check if it's 5 days away
         if days_remaining <= 5:
+            print(f"!!!!!!!!!!!!!!!!!!!")
+            print(f"!!!!!!!!!!!!!!!!!!!")
+            print(f"!!!!!!!!!!!!!!!!!!!")
             print(f"Please renew token!")
+            print(f"!!!!!!!!!!!!!!!!!!!")
+            print(f"!!!!!!!!!!!!!!!!!!!")
+            print(f"!!!!!!!!!!!!!!!!!!!")
 
     def handle_record_order(clientMsgId = None):
         GlobalVar.g_task_queue.append([utility.create_record_file, None, None, None])
