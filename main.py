@@ -144,7 +144,7 @@ if __name__ == "__main__":
             SYMBOL CHANGED! Update SYMBOL JSON
             """
             GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-            print(f"\n\n[{formatted_time}] Symbol change! Update!")
+            print(f"\n\n[{formatted_time}] Server sent Symbol Update message!")
             handle_symbol_update()
 
         elif message.payloadType == ProtoOAApplicationAuthRes().payloadType:
