@@ -709,7 +709,8 @@ if __name__ == "__main__":
         # BUT THEN, it might have risk this got new update without having the symbol ID update
         # You know what im saying? It's best to run both update checks
         # But for now, is better i run it manually from time to time i guess
-        # updateSymbolDetail(symbolIdList)
+        # param = [symbolIdList]
+        # GlobalVar.g_task_queue.append([updateSymbolDetail, param, None, None])
 
     def set_START_USER_COMMAND_True(clientMsgId = None):
         GlobalVar.START_USER_COMMAND = True

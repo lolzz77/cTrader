@@ -109,7 +109,7 @@ def convert_txt_to_json(txt_path, account_type):
     # Swap keys and values
     GlobalVar.g_Symbol_Data_Name_As_Key = {v: k for k, v in symbols_new_ID_first_dict.items()}
 
-    print("Data successfully written to symbolist.json!")
+    print(f"Symbol ID has new update! Remember to manually run UpdateSymbolDetail until Auto is implemented!")
     return SymbolJsonUpdate.HAS_UPDATE
 
 def create_record_file(forceCreate = False):
