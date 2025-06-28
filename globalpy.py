@@ -16,7 +16,7 @@ class GlobalVar():
     g_time_checks_record    = { "None" : -1 }
 
     # According to what saved in the config.ini, this will show the list of symbol you interested
-    g_favourite_symbol      = []
+    g_favourite_symbol      = {}
 
     # For command processing
     # My rules, the list index contains the following

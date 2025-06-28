@@ -141,8 +141,10 @@ def populate_favourite_symbol():
     """
     Populate g_favourite_symbol
     """
-    GlobalVar.g_favourite_symbol = []
+    GlobalVar.g_favourite_symbol = {}
     for key, value in GlobalVar.g_Config_Data.items():
         if key.startswith("SPREAD_"):
+            symbol = key[len("SPREAD_"):]
+            symbol_ID = GlobalVar.g_Symbol_Data_Name_As_Key[symbol]
             # Append what's after "SPREAD_", that's their symbol name
-            GlobalVar.g_favourite_symbol.append(key[len("SPREAD_"):])
+            GlobalVar.g_favourite_symbol[symbol] = symbol_ID

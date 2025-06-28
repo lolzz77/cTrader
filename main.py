@@ -433,6 +433,21 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, None])
         GlobalVar.g_task_queue.append([Update_Symbol_Detail, None, None, None])
 
+    def updateSymbolDetailAccordingToFavourite(clientMsgId=None):
+        """
+        Update symbol to config.ini
+        But this time, it will auto,
+        It will get list of symbols from g_favourite_symbol
+        """
+        the_list = []
+        for symbolID in GlobalVar.g_favourite_symbol.values():
+            the_list.append(symbolID)
+        param = []
+        param.append(the_list)
+        GlobalVar.g_task_queue.append([send_Get_Symbol_Detail, param, None, None])
+        GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, None])
+        GlobalVar.g_task_queue.append([Update_Symbol_Detail, None, None, None])
+
     def getSymbolIDs(favourite = True, clientMsgId = None):
         """
         favourite = True
@@ -445,7 +460,7 @@ if __name__ == "__main__":
         favourite = bool(int(favourite)) if favourite.isdigit() else False
         for id, symbol in GlobalVar.g_Symbol_Data_ID_As_Key.items():
             if favourite:
-                if symbol in GlobalVar.g_favourite_symbol:
+                if symbol in GlobalVar.g_favourite_symbol.keys():
                     print(f"ID:{id}, Symbol:{symbol}")
             else:
                     print(f"ID:{id}, Symbol:{symbol}")
@@ -702,7 +717,7 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolsListRes().payloadType, "Call by send_Get_Symbol_List"])
         GlobalVar.g_task_queue.append([Update_Symbol_List_Json, None, None, None])
         symbolIdList = []
-        for symbolName in GlobalVar.g_favourite_symbol:
+        for symbolName in GlobalVar.g_favourite_symbol.keys():
             symbolIdList.append(GlobalVar.g_Symbol_Data_Name_As_Key[symbolName])
         # Let's comment this out first
         # Gotta find a way to detect if got new symbol update then only trigger this
@@ -806,8 +821,8 @@ if __name__ == "__main__":
         """
         """
         print("g_favourite_symbol:")
-        for symbol in GlobalVar.g_favourite_symbol:
-            print(f"{symbol}")
+        for key, value in GlobalVar.g_favourite_symbol.items():
+            print(f"{key} : {value}")
 
     def print_g_record_data(clientMsgId = None):
         """
@@ -864,6 +879,7 @@ if __name__ == "__main__":
         print("gsd: getSymbolDetail, # gsd = get symbol detail, call `gsd symbolId`")
         print("us: handle_symbol_update, # us = update symbol list json file")
         print("usd: updateSymbolDetail, # usd = update symbol detail to config.ini, call `usd symbolId`")
+        print("usdd: updateSymbolDetailAccordingToFavourite, # Same as above, just auto update with your favourite list. Just call `usdd`")
         print("")
         print("lt: setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`")
         print("")
@@ -894,6 +910,7 @@ if __name__ == "__main__":
         "gsd": getSymbolDetail, # gsd = get symbol detail, call `gsd symbolId`
         "us": handle_symbol_update, # us = update symbol list json file
         "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `usd symbolId`
+        "usdd": updateSymbolDetailAccordingToFavourite, # Same as above, just auto update with your favourite list. Just call `usdd`
 
         "lt": setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`
 
