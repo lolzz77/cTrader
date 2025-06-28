@@ -15,10 +15,8 @@ class GlobalVar():
     # If already done, then can skip the market open/close checking shit
     g_time_checks_record    = { "None" : -1 }
 
-    # If today's date no change, no need to keep checking token expiry
-    g_check_token_expiry    = {}
-
-    g_favourite_symbol      = ["XAUUSD", "DAXEUR", "NDXUSD", "DJIUSD", "NIKJPY"]
+    # According to what saved in the config.ini, this will show the list of symbol you interested
+    g_favourite_symbol      = []
 
     # For command processing
     # My rules, the list index contains the following

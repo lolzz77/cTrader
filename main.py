@@ -39,6 +39,7 @@ import copy
 
 utility.read_config_file() # Read config.ini
 utility.read_symbol_file(GlobalVar.ACCOUNT_TYPE) # Read symbolList_demo/live.json
+utility.populate_favourite_symbol()
 
 # List of server message to ignore
 gPayloadIgnoreList = [
@@ -800,6 +801,13 @@ if __name__ == "__main__":
         for key, value in GlobalVar.g_time_checks_record.items():
             print(f"{key}: {value}")
 
+    def print_g_favourite_symbol(clientMsgId = None):
+        """
+        """
+        print("g_favourite_symbol:")
+        for symbol in GlobalVar.g_favourite_symbol:
+            print(f"{symbol}")
+
     def print_g_record_data(clientMsgId = None):
         """
         """
@@ -891,6 +899,7 @@ if __name__ == "__main__":
         "p": print_g_data_dict, # Print g_data_dict
         "pp": print_g_time_checks_record, # Print g_time_checks_record
         "ppp": print_g_record_data, # Print g_Record_Data
+        "pppp": print_g_favourite_symbol, # Print g_favourite_symbol
         "r": refresh_RAM, # Refresh global variable with latest value
 
         "test": test,

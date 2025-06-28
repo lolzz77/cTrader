@@ -136,3 +136,13 @@ def read_record_file():
     config.read(GlobalVar.RECORD_FILENAME)
 
     GlobalVar.g_Record_Data = config
+
+def populate_favourite_symbol():
+    """
+    Populate g_favourite_symbol
+    """
+    GlobalVar.g_favourite_symbol = []
+    for key, value in GlobalVar.g_Config_Data.items():
+        if key.startswith("SPREAD_"):
+            # Append what's after "SPREAD_", that's their symbol name
+            GlobalVar.g_favourite_symbol.append(key[len("SPREAD_"):])
