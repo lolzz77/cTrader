@@ -148,3 +148,6 @@ def populate_favourite_symbol():
             symbol_ID = GlobalVar.g_Symbol_Data_Name_As_Key[symbol]
             # Append what's after "SPREAD_", that's their symbol name
             GlobalVar.g_favourite_symbol[symbol] = symbol_ID
+        # For performance, U should always put SPREAD_ to the top of the dictionary
+        else:
+            break

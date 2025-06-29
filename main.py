@@ -699,15 +699,18 @@ if __name__ == "__main__":
         del GlobalVar.g_data_dict[ProtoOASymbolByIdRes().payloadType]
         symbolList = res.symbol
         for s in symbolList:
-            symbol = GlobalVar.g_Symbol_Data_ID_As_Key[s.symbolId]
+            symbol  = GlobalVar.g_Symbol_Data_ID_As_Key[s.symbolId]
             section = "SYMBOL_SECTION"
             key_min = f"MIN_LOT_VOLUME_{symbol}"
             key_max = f"MAX_LOT_VOLUME_{symbol}"
-            min_lot = s.minVolume
-            max_lot = s.maxVolume
+            value_min_lot = s.minVolume
+            value_max_lot = s.maxVolume
+            key_pip_position   = f"PIP_POSITION_{symbol}"
+            value_pip_position = s.pipPosition
 
-            utility.write_config_file(section, key_min, min_lot)
-            utility.write_config_file(section, key_max, max_lot)
+            utility.write_config_file(section, key_min, value_min_lot)
+            utility.write_config_file(section, key_max, value_max_lot)
+            utility.write_config_file(section, key_pip_position, value_pip_position)
 
         GlobalVar.g_Config_Data = None
         utility.read_config_file()
