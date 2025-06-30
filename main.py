@@ -133,6 +133,8 @@ if __name__ == "__main__":
                 """
                 GlobalVar.g_task_queue.append([Set_RunningPosition_StopLoss_To_Opposite, None, None, None])
 
+            handle_record_order()
+
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if GlobalVar.g_print_heartbeat:
                 GlobalVar.NEW_PRINT_HAS_HAPPENED = True
@@ -716,19 +718,14 @@ if __name__ == "__main__":
         utility.read_config_file()
 
     def handle_symbol_update(clientMsgId = None):
+        """
+        Query the server, get symbol ID, check if got ID changes
+        Queryt he server, get favourtie symbol details, check if got some changes
+        """
         GlobalVar.g_task_queue.append([send_Get_Symbol_List, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolsListRes().payloadType, "Call by send_Get_Symbol_List"])
         GlobalVar.g_task_queue.append([Update_Symbol_List_Json, None, None, None])
-        symbolIdList = []
-        for symbolName in GlobalVar.g_favourite_symbol.keys():
-            symbolIdList.append(GlobalVar.g_Symbol_Data_Name_As_Key[symbolName])
-        # Let's comment this out first
-        # Gotta find a way to detect if got new symbol update then only trigger this
-        # BUT THEN, it might have risk this got new update without having the symbol ID update
-        # You know what im saying? It's best to run both update checks
-        # But for now, is better i run it manually from time to time i guess
-        # param = [symbolIdList]
-        # GlobalVar.g_task_queue.append([updateSymbolDetail, param, None, None])
+        GlobalVar.g_task_queue.append([updateSymbolDetailAccordingToFavourite, None, None, None])
 
     def set_START_USER_COMMAND_True(clientMsgId = None):
         GlobalVar.START_USER_COMMAND = True
@@ -789,6 +786,13 @@ if __name__ == "__main__":
             print(f"!!!!!!!!!!!!!!!!!!!")
 
     def handle_record_order(clientMsgId = None):
+        """
+        Record all the pending order in your account
+        into record.ini
+        This is so that when market open, it will set
+        back to lotsize according to what you set, instead of
+        forcing all order same lotsize
+        """
         GlobalVar.g_task_queue.append([utility.create_record_file, None, None, None])
         # You need to read record.ini file so that GlobalVar.g_Record_Data has `config` datatype
         GlobalVar.g_task_queue.append([utility.read_record_file, None, None, None])
