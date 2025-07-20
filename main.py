@@ -746,7 +746,7 @@ if __name__ == "__main__":
 
         for order in orderList:
             symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key[order.tradeData.symbolId]
-            # Dont record those that is max lotsize, it is my strateg that, market close, set maximum lotsize
+            # Dont record those that is max lotsize, it is my strategy that, market close, set maximum lotsize
             if order.tradeData.volume == int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"]):
                 continue
             temp[section][str(order.orderId)] = str(order.tradeData.volume)
@@ -808,6 +808,30 @@ if __name__ == "__main__":
         param = [lotsize]
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
+        GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
+
+    def saveLotSize(clientMsgId=None):
+        """
+        Save lotsize & put them into record.ini
+        Then set lotsize to 100 lot
+
+        This is for so that you can run `load` to load back all respective lotsize
+        """
+        GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
+        GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
+        GlobalVar.g_task_queue.append([tally_with_record_file, None, None, None])
+        param = []
+        param.append("100")
+        GlobalVar.g_task_queue.append([setLotSize, param, None, None])
+
+    def loadLotSize(clientMsgId=None):
+        """
+        Load lotisze from record.ini
+        """
+        GlobalVar.g_task_queue.append([utility.read_record_file, None, None, None])
+        GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
+        GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
+        param = [-1]
         GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
     def print_g_data_dict(clientMsgId = None):
@@ -889,6 +913,8 @@ if __name__ == "__main__":
         print("usdd: updateSymbolDetailAccordingToFavourite, # Same as above, just auto update with your favourite list. Just call `usdd`")
         print("")
         print("lt: setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`")
+        print("save: saveLotSize, # save lotsize")
+        print("load: loadLotSize, # load saved lotsize")
         print("")
         print("p: print_g_data_dict, # Print g_data_dict")
         print("pp: print_g_time_checks_record, # Print g_time_checks_record")
@@ -920,6 +946,8 @@ if __name__ == "__main__":
         "usdd": updateSymbolDetailAccordingToFavourite, # Same as above, just auto update with your favourite list. Just call `usdd`
 
         "lt": setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`
+        "save": saveLotSize, # save lotsize
+        "load": loadLotSize, # load saved lotsize
 
         "p": print_g_data_dict, # Print g_data_dict
         "pp": print_g_time_checks_record, # Print g_time_checks_record
