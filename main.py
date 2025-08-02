@@ -133,7 +133,9 @@ if __name__ == "__main__":
                 """
                 GlobalVar.g_task_queue.append([Set_RunningPosition_StopLoss_To_Opposite, None, None, None])
 
-            handle_record_order()
+            # I think can ignore this first?
+            # If i run "save" or "load" i forgot, it will trigger this many many many times
+            # handle_record_order()
 
         elif message.payloadType == ProtoHeartbeatEvent().payloadType:
             if GlobalVar.g_print_heartbeat:
@@ -414,7 +416,9 @@ if __name__ == "__main__":
                     order.tradeData.volume = int(GlobalVar.g_Record_Data[section][order.orderId])
 
                 # Remove from the list, later i will call function to write this newly reduced list into record.ini
-                GlobalVar.g_Record_Data.remove_option(section, order.orderId)
+                # For your debugging, add GlobalVar.g_Record_Data._sections['HEADER'] to watch
+                # On 2nd tot, better dont, just leave the record.ini clogged, and you clean it once in a while
+                # GlobalVar.g_Record_Data.remove_option(section, order.orderId)
 
                 if proceed == False:
                     continue
@@ -626,14 +630,15 @@ if __name__ == "__main__":
             # I will delete the dict myself, manually, at the end of this function
             GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
-            if lotsize == -1:
-                """
-                If lotsize -1, means update_lotsize_for_pending_order will restore all pending orders
-                with their respective lotsize.
-                If that happens, means it will remove updated records in GlobalVar.g_Record_Data
-                If that happens, means need to update record.ini with latest data
-                """
-                GlobalVar.g_task_queue.append([utility.write_config_file, None, None, None])
+            # On 2nd thought, dont, is better let record.ini clogged, and you clean it once in a while
+            # if lotsize == -1:
+            #     """
+            #     If lotsize -1, means update_lotsize_for_pending_order will restore all pending orders
+            #     with their respective lotsize.
+            #     If that happens, means it will remove updated records in GlobalVar.g_Record_Data
+            #     If that happens, means need to update record.ini with latest data
+            #     """
+            #     GlobalVar.g_task_queue.append([utility.write_config_file, None, None, None])
 
             # Close all running position
             # Let's cancle for the moment, what if it's -P/L and you closed it, right?
@@ -752,7 +757,7 @@ if __name__ == "__main__":
     def set_START_USER_COMMAND_True(clientMsgId = None):
         GlobalVar.START_USER_COMMAND = True
 
-    def add_record_into_record_file():
+    def add_record_into_record_file(clientMsgId = None):
         """
         Get list of pending orders, add those that are not 100 lotsize into record.ini file
         I will use copy dictionary method
@@ -860,7 +865,10 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         param = [-1]
         GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
-        GlobalVar.g_task_queue.append([utility.write_config_file, None, None, None])
+        # Intended to update record.ini, clean it, those that pending orders lotsize restored,
+        # clean it from record.ini
+        # On 2nd thought, dont, better let record.ini clogged, and you clean it once in a while
+        # GlobalVar.g_task_queue.append([utility.write_record_file, None, None, None])
 
     def clear_record_file(clientMsgId = None):
         """
