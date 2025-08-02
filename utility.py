@@ -68,7 +68,7 @@ def write_config_file(section, key, value):
     with open(GlobalVar.CONFIG_FILENAME, "w") as file:
         config.write(file)
 
-    print(f"Updated:")
+    print(f"Have New Update:")
     print(f"Before: [{section}] {key} = {existing_value}")
     print(f"After : [{section}] {key} = {value}")
 
@@ -137,6 +137,12 @@ def read_record_file():
     config.read(GlobalVar.RECORD_FILENAME)
 
     GlobalVar.g_Record_Data = config
+
+def write_record_file():
+    """
+    """
+    with open(GlobalVar.RECORD_FILENAME, 'w') as configfile:
+        GlobalVar.g_Record_Data.write(configfile)
 
 def populate_favourite_symbol():
     """

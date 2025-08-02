@@ -41,6 +41,10 @@ class GlobalVar():
     # Then ask user to retype their shit
     NEW_PRINT_HAS_HAPPENED  = False
 
+    # To indicate whether is it safe to clear the record.ini records
+    # Becos, if cleared, those pending order with lotsize 100 cannot be restored
+    CLEAR_RECORD_INI_FILE   = False
+
     # For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
     g_auth_acc                  = []
 

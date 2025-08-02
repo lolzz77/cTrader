@@ -255,7 +255,7 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def User_Disconnect(clientMsgId=None): # disconnect the client
+    def User_Disconnect(clientMsgId = None): # disconnect the client
         client.stopService()
         # After disconnect
         # Your main thread script still running.
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     def terminate_script(clientMsgId = None):
         os._exit(0)
 
-    def send_close_all_running_positions(RepeatedCompositeContainer_position, get_dict = False, clientMsgId=None):
+    def send_close_all_running_positions(RepeatedCompositeContainer_position, get_dict = False, clientMsgId = None):
         if get_dict:
             res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
             RepeatedCompositeContainer_position = res.position
@@ -347,13 +347,13 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def send_Get_Symbol_List(clientMsgId=None):
+    def send_Get_Symbol_List(clientMsgId = None):
         request = ProtoOASymbolsListReq()
         request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def getSymbolDetail(symbolId, clientMsgId=None):
+    def getSymbolDetail(symbolId, clientMsgId = None):
         """
         """
         symbolId = int(symbolId)
@@ -378,7 +378,7 @@ if __name__ == "__main__":
 
         orderList = res.order
         if len(orderList) == 0:
-            print(f"No pending orders")
+            print(f"No pending orders to update lotsize")
             return
 
         for order in orderList:
@@ -399,12 +399,25 @@ if __name__ == "__main__":
             elif lotsize == -1:
                 """
                 Back to their respective lotsize
+                Then, clear that record from the record.ini
                 """
+                proceed = True
                 section = 'HEADER'
                 lotsize_special = int(GlobalVar.g_Record_Data[section][order.orderId]) / MIN_LOT_VALUE / 100
                 if order.tradeData.volume * volume_to_pip_converter == lotsize_special:
+                    """
+                    If existing pending order lotsize is already same as the one in record.ini,
+                    then no need to update
+                    """
+                    proceed = False
+                else:
+                    order.tradeData.volume = int(GlobalVar.g_Record_Data[section][order.orderId])
+
+                # Remove from the list, later i will call function to write this newly reduced list into record.ini
+                GlobalVar.g_Record_Data.remove_option(section, order.orderId)
+
+                if proceed == False:
                     continue
-                order.tradeData.volume = int(GlobalVar.g_Record_Data[section][order.orderId])
 
             else:
                 if order.tradeData.volume * volume_to_pip_converter == lotsize:
@@ -421,7 +434,7 @@ if __name__ == "__main__":
             param = [order]
             GlobalVar.g_task_queue.append([send_Amend_Pending_Order_Lotsize, param, None, None])
 
-    def updateSymbolDetail(symbolIdList, clientMsgId=None):
+    def updateSymbolDetail(symbolIdList, clientMsgId = None):
         """
         Update symbol to config.ini
         """
@@ -435,7 +448,7 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, None])
         GlobalVar.g_task_queue.append([Update_Symbol_Detail, None, None, None])
 
-    def updateSymbolDetailAccordingToFavourite(clientMsgId=None):
+    def updateSymbolDetailAccordingToFavourite(clientMsgId = None):
         """
         Update symbol to config.ini
         But this time, it will auto,
@@ -467,7 +480,7 @@ if __name__ == "__main__":
             else:
                     print(f"ID:{id}, Symbol:{symbol}")
 
-    def send_Set_StopLoss_To_Opposite(positionId, entryPrice, takeProfit, SLTriggerMethod = 'TRADE', clientMsgId=None):
+    def send_Set_StopLoss_To_Opposite(positionId, entryPrice, takeProfit, SLTriggerMethod = 'TRADE', clientMsgId = None):
         """
         Set BE
         And set trade side to default
@@ -497,7 +510,7 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def send_Amend_Pending_Order_Lotsize(orderEntity, clientMsgId=None):
+    def send_Amend_Pending_Order_Lotsize(orderEntity, clientMsgId = None):
         """
         !Note!
         Please take note whether it will change ur SL trigger method or not
@@ -613,6 +626,15 @@ if __name__ == "__main__":
             # I will delete the dict myself, manually, at the end of this function
             GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
+            if lotsize == -1:
+                """
+                If lotsize -1, means update_lotsize_for_pending_order will restore all pending orders
+                with their respective lotsize.
+                If that happens, means it will remove updated records in GlobalVar.g_Record_Data
+                If that happens, means need to update record.ini with latest data
+                """
+                GlobalVar.g_task_queue.append([utility.write_config_file, None, None, None])
+
             # Close all running position
             # Let's cancle for the moment, what if it's -P/L and you closed it, right?
             # Let's just set lotsize to 100 on friday earlier time
@@ -682,7 +704,7 @@ if __name__ == "__main__":
             GlobalVar.g_auth_acc.append({"no": index, "traderLogin": traderLogin, "ctidTraderAccountId": ctidTraderAccountId, "nickname": nickname})
             setAccount(index)
 
-    def send_Get_Symbol_Detail(symbolIdList, clientMsgId=None):
+    def send_Get_Symbol_Detail(symbolIdList, clientMsgId = None):
         # Convert non-list input into a list
         if not isinstance(symbolIdList, list):
             symbolIdList = [symbolIdList]
@@ -730,7 +752,13 @@ if __name__ == "__main__":
     def set_START_USER_COMMAND_True(clientMsgId = None):
         GlobalVar.START_USER_COMMAND = True
 
-    def tally_with_record_file():
+    def add_record_into_record_file():
+        """
+        Get list of pending orders, add those that are not 100 lotsize into record.ini file
+        I will use copy dictionary method
+        If got new lotsize update that is not 100lotsize, it will be updated into dictionary and then write into the file
+        It will only skip adding into the dictionary if the pending order lotsize is 100 lotsize
+        """
         res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
 
@@ -739,9 +767,7 @@ if __name__ == "__main__":
         temp[section].clear()
         orderList = res.order
         if len(orderList) == 0:
-            # Empty the file
-            utility.create_record_file(True)
-            GlobalVar.g_Record_Data[section].clear()
+            print(f"No new records to be saved into record.ini. No pending orders.")
             return
 
         for order in orderList:
@@ -753,6 +779,7 @@ if __name__ == "__main__":
 
         # No records to be updated
         if not temp.items(section):
+            print(f"No new records to be saved into record.ini. All left is 100 lotsize pending orders.")
             return
 
         with open(GlobalVar.RECORD_FILENAME, 'w') as configfile:
@@ -798,9 +825,9 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([utility.read_record_file, None, None, None])
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
-        GlobalVar.g_task_queue.append([tally_with_record_file, None, None, None])
+        GlobalVar.g_task_queue.append([add_record_into_record_file, None, None, None])
 
-    def setLotSize(lotsize, clientMsgId=None):
+    def setLotSize(lotsize, clientMsgId = None):
         """
         This is for pending orders
         """
@@ -810,7 +837,7 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
-    def saveLotSize(clientMsgId=None):
+    def saveLotSize(clientMsgId = None):
         """
         Save lotsize & put them into record.ini
         Then set lotsize to 100 lot
@@ -819,12 +846,12 @@ if __name__ == "__main__":
         """
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
-        GlobalVar.g_task_queue.append([tally_with_record_file, None, None, None])
+        GlobalVar.g_task_queue.append([add_record_into_record_file, None, None, None])
         param = []
         param.append("100")
         GlobalVar.g_task_queue.append([setLotSize, param, None, None])
 
-    def loadLotSize(clientMsgId=None):
+    def loadLotSize(clientMsgId = None):
         """
         Load lotisze from record.ini
         """
@@ -833,6 +860,44 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         param = [-1]
         GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
+        GlobalVar.g_task_queue.append([utility.write_config_file, None, None, None])
+
+    def clear_record_file(clientMsgId = None):
+        """
+        Before you clear, you need to ensure current exsting pending orders
+        doesnt have 100 lotsize, else, they cannot be restored to their respective
+        lot size.
+        """
+        GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
+        GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
+        GlobalVar.g_task_queue.append([check_clear_record_file, None, None, None])
+
+    def check_clear_record_file(clientMsgId = None):
+        """
+        Check if lotsize 100 pending order exists
+        If exists, then cannot clear the record.ini file
+        If clear, means history lost forever leh
+        """
+        res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+        del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
+
+        orderList = res.order
+        if len(orderList) == 0:
+            GlobalVar.CLEAR_RECORD_INI_FILE = True
+        else:
+            for order in orderList:
+                symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key[order.tradeData.symbolId]
+                if order.tradeData.volume == int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"]):
+                    GlobalVar.CLEAR_RECORD_INI_FILE = True
+                    break
+
+        if GlobalVar.CLEAR_RECORD_INI_FILE:
+            utility.create_record_file(True) # Clear the record.ini
+            utility.read_record_file() # Refresh GlobalVar.g_Record_Data data
+            GlobalVar.CLEAR_RECORD_INI_FILE = False
+            print(f"Record.ini cleared")
+        else:
+            print(f"Record.ini NOT cleared, pending order lotsize 100 exists!")
 
     def print_g_data_dict(clientMsgId = None):
         """
@@ -858,13 +923,13 @@ if __name__ == "__main__":
     def print_g_record_data(clientMsgId = None):
         """
         """
+        utility.read_record_file()
         print("g_Record_data:")
         for section in GlobalVar.g_Record_Data.sections():
             print(f"[{section}]")
             for key, value in GlobalVar.g_Record_Data[section].items():
                 print(f"{key} = {value}")
             print() # Blank line between sections
-
 
     def refresh_RAM(clientMsgId = None):
         """
@@ -881,13 +946,13 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOARefreshTokenRes().payloadType, "Call by send_renew_access_token"])
         GlobalVar.g_task_queue.append([handle_refresh_token, None, None, None])
 
-    def send_renew_access_token(clientMsgId=None):
+    def send_renew_access_token(clientMsgId = None):
         request = ProtoOARefreshTokenReq()
         request.refreshToken = os.getenv("REFRESH_TOKEN")
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def setHeartbeat(value, clientMsgId=None):
+    def setHeartbeat(value, clientMsgId = None):
         value = int(value)
         GlobalVar.g_print_heartbeat = int(value)
 
@@ -915,15 +980,17 @@ if __name__ == "__main__":
         print("lt: setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`")
         print("save: saveLotSize, # save lotsize")
         print("load: loadLotSize, # load saved lotsize")
+        print("clear: clear_record_file, # Clear record.ini file")
         print("")
         print("p: print_g_data_dict, # Print g_data_dict")
         print("pp: print_g_time_checks_record, # Print g_time_checks_record")
         print("ppp: print_g_record_data, # Print g_Record_Data")
+        print("pppp: print_g_favourite_symbol, # Print g_favourite_symbol")
         print("r: refresh_RAM, # Refresh global variable with latest value")
         print("")
         print("test: test,")
 
-    def test(clientMsgId=None):
+    def test(clientMsgId = None):
         pass
 
     commands = {
@@ -948,6 +1015,7 @@ if __name__ == "__main__":
         "lt": setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`
         "save": saveLotSize, # save lotsize
         "load": loadLotSize, # load saved lotsize
+        "clear": clear_record_file, # Clear record.ini file
 
         "p": print_g_data_dict, # Print g_data_dict
         "pp": print_g_time_checks_record, # Print g_time_checks_record
