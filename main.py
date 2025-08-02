@@ -881,14 +881,13 @@ if __name__ == "__main__":
         res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
 
+        GlobalVar.CLEAR_RECORD_INI_FILE = True
         orderList = res.order
-        if len(orderList) == 0:
-            GlobalVar.CLEAR_RECORD_INI_FILE = True
-        else:
+        if len(orderList) != 0:
             for order in orderList:
                 symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key[order.tradeData.symbolId]
                 if order.tradeData.volume == int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"]):
-                    GlobalVar.CLEAR_RECORD_INI_FILE = True
+                    GlobalVar.CLEAR_RECORD_INI_FILE = False
                     break
 
         if GlobalVar.CLEAR_RECORD_INI_FILE:
@@ -980,7 +979,7 @@ if __name__ == "__main__":
         print("lt: setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`")
         print("save: saveLotSize, # save lotsize")
         print("load: loadLotSize, # load saved lotsize")
-        print("clear: clear_record_file, # Clear record.ini file")
+        print("clearrecord: clear_record_file, # Clear record.ini file")
         print("")
         print("p: print_g_data_dict, # Print g_data_dict")
         print("pp: print_g_time_checks_record, # Print g_time_checks_record")
@@ -1015,7 +1014,7 @@ if __name__ == "__main__":
         "lt": setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`
         "save": saveLotSize, # save lotsize
         "load": loadLotSize, # load saved lotsize
-        "clear": clear_record_file, # Clear record.ini file
+        "clearrecord": clear_record_file, # Clear record.ini file
 
         "p": print_g_data_dict, # Print g_data_dict
         "pp": print_g_time_checks_record, # Print g_time_checks_record
