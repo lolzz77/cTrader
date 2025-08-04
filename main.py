@@ -405,6 +405,9 @@ if __name__ == "__main__":
                 """
                 proceed = True
                 section = 'HEADER'
+                if order.orderId not in GlobalVar.g_Record_Data[section]:
+                    print(f"Order ID {order.orderId} not present in GlobalVar. Skip.")
+                    continue
                 lotsize_special = int(GlobalVar.g_Record_Data[section][order.orderId]) / MIN_LOT_VALUE / 100
                 if order.tradeData.volume * volume_to_pip_converter == lotsize_special:
                     """
