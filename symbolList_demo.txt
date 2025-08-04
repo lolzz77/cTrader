@@ -45,15 +45,6 @@ symbol {
   description: "WTI Light Crude Oil"
 }
 symbol {
-  symbolId: 102
-  symbolName: "ETHUSD"
-  enabled: false
-  baseAssetId: 32
-  quoteAssetId: 15
-  symbolCategoryId: 12
-  description: "Ethereum vs US Dollar"
-}
-symbol {
   symbolId: 127
   symbolName: "DAXEUR"
   enabled: true
@@ -104,8 +95,17 @@ symbol {
   enabled: false
   baseAssetId: 1169
   quoteAssetId: 15
-  symbolCategoryId: 14
+  symbolCategoryId: 30
   description: "BitCoin Cash vs US Dollar"
+}
+symbol {
+  symbolId: 239
+  symbolName: "BCHEUR"
+  enabled: false
+  baseAssetId: 1169
+  quoteAssetId: 5
+  symbolCategoryId: 14
+  description: "BitCoin Cash vs Euro"
 }
 symbol {
   symbolId: 245
@@ -115,15 +115,6 @@ symbol {
   quoteAssetId: 15
   symbolCategoryId: 15
   description: "LiteCoin vs US Dollar"
-}
-symbol {
-  symbolId: 252
-  symbolName: "XRPUSD"
-  enabled: false
-  baseAssetId: 1168
-  quoteAssetId: 15
-  symbolCategoryId: 16
-  description: "Ripple vs US Dollar"
 }
 symbol {
   symbolId: 253
@@ -198,6 +189,15 @@ symbol {
   description: "US Dollar vs Hong Kong dollar"
 }
 symbol {
+  symbolId: 101
+  symbolName: "BTCUSD"
+  enabled: true
+  baseAssetId: 31
+  quoteAssetId: 15
+  symbolCategoryId: 30
+  description: "Bitcoin vs US Dollar"
+}
+symbol {
   symbolId: 128
   symbolName: "F40EUR"
   enabled: true
@@ -252,13 +252,13 @@ symbol {
   description: "BitCoin vs Japanese Yen"
 }
 symbol {
-  symbolId: 239
-  symbolName: "BCHEUR"
+  symbolId: 240
+  symbolName: "BCHJPY"
   enabled: false
   baseAssetId: 1169
-  quoteAssetId: 5
+  quoteAssetId: 8
   symbolCategoryId: 14
-  description: "BitCoin Cash vs Euro"
+  description: "BitCoin Cash vs Japanese Yen"
 }
 symbol {
   symbolId: 246
@@ -342,6 +342,15 @@ symbol {
   description: "Brent Crude Oil"
 }
 symbol {
+  symbolId: 102
+  symbolName: "ETHUSD"
+  enabled: false
+  baseAssetId: 32
+  quoteAssetId: 15
+  symbolCategoryId: 30
+  description: "Ethereum vs US Dollar"
+}
+symbol {
   symbolId: 129
   symbolName: "FTSGBP"
   enabled: true
@@ -387,13 +396,13 @@ symbol {
   description: "BitCoin vs Great Britain Pound"
 }
 symbol {
-  symbolId: 240
-  symbolName: "BCHJPY"
+  symbolId: 241
+  symbolName: "BCHGBP"
   enabled: false
   baseAssetId: 1169
-  quoteAssetId: 8
+  quoteAssetId: 6
   symbolCategoryId: 14
-  description: "BitCoin Cash vs Japanese Yen"
+  description: "BitCoin Cash vs Great Britain Pound"
 }
 symbol {
   symbolId: 247
@@ -513,13 +522,13 @@ symbol {
   description: "Bitcoin vs Swiss Franc"
 }
 symbol {
-  symbolId: 241
-  symbolName: "BCHGBP"
+  symbolId: 242
+  symbolName: "BCHAUD"
   enabled: false
   baseAssetId: 1169
-  quoteAssetId: 6
+  quoteAssetId: 1
   symbolCategoryId: 14
-  description: "BitCoin Cash vs Great Britain Pound"
+  description: "Bitcoin Cash vs Australian Dollar"
 }
 symbol {
   symbolId: 248
@@ -547,6 +556,15 @@ symbol {
   quoteAssetId: 15
   symbolCategoryId: 18
   description: "Ethereum Classic vs US Dollar"
+}
+symbol {
+  symbolId: 273
+  symbolName: "SOLUSD"
+  enabled: false
+  baseAssetId: 1102
+  quoteAssetId: 15
+  symbolCategoryId: 30
+  description: "Solana vs US Dollar"
 }
 symbol {
   symbolId: 340
@@ -639,13 +657,13 @@ symbol {
   description: "Bitcoin vs Australian Dollar"
 }
 symbol {
-  symbolId: 242
-  symbolName: "BCHAUD"
+  symbolId: 243
+  symbolName: "BCHCAD"
   enabled: false
   baseAssetId: 1169
-  quoteAssetId: 1
+  quoteAssetId: 2
   symbolCategoryId: 14
-  description: "Bitcoin Cash vs Australian Dollar"
+  description: "Bitcoin Cash vs Canadian Dollar"
 }
 symbol {
   symbolId: 249
@@ -655,6 +673,15 @@ symbol {
   quoteAssetId: 1
   symbolCategoryId: 15
   description: "Litecoin vs Australian Dollar"
+}
+symbol {
+  symbolId: 252
+  symbolName: "XRPUSD"
+  enabled: false
+  baseAssetId: 1168
+  quoteAssetId: 15
+  symbolCategoryId: 30
+  description: "Ripple vs US Dollar"
 }
 symbol {
   symbolId: 257
@@ -765,13 +792,13 @@ symbol {
   description: "Bitcoin vs New Zealand Dollar"
 }
 symbol {
-  symbolId: 243
-  symbolName: "BCHCAD"
+  symbolId: 244
+  symbolName: "BCHNZD"
   enabled: false
   baseAssetId: 1169
-  quoteAssetId: 2
+  quoteAssetId: 11
   symbolCategoryId: 14
-  description: "Bitcoin Cash vs Canadian Dollar"
+  description: "Bitcoin Cash vs New Zealand Dollar"
 }
 symbol {
   symbolId: 250
@@ -889,15 +916,6 @@ symbol {
   quoteAssetId: 2
   symbolCategoryId: 13
   description: "Bitcoin vs Canadian Dollar"
-}
-symbol {
-  symbolId: 244
-  symbolName: "BCHNZD"
-  enabled: false
-  baseAssetId: 1169
-  quoteAssetId: 11
-  symbolCategoryId: 14
-  description: "Bitcoin Cash vs New Zealand Dollar"
 }
 symbol {
   symbolId: 251
@@ -1170,15 +1188,6 @@ symbol {
   description: "Australian Dollar vs Canadian Dollar"
 }
 symbol {
-  symbolId: 101
-  symbolName: "BTCUSD"
-  enabled: false
-  baseAssetId: 31
-  quoteAssetId: 15
-  symbolCategoryId: 13
-  description: "Bitcoin vs US Dollar"
-}
-symbol {
   symbolId: 122
   symbolName: "XAGGBP"
   enabled: false
@@ -1368,13 +1377,13 @@ symbol {
   description: "Ford Motor Company"
 }
 symbol {
-  symbolId: 273
-  symbolName: "SOLUSD"
+  symbolId: 274
+  symbolName: "DOTUSD"
   enabled: false
-  baseAssetId: 1102
+  baseAssetId: 1103
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Solana vs US Dollar"
+  description: "Polkadot vs US Dollar"
 }
 symbol {
   symbolId: 350
@@ -1413,13 +1422,13 @@ symbol {
   description: "Walt Disney Company"
 }
 symbol {
-  symbolId: 274
-  symbolName: "DOTUSD"
+  symbolId: 275
+  symbolName: "LNKUSD"
   enabled: false
-  baseAssetId: 1103
+  baseAssetId: 1104
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Polkadot vs US Dollar"
+  description: "Chainlink vs US Dollar"
 }
 symbol {
   symbolId: 351
@@ -1458,13 +1467,13 @@ symbol {
   description: "Chevron Corporation"
 }
 symbol {
-  symbolId: 275
-  symbolName: "LNKUSD"
+  symbolId: 276
+  symbolName: "MTCUSD"
   enabled: false
-  baseAssetId: 1104
+  baseAssetId: 1105
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Chainlink vs US Dollar"
+  description: "Polygon vs US Dollar"
 }
 symbol {
   symbolId: 352
@@ -1503,13 +1512,13 @@ symbol {
   description: "Agilent Technologies, Inc."
 }
 symbol {
-  symbolId: 276
-  symbolName: "MTCUSD"
+  symbolId: 277
+  symbolName: "UNIUSD"
   enabled: false
-  baseAssetId: 1105
+  baseAssetId: 1106
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Polygon vs US Dollar"
+  description: "Uniswap vs US Dollar"
 }
 symbol {
   symbolId: 353
@@ -1548,13 +1557,13 @@ symbol {
   description: "American Airlines Group"
 }
 symbol {
-  symbolId: 277
-  symbolName: "UNIUSD"
+  symbolId: 278
+  symbolName: "ALGUSD"
   enabled: false
-  baseAssetId: 1106
+  baseAssetId: 1107
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Uniswap vs US Dollar"
+  description: "Algorand vs US Dollar"
 }
 symbol {
   symbolId: 354
@@ -1593,13 +1602,13 @@ symbol {
   description: "American International Group"
 }
 symbol {
-  symbolId: 278
-  symbolName: "ALGUSD"
+  symbolId: 279
+  symbolName: "FILUSD"
   enabled: false
-  baseAssetId: 1107
+  baseAssetId: 1108
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Algorand vs US Dollar"
+  description: "Filecoin vs US Dollar"
 }
 symbol {
   symbolId: 355
@@ -1638,13 +1647,13 @@ symbol {
   description: "Boeing Company"
 }
 symbol {
-  symbolId: 279
-  symbolName: "FILUSD"
+  symbolId: 280
+  symbolName: "MKRUSD"
   enabled: false
-  baseAssetId: 1108
+  baseAssetId: 1109
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Filecoin vs US Dollar"
+  description: "Maker vs US Dollar"
 }
 symbol {
   symbolId: 356
@@ -1683,13 +1692,13 @@ symbol {
   description: "Bank of America Corporation"
 }
 symbol {
-  symbolId: 280
-  symbolName: "MKRUSD"
+  symbolId: 281
+  symbolName: "AVAUSD"
   enabled: false
-  baseAssetId: 1109
+  baseAssetId: 1110
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Maker vs US Dollar"
+  description: "Avalanche vs US Dollar"
 }
 symbol {
   symbolId: 357
@@ -1719,13 +1728,13 @@ symbol {
   description: "Citigroup"
 }
 symbol {
-  symbolId: 281
-  symbolName: "AVAUSD"
+  symbolId: 282
+  symbolName: "VECUSD"
   enabled: false
-  baseAssetId: 1110
+  baseAssetId: 1111
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Avalanche vs US Dollar"
+  description: "VeChain vs US Dollar"
 }
 symbol {
   symbolId: 358
@@ -1755,13 +1764,13 @@ symbol {
   description: "Cisco Systems"
 }
 symbol {
-  symbolId: 282
-  symbolName: "VECUSD"
+  symbolId: 283
+  symbolName: "NERUSD"
   enabled: false
-  baseAssetId: 1111
+  baseAssetId: 1112
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "VeChain vs US Dollar"
+  description: "NEAR protocol VS US Dollar"
 }
 symbol {
   symbolId: 359
@@ -1791,13 +1800,13 @@ symbol {
   description: "Marriott International"
 }
 symbol {
-  symbolId: 283
-  symbolName: "NERUSD"
+  symbolId: 284
+  symbolName: "ATMUSD"
   enabled: false
-  baseAssetId: 1112
+  baseAssetId: 1113
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "NEAR protocol VS US Dollar"
+  description: "Cosmos vs US Dollar"
 }
 symbol {
   symbolId: 360
@@ -1827,13 +1836,13 @@ symbol {
   description: "McDonald`s"
 }
 symbol {
-  symbolId: 284
-  symbolName: "ATMUSD"
+  symbolId: 285
+  symbolName: "SANUSD"
   enabled: false
-  baseAssetId: 1113
+  baseAssetId: 1114
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Cosmos vs US Dollar"
+  description: "The Sandbox vs US Dollar"
 }
 symbol {
   symbolId: 361
@@ -1863,13 +1872,13 @@ symbol {
   description: "3M Company"
 }
 symbol {
-  symbolId: 285
-  symbolName: "SANUSD"
+  symbolId: 286
+  symbolName: "SUSUSD"
   enabled: false
-  baseAssetId: 1114
+  baseAssetId: 1115
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "The Sandbox vs US Dollar"
+  description: "Sushi vs US Dollar"
 }
 symbol {
   symbolId: 362
@@ -1899,13 +1908,13 @@ symbol {
   description: "Merck & Company"
 }
 symbol {
-  symbolId: 286
-  symbolName: "SUSUSD"
+  symbolId: 287
+  symbolName: "AXSUSD"
   enabled: false
-  baseAssetId: 1115
+  baseAssetId: 1116
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Sushi vs US Dollar"
+  description: "Axie Infinity vs US Dollar"
 }
 symbol {
   symbolId: 363
@@ -1935,13 +1944,13 @@ symbol {
   description: "Dolphin Entertainment, Inc. - Common Stock"
 }
 symbol {
-  symbolId: 287
-  symbolName: "AXSUSD"
+  symbolId: 288
+  symbolName: "CRVUSD"
   enabled: false
-  baseAssetId: 1116
+  baseAssetId: 1117
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Axie Infinity vs US Dollar"
+  description: "Curve vs US Dollar"
 }
 symbol {
   symbolId: 364
@@ -1971,13 +1980,13 @@ symbol {
   description: "PLBY Group Inc."
 }
 symbol {
-  symbolId: 288
-  symbolName: "CRVUSD"
+  symbolId: 289
+  symbolName: "ONEUSD"
   enabled: false
-  baseAssetId: 1117
+  baseAssetId: 1118
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Curve vs US Dollar"
+  description: "Harmony vs US Dollar"
 }
 symbol {
   symbolId: 365
@@ -2007,13 +2016,13 @@ symbol {
   description: "Funko, Inc. - Class A Common Stock"
 }
 symbol {
-  symbolId: 289
-  symbolName: "ONEUSD"
+  symbolId: 290
+  symbolName: "LRCUSD"
   enabled: false
-  baseAssetId: 1118
+  baseAssetId: 1119
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Harmony vs US Dollar"
+  description: "Loopring vs US Dollar"
 }
 symbol {
   symbolId: 366
@@ -2043,13 +2052,13 @@ symbol {
   description: "CloudFlare - Class A"
 }
 symbol {
-  symbolId: 290
-  symbolName: "LRCUSD"
+  symbolId: 291
+  symbolName: "INCUSD"
   enabled: false
-  baseAssetId: 1119
+  baseAssetId: 1120
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Loopring vs US Dollar"
+  description: "1inch vs US Dollar"
 }
 symbol {
   symbolId: 367
@@ -2079,13 +2088,13 @@ symbol {
   description: "Takung Art Co. Ltd. Common Stock"
 }
 symbol {
-  symbolId: 291
-  symbolName: "INCUSD"
+  symbolId: 292
+  symbolName: "XTZUSD"
   enabled: false
-  baseAssetId: 1120
+  baseAssetId: 1121
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "1inch vs US Dollar"
+  description: "Tezos vs US Dollar"
 }
 symbol {
   symbolId: 368
@@ -2106,13 +2115,13 @@ symbol {
   description: "Mattel, Inc. - Common Stock"
 }
 symbol {
-  symbolId: 292
-  symbolName: "XTZUSD"
+  symbolId: 293
+  symbolName: "APEUSD"
   enabled: false
-  baseAssetId: 1121
+  baseAssetId: 1122
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Tezos vs US Dollar"
+  description: "ApeCoin vs US Dollar"
 }
 symbol {
   symbolId: 211
@@ -2124,13 +2133,13 @@ symbol {
   description: "Wal-Mart Stores"
 }
 symbol {
-  symbolId: 293
-  symbolName: "APEUSD"
+  symbolId: 294
+  symbolName: "BARUSD"
   enabled: false
-  baseAssetId: 1122
+  baseAssetId: 1123
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "ApeCoin vs US Dollar"
+  description: "Hedera vs US Dollar"
 }
 symbol {
   symbolId: 213
@@ -2142,13 +2151,13 @@ symbol {
   description: "NASDAQ OMX Group"
 }
 symbol {
-  symbolId: 294
-  symbolName: "BARUSD"
+  symbolId: 295
+  symbolName: "MANUSD"
   enabled: false
-  baseAssetId: 1123
+  baseAssetId: 1124
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Hedera vs US Dollar"
+  description: "Decentraland vs US Dollar"
 }
 symbol {
   symbolId: 214
@@ -2160,13 +2169,13 @@ symbol {
   description: "Netflix"
 }
 symbol {
-  symbolId: 295
-  symbolName: "MANUSD"
+  symbolId: 296
+  symbolName: "TETUSD"
   enabled: false
-  baseAssetId: 1124
+  baseAssetId: 1125
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Decentraland vs US Dollar"
+  description: "Theta vs US Dollar"
 }
 symbol {
   symbolId: 215
@@ -2178,13 +2187,13 @@ symbol {
   description: "Nike"
 }
 symbol {
-  symbolId: 296
-  symbolName: "TETUSD"
+  symbolId: 297
+  symbolName: "FTMUSD"
   enabled: false
-  baseAssetId: 1125
+  baseAssetId: 1126
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Theta vs US Dollar"
+  description: "Fantom vs US Dollar"
 }
 symbol {
   symbolId: 216
@@ -2196,13 +2205,13 @@ symbol {
   description: "Oracle Corporation"
 }
 symbol {
-  symbolId: 297
-  symbolName: "FTMUSD"
+  symbolId: 298
+  symbolName: "AAVUSD"
   enabled: false
-  baseAssetId: 1126
+  baseAssetId: 1127
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Fantom vs US Dollar"
+  description: "AAVE vs US Dollar"
 }
 symbol {
   symbolId: 217
@@ -2214,13 +2223,13 @@ symbol {
   description: "Pepsico"
 }
 symbol {
-  symbolId: 298
-  symbolName: "AAVUSD"
+  symbolId: 299
+  symbolName: "GMTUSD"
   enabled: false
-  baseAssetId: 1127
+  baseAssetId: 1128
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "AAVE vs US Dollar"
+  description: "STEPN vs US Dollar"
 }
 symbol {
   symbolId: 218
@@ -2232,13 +2241,13 @@ symbol {
   description: "Procter & Gamble Company"
 }
 symbol {
-  symbolId: 299
-  symbolName: "GMTUSD"
+  symbolId: 300
+  symbolName: "FLWUSD"
   enabled: false
-  baseAssetId: 1128
+  baseAssetId: 1129
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "STEPN vs US Dollar"
+  description: "FLOW vs US Dollar"
 }
 symbol {
   symbolId: 219
@@ -2250,13 +2259,13 @@ symbol {
   description: "AT&T"
 }
 symbol {
-  symbolId: 300
-  symbolName: "FLWUSD"
+  symbolId: 301
+  symbolName: "GRTUSD"
   enabled: false
-  baseAssetId: 1129
+  baseAssetId: 1130
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "FLOW vs US Dollar"
+  description: "The Graph vs US Dollar"
 }
 symbol {
   symbolId: 221
@@ -2268,13 +2277,13 @@ symbol {
   description: "United Continental Holdings"
 }
 symbol {
-  symbolId: 301
-  symbolName: "GRTUSD"
+  symbolId: 302
+  symbolName: "KSMUSD"
   enabled: false
-  baseAssetId: 1130
+  baseAssetId: 1131
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "The Graph vs US Dollar"
+  description: "Kusama vs US Dollar"
 }
 symbol {
   symbolId: 222
@@ -2286,13 +2295,13 @@ symbol {
   description: "UnitedHealth Group"
 }
 symbol {
-  symbolId: 302
-  symbolName: "KSMUSD"
+  symbolId: 303
+  symbolName: "ZILUSD"
   enabled: false
-  baseAssetId: 1131
+  baseAssetId: 1132
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Kusama vs US Dollar"
+  description: "Zilliqa vs US Dollar"
 }
 symbol {
   symbolId: 223
@@ -2304,13 +2313,13 @@ symbol {
   description: "Visa"
 }
 symbol {
-  symbolId: 303
-  symbolName: "ZILUSD"
+  symbolId: 304
+  symbolName: "GALUSD"
   enabled: false
-  baseAssetId: 1132
+  baseAssetId: 1133
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Zilliqa vs US Dollar"
+  description: "GALA vs US Dollar"
 }
 symbol {
   symbolId: 224
@@ -2322,13 +2331,13 @@ symbol {
   description: "Verizon Communications"
 }
 symbol {
-  symbolId: 304
-  symbolName: "GALUSD"
+  symbolId: 305
+  symbolName: "CEOUSD"
   enabled: false
-  baseAssetId: 1133
+  baseAssetId: 1134
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "GALA vs US Dollar"
+  description: "Celo vs US Dollar"
 }
 symbol {
   symbolId: 225
@@ -2340,13 +2349,13 @@ symbol {
   description: "Wells Fargo & Company"
 }
 symbol {
-  symbolId: 305
-  symbolName: "CEOUSD"
+  symbolId: 306
+  symbolName: "CHZUSD"
   enabled: false
-  baseAssetId: 1134
+  baseAssetId: 1135
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Celo vs US Dollar"
+  description: "Chiliz vs US Dollar"
 }
 symbol {
   symbolId: 226
@@ -2358,13 +2367,13 @@ symbol {
   description: "Workhorse Group"
 }
 symbol {
-  symbolId: 306
-  symbolName: "CHZUSD"
+  symbolId: 307
+  symbolName: "ENJUSD"
   enabled: false
-  baseAssetId: 1135
+  baseAssetId: 1136
   quoteAssetId: 15
   symbolCategoryId: 18
-  description: "Chiliz vs US Dollar"
+  description: "Enjin Coin vs US Dollar"
 }
 symbol {
   symbolId: 227
@@ -2374,15 +2383,6 @@ symbol {
   quoteAssetId: 15
   symbolCategoryId: 23
   description: "Exxon Mobil Corporation"
-}
-symbol {
-  symbolId: 307
-  symbolName: "ENJUSD"
-  enabled: false
-  baseAssetId: 1136
-  quoteAssetId: 15
-  symbolCategoryId: 18
-  description: "Enjin Coin vs US Dollar"
 }
 symbol {
   symbolId: 308

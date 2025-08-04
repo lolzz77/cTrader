@@ -406,7 +406,7 @@ if __name__ == "__main__":
                 proceed = True
                 section = 'HEADER'
                 if order.orderId not in GlobalVar.g_Record_Data[section]:
-                    print(f"Order ID {order.orderId} not present in GlobalVar. Skip.")
+                    print(f"Order ID {order.orderId}:{symbol_name} not present in GlobalVar. Skip.")
                     continue
                 lotsize_special = int(GlobalVar.g_Record_Data[section][order.orderId]) / MIN_LOT_VALUE / 100
                 if order.tradeData.volume * volume_to_pip_converter == lotsize_special:
@@ -770,9 +770,9 @@ if __name__ == "__main__":
         res = GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType]
 
+        HAS_UPDATE = False
+
         section = 'HEADER'
-        temp = copy.deepcopy(GlobalVar.g_Record_Data)
-        temp[section].clear()
         orderList = res.order
         if len(orderList) == 0:
             print(f"No new records to be saved into record.ini. No pending orders.")
@@ -783,15 +783,16 @@ if __name__ == "__main__":
             # Dont record those that is max lotsize, it is my strategy that, market close, set maximum lotsize
             if order.tradeData.volume == int(GlobalVar.g_Config_Data[f"MAX_LOT_VOLUME_{symbol_name}"]):
                 continue
-            temp[section][str(order.orderId)] = str(order.tradeData.volume)
+            HAS_UPDATE = True
+            GlobalVar.g_Record_Data[section][str(order.orderId)] = str(order.tradeData.volume)
 
         # No records to be updated
-        if not temp.items(section):
+        if not HAS_UPDATE:
             print(f"No new records to be saved into record.ini. All left is 100 lotsize pending orders.")
             return
 
         with open(GlobalVar.RECORD_FILENAME, 'w') as configfile:
-            temp.write(configfile)
+            GlobalVar.g_Record_Data.write(configfile)
 
         # Refresh the GlobalVar.g_Record_Data
         utility.read_record_file()
