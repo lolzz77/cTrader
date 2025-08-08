@@ -45,6 +45,9 @@ class GlobalVar():
     # Becos, if cleared, those pending order with lotsize 100 cannot be restored
     CLEAR_RECORD_INI_FILE   = False
 
+    # To control monitor script
+    START_MONITOR           = False
+
     # For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
     g_auth_acc                  = []
 

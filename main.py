@@ -141,7 +141,10 @@ if __name__ == "__main__":
             if GlobalVar.g_print_heartbeat:
                 GlobalVar.NEW_PRINT_HAS_HAPPENED = True
                 print(f"\n\n[{formatted_time}] Heartbeat Received.")
-            handle_time_checks()
+
+            if GlobalVar.START_MONITOR:
+                print(f"Note: Monitor script activated.")
+                handle_time_checks()
 
         elif message.payloadType == ProtoOAPayloadType.Value('PROTO_OA_SYMBOL_CHANGED_EVENT'):
             """
@@ -836,6 +839,19 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         GlobalVar.g_task_queue.append([add_record_into_record_file, None, None, None])
 
+    def monitor(clientMsgId = None):
+        """
+        Start the monitor script
+        It will be triggered when receiving heartbeat from server
+        """
+        GlobalVar.START_MONITOR = True
+
+    def monitorStop(clientMsgId = None):
+        """
+        Stop the monitor script
+        """
+        GlobalVar.START_MONITOR = False
+
     def setLotSize(lotsize, clientMsgId = None):
         """
         This is for pending orders
@@ -988,6 +1004,8 @@ if __name__ == "__main__":
         print("usd: updateSymbolDetail, # usd = update symbol detail to config.ini, call `usd symbolId`")
         print("usdd: updateSymbolDetailAccordingToFavourite, # Same as above, just auto update with your favourite list. Just call `usdd`")
         print("")
+        print("m: monitor, # m = monitor. Start the monitor script")
+        print("ms : monitorStop, # ms = Monitor Stop. Stop the monitor script")
         print("lt: setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`")
         print("save: saveLotSize, # save lotsize")
         print("load: loadLotSize, # load saved lotsize")
@@ -1023,6 +1041,8 @@ if __name__ == "__main__":
         "usd": updateSymbolDetail, # usd = update symbol detail to config.ini, call `usd symbolId`
         "usdd": updateSymbolDetailAccordingToFavourite, # Same as above, just auto update with your favourite list. Just call `usdd`
 
+        "m": monitor, # m = monitor. Start the monitor script
+        "ms" : monitorStop, # ms = Monitor Stop. Stop the monitor script
         "lt": setLotSize, # lt = lot. Set pending order lotsize. Call like this `lt 100`, `lt 0.01`
         "save": saveLotSize, # save lotsize
         "load": loadLotSize, # load saved lotsize
