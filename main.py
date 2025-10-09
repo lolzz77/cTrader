@@ -306,7 +306,7 @@ if __name__ == "__main__":
         # Format as DD-MMM-YY
         formatted_date = future.strftime('%d-%b-%y')
 
-        updates = {"ACCESS_TOKEN":res.accessToken, "REFRESH_TOKEN":res.refreshToken, "LAST_UPDATED":formatted_date}
+        updates = {"ACCESS_TOKEN":res.accessToken, "REFRESH_TOKEN":res.refreshToken, "TOKEN_EXPIRY":formatted_date}
         res = None
         with fileinput.FileInput(".env", inplace=True) as file:
             for line in file:
@@ -539,18 +539,24 @@ if __name__ == "__main__":
             _StopLossTakeProfit = StopLossTakeProfit.RELATIVE.value
         elif orderEntity.stopLoss != 0 or orderEntity.takeProfit != 0:
             _StopLossTakeProfit = StopLossTakeProfit.ABSOLUTE.value
-        else:
-            print(f"Warning: Abnormal absolute & realtive TP SL detected. Skip")
-            print(f"OrderId:{orderEntity.orderId} Symbol:{symbol_name}")
-            print(f"relativeStopLoss:{orderEntity.relativeStopLoss}")
-            print(f"relativeTakeProfit:{orderEntity.relativeTakeProfit}")
-            print(f"stopLoss:{orderEntity.stopLoss}")
-            print(f"takeProfit:{orderEntity.takeProfit}")
-            return
+
 
         request = ProtoOAAmendOrderReq()
         request.ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
         request.orderId = int(orderEntity.orderId)
+
+        if orderEntity.orderType == ProtoOAOrderType.Value('LIMIT'):
+            request.limitPrice = float(orderEntity.limitPrice)
+        elif orderEntity.orderType == ProtoOAOrderType.Value('STOP'):
+            print(f"============================")
+            print(f"WARNING: STOP ORDER DETECTED")
+            print(f"Symbol:{symbol_name}, OrderId:{request.orderId}")
+            print(f"============================")
+            request.stopPrice = float(orderEntity.stopPrice)
+        else:
+            print(f"Unhandled orderType: {ProtoOAOrderType.Name(orderEntity.orderType)}. Skip.")
+            return
+
         # regarding orderEntity.relativeStopLoss
         # It has if you NEVER place by entering price, but rather by dragging
         # It has value 0 if you entered using price,
@@ -558,17 +564,25 @@ if __name__ == "__main__":
         # And if either one is 0, request will fail
         # Ok, sometimes it changed to use either & i dk how i triggered that
         # Best is, ur coding, should cover both
-        request.limitPrice = float(orderEntity.limitPrice)
+        STOP_LOSS_IS_SET = False
         if _StopLossTakeProfit == StopLossTakeProfit.RELATIVE.value:
-            request.relativeStopLoss   = int(orderEntity.relativeStopLoss)
-            request.relativeTakeProfit = int(orderEntity.relativeTakeProfit)
+            if orderEntity.relativeStopLoss != 0:
+                STOP_LOSS_IS_SET = True
+                request.relativeStopLoss   = int(orderEntity.relativeStopLoss)
+            if orderEntity.relativeTakeProfit != 0:
+                request.relativeTakeProfit = int(orderEntity.relativeTakeProfit)
         else:
-            request.stopLoss   = orderEntity.stopLoss
-            request.takeProfit = orderEntity.takeProfit
+            if orderEntity.stopLoss != 0:
+                STOP_LOSS_IS_SET = True
+                request.stopLoss   = orderEntity.stopLoss
+            if orderEntity.takeProfit != 0:
+                request.takeProfit = orderEntity.takeProfit
         request.volume = int(orderEntity.tradeData.volume)
         if orderEntity.expirationTimestamp != 0:
             request.expirationTimestamp = orderEntity.expirationTimestamp
-        request.trailingStopLoss = orderEntity.trailingStopLoss
+        if STOP_LOSS_IS_SET:
+            # Must have StopLoss set only can set trailingStopLoss
+            request.trailingStopLoss = orderEntity.trailingStopLoss
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
@@ -802,7 +816,7 @@ if __name__ == "__main__":
 
     def check_token_expiry(clientMsgId = None):
         # Target date as string
-        target_str = os.getenv("LAST_UPDATED")
+        target_str = os.getenv("TOKEN_EXPIRY")
 
         # Convert to datetime object
         target_date = datetime.strptime(target_str, "%d-%b-%y").date()

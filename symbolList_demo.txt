@@ -92,7 +92,7 @@ symbol {
 symbol {
   symbolId: 238
   symbolName: "BCHUSD"
-  enabled: false
+  enabled: true
   baseAssetId: 1169
   quoteAssetId: 15
   symbolCategoryId: 30
@@ -344,7 +344,7 @@ symbol {
 symbol {
   symbolId: 102
   symbolName: "ETHUSD"
-  enabled: false
+  enabled: true
   baseAssetId: 32
   quoteAssetId: 15
   symbolCategoryId: 30
@@ -560,7 +560,7 @@ symbol {
 symbol {
   symbolId: 273
   symbolName: "SOLUSD"
-  enabled: false
+  enabled: true
   baseAssetId: 1102
   quoteAssetId: 15
   symbolCategoryId: 30
@@ -677,7 +677,7 @@ symbol {
 symbol {
   symbolId: 252
   symbolName: "XRPUSD"
-  enabled: false
+  enabled: true
   baseAssetId: 1168
   quoteAssetId: 15
   symbolCategoryId: 30
