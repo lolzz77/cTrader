@@ -35,7 +35,9 @@ class StopLossTakeProfit(Enum):
 load_dotenv()
 utility.read_config_file()
 
-g_heartbeat = True # To print "Receive Heartbeat"
+# To print "Receive Heartbeat"
+g_heartbeat = True
+
 g_mytimezone = pytz.timezone("Asia/Singapore")
 
 # From .env file, get the variable
