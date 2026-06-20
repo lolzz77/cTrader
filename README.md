@@ -31,7 +31,8 @@ ACCOUNT_TYPE="demo"
 7. You know how to get the values
 8. For CURRENT_ACCOUNT_ID, you have to get it from the code, it is not the Account Number you see on the cTrader setting.
 Run the code first, then, search the command that that runs `ProtoOAGetAccountListByAccessTokenReq`, it will show you the real account ID.
-9. After that, to start the script, run `python3 main.py`
+Or just type `help` once you run the code.
+10. After that, to start the script, run `python3 main.py`
 
 # Note
 1. The heartbeat thing
