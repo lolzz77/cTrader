@@ -3,6 +3,16 @@
 # Version
 1. Python - 3.10.12
 
+# How To Setup The Environment
+## Linux
+1. No Special requirement, just follow the step at Quick Start
+
+## Windows
+1. Install Python
+2. Install Git
+3. Install Microsoft Visual C++ 14.0 or greater
+4. Setup Python Environment
+
 # Quick Start
 1. pip3 install -r requirements.txt
 2. Create .env file
@@ -19,7 +29,9 @@ ACCOUNT_TYPE="demo"
 5. Click "Credentails"
 6. Click "Sandbox"
 7. You know how to get the values
-8. After that, to start the script, run `python3 main.py`
+8. For CURRENT_ACCOUNT_ID, you have to get it from the code, it is not the Account Number you see on the cTrader setting.
+Run the code first, then, search the command that that runs `ProtoOAGetAccountListByAccessTokenReq`, it will show you the real account ID.
+9. After that, to start the script, run `python3 main.py`
 
 # Note
 1. The heartbeat thing
