@@ -22,6 +22,7 @@ APP_CLIENT_ID="xxx"
 APP_CLIENT_SECRET="xxx"
 ACCESS_TOKEN="xxx"
 REFRESH_TOKEN="xxx"
+TOKEN_EXPIRY="dd-MMM-yy" (Example: 22-Jun-26), usually token last 1 month, just type your own expiry date
 CURRENT_ACCOUNT_ID="xxx"
 ACCOUNT_TYPE="demo"
 ```
