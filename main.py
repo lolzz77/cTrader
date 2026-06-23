@@ -40,7 +40,9 @@ import threading
 import time
 from globalpy import GlobalVar, SymbolJsonUpdate, StopLossTakeProfit
 import math
-import copy
+import calendar
+import csv
+
 
 utility.read_config_file()
 utility.read_symbol_file(GlobalVar.ACCOUNT_TYPE) # Read symbolList_demo/live.json
@@ -272,6 +274,12 @@ if __name__ == "__main__":
             pass
             res = Protobuf.extract(message)
             GlobalVar.g_data_dict[ProtoOAReconcileRes().payloadType] = res
+
+        elif message.payloadType == ProtoOAGetTrendbarsRes().payloadType:
+            res = Protobuf.extract(message)
+            # GlobalVar.g_data_dict[ProtoOAGetTrendbarsRes().payloadType].append(res)
+            key = ProtoOAGetTrendbarsRes().payloadType
+            GlobalVar.g_data_dict.setdefault(key, []).append(res)
 
         else:
             print("\n", Protobuf.extract(message))
@@ -1194,6 +1202,129 @@ if __name__ == "__main__":
         for cmd, (func, desc) in defined_commands.items():
             print(f"{cmd:10} - {desc}")
 
+    def Request_History_Bar_Data(symbolID, year, month, clientMsgId = None):
+        """
+        This will request history bar data, in 1 minute, for 1 month
+        Heed that maximum array returned from server is 14k
+        Since i request for 1 month, hence, this function will request separatedly, in chunks
+        """
+
+        year = int(year)
+        month = int(month)
+
+        # Start of month
+        from_dt = g_mytimezone.localize(datetime(year, month, 1, 0, 0, 0))
+
+        # End of month
+        last_day = calendar.monthrange(year, month)[1]
+        to_dt = g_mytimezone.localize(datetime(year, month, last_day, 23, 59, 59, 999000))
+
+        # build weekly chunks
+        chunks = []
+        current_start = from_dt
+        while current_start < to_dt:
+            current_end = current_start + timedelta(weeks=1)
+
+            # clamp to month end
+            if current_end > to_dt:
+                current_end = to_dt
+
+            chunks.append((
+                int(current_start.timestamp() * 1000),
+                int(current_end.timestamp() * 1000)
+            ))
+            current_start = current_end + timedelta(milliseconds=1)
+
+        for c in chunks:
+            param = [symbolID, c[0], c[1]]
+            GlobalVar.g_task_queue.append([Send_Request_For_History_Bar, param, None, None])
+            GlobalVar.g_task_queue.append([None, None, ProtoOAGetTrendbarsRes().payloadType, "Call by Send_Request_For_History_Bar"])
+        
+        GlobalVar.g_task_queue.append([Handle_History_Bar_Data, None, None, None])
+
+    def Handle_History_Bar_Data():
+        res = GlobalVar.g_data_dict[ProtoOAGetTrendbarsRes().payloadType]
+        del GlobalVar.g_data_dict[ProtoOAGetTrendbarsRes().payloadType]
+        # print(f"FINALLY {res}")
+        # with open("result.txt", "w", encoding="utf-8") as f:
+        #     f.write(str(res))
+        """
+        trendbar {
+            volume: 262
+            low: 415420000
+            deltaOpen: 5000
+            deltaClose: 147000
+            deltaHigh: 147000
+            utcTimestampInMinutes: 29698139
+        }
+        volume 	                Bar volume in ticks.
+        low 	                Low price of the bar. They shall follow bid-price. Add spread, that's your ask-price.
+        deltaOpen 	            Delta between open and low price. open = low + deltaOpen.
+        deltaClose 	            Delta between close and low price. close = low + deltaClose.
+        deltaHigh 	            Delta between high and low price. high = low + deltaHigh.
+        utcTimestampInMinutes 	The Unix time in minutes of the bar, equal to the timestamp of the open tick.
+
+        """
+
+        def to_my_year_month(utcTimestampInMinutes):
+            dt_utc = datetime.utcfromtimestamp(utcTimestampInMinutes * 60)
+
+            tz = pytz.timezone("Asia/Singapore")
+            dt_my = dt_utc.replace(tzinfo=pytz.utc).astimezone(tz)
+
+            return dt_my.strftime("%Y-%m")
+
+        def write_to_csv(filename, data_iterator):
+            with open(filename, "a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
+                for bar in data_iterator:
+                    writer.writerow([
+                        bar.volume,
+                        bar.low,
+                        bar.deltaOpen,
+                        bar.deltaClose,
+                        bar.deltaHigh,
+                        bar.utcTimestampInMinutes
+                    ])
+
+        for r in res:
+            trendbar: ProtoOATrendbar = None
+            trendbar = r.trendbar
+            timestamp = r.trendbar[0].utcTimestampInMinutes
+
+            # Print out to make sure, none of them shows "14000"
+            # Cos if there is, means possibly data loss since server max also sends 14k
+            # Always make sure the number is smaller than 14k
+            print(f"History Bar Data Arary Length: {len(trendbar)}")
+
+            filename = to_my_year_month(timestamp)
+            write_to_csv(filename + ".csv", trendbar)
+            print(f"Done written history bar data to {filename}")
+
+    def Send_Request_For_History_Bar(symbolId, fromTimestamp, toTimestamp, clientMsgId = None):
+        """
+        [command] [symbolID ][year] [month]
+        eg: extract_data 41 2026 06
+        to extract whole month of June of 2026 for XAUUSD
+        """
+
+        ctidTraderAccountId = GlobalVar.CURRENT_CTIDTRADERACCOUNTID
+        period = "M1" # 1 minute
+
+        request = ProtoOAGetTrendbarsReq()
+        request.ctidTraderAccountId = ctidTraderAccountId
+        request.period = ProtoOATrendbarPeriod.Value(period)
+
+        # Unix time, in milliseconds
+        request.fromTimestamp = fromTimestamp
+        request.toTimestamp = toTimestamp
+        request.symbolId = int(symbolId)
+
+        symbol_name = utility.read_symbol_id(request.symbolId, ACCOUNT_TYPE)["symbolName"]
+        print(f"Requesting History Data: Symbol:{symbol_name} from:{request.fromTimestamp}, to:{request.toTimestamp}")
+        deferred = client.send(request, clientMsgId = clientMsgId)
+
     def test(clientMsgId=None):
         request = ProtoHeartbeatEvent()
         deferred = client.send(request, clientMsgId=clientMsgId)
@@ -1226,6 +1357,8 @@ if __name__ == "__main__":
         "save": (saveLotSize, "save lotsize, need trading permission"),
         "load": (loadLotSize, "load saved lotsize, need trading permission"),
         "clearrecord": (clear_record_file, "Clear record.ini file"),
+
+        "bar": (Request_History_Bar_Data, "Get historical bar data, call like this `bar [symbolID] [year] [month]"),
 
         "hb": (setHeartbeat, "Set print heartbeat true or false. Call it like this `hb 1`"),
         "sub": (sendProtoOASubscribeSpotsReq, "subscribe to asset, get bid & ask price, call like this `sub 41 1`"),
