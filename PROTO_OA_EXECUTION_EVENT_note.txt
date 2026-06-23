@@ -1,0 +1,430 @@
+
+// Putting buy limit order
+Message received: payloadType = 2126 (PROTO_OA_EXECUTION_EVENT)
+
+ ctidTraderAccountId: xxxxxxx
+executionType: ORDER_ACCEPTED
+position {
+  positionId: 743729
+  tradeData {
+    symbolId: 133
+    volume: 0
+    tradeSide: BUY
+    guaranteedStopLoss: false
+  }
+  positionStatus: POSITION_STATUS_CREATED
+  swap: 0
+  price: 0.0
+  commission: 0
+  marginRate: 0.0
+  mirroringCommission: 0
+  guaranteedStopLoss: false
+  usedMargin: 0
+  moneyDigits: 2
+  trailingStopLoss: false
+}
+order {
+  orderId: 1485419
+  tradeData {
+    symbolId: 133
+    volume: 10
+    tradeSide: BUY
+    openTimestamp: 1748352870211
+    guaranteedStopLoss: false
+  }
+  orderType: LIMIT
+  orderStatus: ORDER_STATUS_ACCEPTED
+  executedVolume: 0
+  utcLastUpdateTimestamp: 1748352870211
+  closingOrder: false
+  limitPrice: 41943.76
+  clientOrderId: "xxxxx"
+  timeInForce: GOOD_TILL_CANCEL
+  positionId: 743729
+  relativeStopLoss: 600000
+  relativeTakeProfit: 6000000
+  trailingStopLoss: false
+}
+isServerEvent: false
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Buy order set SL
+Message received: payloadType = 2126 (PROTO_OA_EXECUTION_EVENT)
+
+ ctidTraderAccountId: xxxxxxx
+executionType: ORDER_REPLACED
+position {
+  positionId: 743729
+  tradeData {
+    symbolId: 133
+    volume: 0
+    tradeSide: BUY
+    guaranteedStopLoss: false
+  }
+  positionStatus: POSITION_STATUS_CREATED
+  swap: 0
+  price: 0.0
+  commission: 0
+  marginRate: 0.0
+  mirroringCommission: 0
+  guaranteedStopLoss: false
+  usedMargin: 0
+  moneyDigits: 2
+  trailingStopLoss: false
+}
+order {
+  orderId: 1485419
+  tradeData {
+    symbolId: 133
+    volume: 10
+    tradeSide: BUY
+    openTimestamp: 1748352870211
+    guaranteedStopLoss: false
+  }
+  orderType: LIMIT
+  orderStatus: ORDER_STATUS_ACCEPTED
+  executedVolume: 0
+  utcLastUpdateTimestamp: 1748352871652
+  closingOrder: false
+  limitPrice: 41943.76
+  clientOrderId: "xxxxx"
+  timeInForce: GOOD_TILL_CANCEL
+  positionId: 743729
+  relativeStopLoss: 4783000
+  relativeTakeProfit: 6000000
+  trailingStopLoss: false
+}
+isServerEvent: false
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Buy order hit but havent enter trade
+Message received: payloadType = 2126 (PROTO_OA_EXECUTION_EVENT)
+
+ ctidTraderAccountId: xxxxxxx
+executionType: ORDER_FILLED
+position {
+  positionId: 743729
+  tradeData {
+    symbolId: 133
+    volume: 10
+    tradeSide: BUY
+    openTimestamp: 1748352874205
+    guaranteedStopLoss: false
+  }
+  positionStatus: POSITION_STATUS_OPEN
+  swap: 0
+  price: 41943.52
+  utcLastUpdateTimestamp: 1748352874205
+  commission: 0
+  marginRate: 41942.5
+  mirroringCommission: 0
+  guaranteedStopLoss: false
+  usedMargin: 839
+  moneyDigits: 2
+  trailingStopLoss: false
+}
+order {
+  orderId: 1485419
+  tradeData {
+    symbolId: 133
+    volume: 10
+    tradeSide: BUY
+    openTimestamp: 1748352870211
+    guaranteedStopLoss: false
+  }
+  orderType: LIMIT
+  orderStatus: ORDER_STATUS_FILLED
+  executionPrice: 41943.52
+  executedVolume: 10
+  utcLastUpdateTimestamp: 1748352874205
+  closingOrder: false
+  limitPrice: 41943.76
+  clientOrderId: "xxxxx"
+  timeInForce: GOOD_TILL_CANCEL
+  positionId: 743729
+  relativeStopLoss: 4783000
+  relativeTakeProfit: 6000000
+  trailingStopLoss: false
+}
+deal {
+  dealId: 1461541
+  orderId: 1485419
+  positionId: 743729
+  volume: 10
+  filledVolume: 10
+  symbolId: 133
+  createTimestamp: 1748352873820
+  executionTimestamp: 1748352874205
+  utcLastUpdateTimestamp: 1748352874205
+  executionPrice: 41943.52
+  tradeSide: BUY
+  dealStatus: FILLED
+  marginRate: 41942.5
+  commission: 0
+  baseToUsdConversionRate: 41942.5
+  moneyDigits: 2
+}
+isServerEvent: false
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Buy order hit & entered trade
+Message received: payloadType = 2126 (PROTO_OA_EXECUTION_EVENT)
+
+ ctidTraderAccountId: xxxxxxx
+executionType: ORDER_ACCEPTED
+position {
+  positionId: 743729
+  tradeData {
+    symbolId: 133
+    volume: 10
+    tradeSide: BUY
+    openTimestamp: 1748352874205
+    guaranteedStopLoss: false
+  }
+  positionStatus: POSITION_STATUS_OPEN
+  swap: 0
+  price: 41943.52
+  stopLoss: 41895.69
+  takeProfit: 42003.52
+  utcLastUpdateTimestamp: 1748352874216
+  commission: 0
+  marginRate: 41942.5
+  mirroringCommission: 0
+  guaranteedStopLoss: false
+  usedMargin: 839
+  stopLossTriggerMethod: OPPOSITE
+  moneyDigits: 2
+  trailingStopLoss: false
+}
+order {
+  orderId: 1485420
+  tradeData {
+    symbolId: 133
+    volume: 10
+    tradeSide: SELL
+    openTimestamp: 1748352874216
+    guaranteedStopLoss: false
+  }
+  orderType: STOP_LOSS_TAKE_PROFIT
+  orderStatus: ORDER_STATUS_ACCEPTED
+  executedVolume: 0
+  utcLastUpdateTimestamp: 1748352874216
+  closingOrder: true
+  limitPrice: 42003.52
+  stopPrice: 41895.69
+  clientOrderId: "xxxxx"
+  timeInForce: GOOD_TILL_CANCEL
+  positionId: 743729
+  trailingStopLoss: false
+  stopTriggerMethod: OPPOSITE
+}
+isServerEvent: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Buy order hit TP/SL
+Message received: payloadType = 2126 (PROTO_OA_EXECUTION_EVENT)
+
+ ctidTraderAccountId: xxxxxxx
+executionType: ORDER_FILLED
+position {
+  positionId: 743729
+  tradeData {
+    symbolId: 133
+    volume: 0
+    tradeSide: BUY
+    openTimestamp: 1748352874205
+    guaranteedStopLoss: false
+  }
+  positionStatus: POSITION_STATUS_CLOSED
+  swap: 0
+  price: 0.0
+  utcLastUpdateTimestamp: 1748352924630
+  commission: 0
+  marginRate: 0.0
+  mirroringCommission: 0
+  guaranteedStopLoss: false
+  usedMargin: 0
+  moneyDigits: 2
+  trailingStopLoss: false
+}
+order {
+  orderId: 1485420
+  tradeData {
+    symbolId: 133
+    volume: 10
+    tradeSide: SELL
+    openTimestamp: 1748352874216
+    guaranteedStopLoss: false
+  }
+  orderType: STOP_LOSS_TAKE_PROFIT
+  orderStatus: ORDER_STATUS_FILLED
+  executionPrice: 41891.3
+  executedVolume: 10
+  utcLastUpdateTimestamp: 1748352924630
+  closingOrder: true
+  limitPrice: 42003.52
+  stopPrice: 41895.69
+  clientOrderId: "xxxxx"
+  timeInForce: GOOD_TILL_CANCEL
+  positionId: 743729
+  trailingStopLoss: false
+  stopTriggerMethod: OPPOSITE
+}
+deal {
+  dealId: 1461553
+  orderId: 1485420
+  positionId: 743729
+  volume: 10
+  filledVolume: 10
+  symbolId: 133
+  createTimestamp: 1748352924251
+  executionTimestamp: 1748352924630
+  utcLastUpdateTimestamp: 1748352924630
+  executionPrice: 41891.3
+  tradeSide: SELL
+  dealStatus: FILLED
+  marginRate: 41893.29
+  commission: 0
+  baseToUsdConversionRate: 41893.29
+  closePositionDetail {
+    entryPrice: 41943.52
+    grossProfit: -522
+    swap: 0
+    commission: 0
+    balance: 82046
+    quoteToDepositConversionRate: 1.0
+    closedVolume: 10
+    balanceVersion: 142
+    moneyDigits: 2
+    pnlConversionFee: 0
+  }
+  moneyDigits: 2
+}
+isServerEvent: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Cancel limit order
+ctidTraderAccountId: xxxxx
+executionType: ORDER_CANCELLED
+position {
+  positionId: 749127
+  tradeData {
+    symbolId: 127
+    volume: 0
+    tradeSide: BUY
+    guaranteedStopLoss: false
+  }
+  positionStatus: POSITION_STATUS_CLOSED
+  swap: 0
+  price: 0.0
+  commission: 0
+  marginRate: 0.0
+  mirroringCommission: 0
+  guaranteedStopLoss: false
+  usedMargin: 0
+  moneyDigits: 2
+  trailingStopLoss: false
+}
+order {
+  orderId: 1495778
+  tradeData {
+    symbolId: 127
+    volume: 20
+    tradeSide: BUY
+    openTimestamp: 1748614968779
+    guaranteedStopLoss: false
+  }
+  orderType: LIMIT
+  orderStatus: ORDER_STATUS_CANCELLED
+  executedVolume: 0
+  utcLastUpdateTimestamp: 1748614976052
+  closingOrder: false
+  limitPrice: 24052.08
+  clientOrderId: "xxxxxx"
+  timeInForce: GOOD_TILL_CANCEL
+  positionId: 749127
+  relativeStopLoss: 600000
+  relativeTakeProfit: 6000000
+  trailingStopLoss: false
+}
+isServerEvent: false
