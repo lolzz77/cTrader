@@ -1213,11 +1213,11 @@ if __name__ == "__main__":
         month = int(month)
 
         # Start of month
-        from_dt = g_mytimezone.localize(datetime(year, month, 1, 0, 0, 0))
+        from_dt = GlobalVar.g_mytimezone.localize(datetime(year, month, 1, 0, 0, 0))
 
         # End of month
         last_day = calendar.monthrange(year, month)[1]
-        to_dt = g_mytimezone.localize(datetime(year, month, last_day, 23, 59, 59, 999000))
+        to_dt = GlobalVar.g_mytimezone.localize(datetime(year, month, last_day, 23, 59, 59, 999000))
 
         # build weekly chunks
         chunks = []
@@ -1288,10 +1288,13 @@ if __name__ == "__main__":
                         bar.utcTimestampInMinutes
                     ])
 
+        filename = None
         for r in res:
-            trendbar: ProtoOATrendbar = None
-            trendbar = r.trendbar
-            timestamp = r.trendbar[0].utcTimestampInMinutes
+
+            if filename is None:
+                trendbar: ProtoOATrendbar = None
+                trendbar = r.trendbar
+                timestamp = r.trendbar[0].utcTimestampInMinutes
 
             # Print out to make sure, none of them shows "14000"
             # Cos if there is, means possibly data loss since server max also sends 14k
@@ -1321,8 +1324,8 @@ if __name__ == "__main__":
         request.toTimestamp = toTimestamp
         request.symbolId = int(symbolId)
 
-        symbol_name = utility.read_symbol_id(request.symbolId, ACCOUNT_TYPE)["symbolName"]
-        print(f"Requesting History Data: Symbol:{symbol_name} from:{request.fromTimestamp}, to:{request.toTimestamp}")
+        # symbol_name = utility.read_symbol_id(request.symbolId, GlobalVar.ACCOUNT_TYPE)["symbolName"]
+        print(f"Requesting History Data: Symbol:{symbolId} from:{request.fromTimestamp}, to:{request.toTimestamp}")
         deferred = client.send(request, clientMsgId = clientMsgId)
 
     def test(clientMsgId=None):
