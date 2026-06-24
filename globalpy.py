@@ -13,13 +13,14 @@ class GlobalVar():
     ACCOUNT_TYPE        = os.getenv('ACCOUNT_TYPE')
     CURRENT_CTIDTRADERACCOUNTID = int(os.getenv('CURRENT_ACCOUNT_ID'))
     g_print_heartbeat   = False # Enable print heartbeat message
-    g_mytimezone        = pytz.timezone("Asia/Singapore")
+    g_my_timezone        = pytz.timezone("Asia/Singapore")
 
     # This helps me keep track what is the last time_checks i checked
     # If already done, then can skip the market open/close checking shit
     g_time_checks_record    = { "None" : -1 }
 
-    # According to what saved in the config.ini, this will show the list of symbol you interested
+    # Input symbol name as shown in cTrader into facourite.txt
+    # This will get the symbol name, and append the symbol ID to it
     g_favourite_symbol      = {}
 
     """
@@ -58,14 +59,15 @@ class GlobalVar():
     # For my conveniences of `set 1`, `set 2`, set accounts by just typing 1 num
     g_auth_acc                  = []
 
-    g_Symbol_Data_ID_As_Key     = None # Hold symbolList_demo/live.json data
-    g_Symbol_Data_Name_As_Key   = None # Swap the key & value, so i can search wtih symbolName, get their ID
+    g_Symbol_Data_ID_As_Key     = None # eg: {41: "XAUUSD"}
+    g_Symbol_Data_Name_As_Key   = None # eg: {"XAUUSD": 41}
     g_Config_Data               = None # Hold config.ini data
     g_Record_Data               = None # Hold record.txt, list of pending orders' lotsize
 
     SYMBOL_LIST_JSON_FILENAME   = "symbolList_"
     CONFIG_FILENAME             = "config.ini"
     RECORD_FILENAME             = "record.ini"
+    GENERATED_PATH              = "./generated/"
 
 class SymbolJsonUpdate(Enum):
     NO_UPDATE = 1

@@ -82,7 +82,7 @@ if __name__ == "__main__":
         This is the 1st function run, after connection has been established
         """
         current_time = time.time()
-        dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
+        dt = datetime.fromtimestamp(current_time, GlobalVar.g_my_timezone)
 
         # Format the time as "HHMM", GMT+8
         formatted_time = dt.strftime("%H%M")
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         Callback for client disconnection
         """
         current_time = time.time()
-        dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
+        dt = datetime.fromtimestamp(current_time, GlobalVar.g_my_timezone)
 
         # Format the time as "HHMM", GMT+8
         formatted_time = dt.strftime("%H%M")
@@ -123,14 +123,14 @@ if __name__ == "__main__":
         """
 
         current_time = time.time()
-        dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
+        dt = datetime.fromtimestamp(current_time, GlobalVar.g_my_timezone)
         formatted_time = dt.strftime("%H%M")
 
         if message.payloadType in gPayloadIgnoreList:
             pass
 
         """
-        Using try because sometimes i get 
+        Using try because sometimes i get
         builtins.ValueError: Enum ProtoOAPayloadType has no name defined for value 51
         Maybe due to my cTrader API not updated, server updated with new Enum but my API still not
         """
@@ -232,28 +232,28 @@ if __name__ == "__main__":
             global g_write_CSV
             res = Protobuf.extract(message)
             symbol = utility.read_symbol_id(res.symbolId, ACCOUNT_TYPE)["symbolName"]
-            
+
             # gData.append([res.symbolId, symbol, res.bid, res.ask, res.timestamp])
             # while len(gData) > 51:
             #     gData.pop(0)
             # print(f"gData size : {len(gData)}")
             # if gTimer.timer_expired():
-            #     utility.write_csv(gData)
+            #     utility.write_csv_spread(gData)
             #     gData.clear()
             #     print(f"gData size : {len(gData)}")
-                
+
             gData = [
                 [res.symbolId, symbol, res.bid, res.ask, res.timestamp]
             ]
             if g_write_CSV:
-                utility.write_csv(gData)
+                utility.write_csv_spread(gData)
             else:
                 if res.symbolId == 41:
                     if res.bid == 0 or res.ask == 0:
                         return
                     spread = (res.ask - res.bid) / int(utility.gConfigData[f"RELATIVE_PER_PIP_{symbol}"])
                     # res.timestamp is in milliseconds, conver to seconds
-                    dt = datetime.fromtimestamp(res.timestamp/1000, g_mytimezone)
+                    dt = datetime.fromtimestamp(res.timestamp/1000, g_my_timezone)
                     formatted_time = dt.strftime("%d/%b/%y:%H%M")
                     print(f"{res.symbolId}, {symbol}, {spread}, {formatted_time}")
             gData.clear()
@@ -284,7 +284,7 @@ if __name__ == "__main__":
         else:
             print("\n", Protobuf.extract(message))
             GlobalVar.NEW_PRINT_HAS_HAPPENED = True
-        
+
         """
         Handling g_task_queue [2] task, where it handles
         incoming messages first, then only proceed to next
@@ -394,7 +394,7 @@ if __name__ == "__main__":
         res = GlobalVar.g_data_dict[ProtoOARefreshTokenRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOARefreshTokenRes().payloadType]
 
-        today = datetime.now(GlobalVar.g_mytimezone)
+        today = datetime.now(GlobalVar.g_my_timezone)
         # Add 2,628,000 seconds, that's the token expiry period, saw from the website
         future = today + timedelta(seconds=2628000)
         # Format as DD-MMM-YY
@@ -420,7 +420,7 @@ if __name__ == "__main__":
         del GlobalVar.g_data_dict[ProtoOAExecutionEvent().payloadType]
 
         current_time = time.time()
-        dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
+        dt = datetime.fromtimestamp(current_time, GlobalVar.g_my_timezone)
         formatted_time = dt.strftime("%H%M")
         print(f"[{formatted_time}] Set Stoploss to Opposite")
 
@@ -641,10 +641,17 @@ if __name__ == "__main__":
 
     def print_g_Symbol_data_ID_As_Key(clientMsgId = None):
         """
-        Print all symbols IDs
+        Print all symbols IDs:Names
         """
         for id, symbol in GlobalVar.g_Symbol_Data_ID_As_Key.items():
             print(f"ID:{id}, Symbol:{symbol}")
+
+    def print_g_Symbol_Data_Name_As_Key(clientMsgId = None):
+        """
+        Print all symbols Names:IDs
+        """
+        for symbol, id in GlobalVar.g_Symbol_Data_Name_As_Key.items():
+            print(f"Symbol:{symbol}, ID:{id}")
 
     def send_Set_StopLoss_To_Opposite(positionId, entryPrice, takeProfit, SLTriggerMethod = 'TRADE', clientMsgId = None):
         """
@@ -758,10 +765,10 @@ if __name__ == "__main__":
         """
         # Develop when needed
         return
-        now = datetime.now(GlobalVar.g_mytimezone)
+        now = datetime.now(GlobalVar.g_my_timezone)
         current_time = now.time()
         current_time_for_myself = time.time()
-        dt = datetime.fromtimestamp(current_time_for_myself, GlobalVar.g_mytimezone)
+        dt = datetime.fromtimestamp(current_time_for_myself, GlobalVar.g_my_timezone)
         formatted_time = dt.strftime("%H%M")
         current_weekday = now.strftime("%A")
 
@@ -1119,7 +1126,7 @@ if __name__ == "__main__":
         symbolId: 41
         bid: 318645000
         ask: 318677000
-        
+
         41 = XAUUSD
         135 = NDXUSD
         133 = DJIUSD
@@ -1129,7 +1136,7 @@ if __name__ == "__main__":
         return
         global g_write_CSV
         g_write_CSV = int(write_CSV)
-            
+
         request = ProtoOASubscribeSpotsReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         request.symbolId.append(int(symbolId))
@@ -1213,11 +1220,11 @@ if __name__ == "__main__":
         month = int(month)
 
         # Start of month
-        from_dt = GlobalVar.g_mytimezone.localize(datetime(year, month, 1, 0, 0, 0))
+        from_dt = GlobalVar.g_my_timezone.localize(datetime(year, month, 1, 0, 0, 0))
 
         # End of month
         last_day = calendar.monthrange(year, month)[1]
-        to_dt = GlobalVar.g_mytimezone.localize(datetime(year, month, last_day, 23, 59, 59, 999000))
+        to_dt = GlobalVar.g_my_timezone.localize(datetime(year, month, last_day, 23, 59, 59, 999000))
 
         # build weekly chunks
         chunks = []
@@ -1239,7 +1246,7 @@ if __name__ == "__main__":
             param = [symbolID, c[0], c[1]]
             GlobalVar.g_task_queue.append([Send_Request_For_History_Bar, param, None, None])
             GlobalVar.g_task_queue.append([None, None, ProtoOAGetTrendbarsRes().payloadType, "Call by Send_Request_For_History_Bar"])
-        
+
         GlobalVar.g_task_queue.append([Handle_History_Bar_Data, None, None, None])
 
     def Handle_History_Bar_Data():
@@ -1266,19 +1273,36 @@ if __name__ == "__main__":
 
         """
 
-        def to_my_year_month(utcTimestampInMinutes):
-            dt_utc = datetime.utcfromtimestamp(utcTimestampInMinutes * 60)
+        write_to_file = ""
+        filename = ""
+        symbol_name_filename = ""
+        date_time_filename = ""
 
-            tz = pytz.timezone("Asia/Singapore")
-            dt_my = dt_utc.replace(tzinfo=pytz.utc).astimezone(tz)
+        symbolId = res[0].symbolId
+        symbol_name_filename = GlobalVar.g_Symbol_Data_ID_As_Key.get(symbolId)
 
-            return dt_my.strftime("%Y-%m")
+        utcTimestampInMinutes = res[0].trendbar[0].utcTimestampInMinutes
+        dt_my_timezone = datetime.fromtimestamp(utcTimestampInMinutes * 60, GlobalVar.g_my_timezone)
+        date_time_filename = dt_my_timezone.strftime("%Y-%m") # Convert UNIX time into "2025-05" time string, 2025 May.
 
-        def write_to_csv(filename, data_iterator):
-            with open(filename, "a", newline="", encoding="utf-8") as f:
+        filename = symbol_name_filename + "-" + date_time_filename
+        write_to_file = GlobalVar.GENERATED_PATH + filename + ".csv"
+
+        for r in res:
+            trendbar: ProtoOATrendbar = None
+            trendbar = r.trendbar
+
+            # Print out to make sure, none of them shows "14000"
+            # Cos if there is, means possibly data loss since server max also sends 14k
+            # Always make sure the number is smaller than 14k
+            print(f"History Bar Data Arary Length: {len(trendbar)}")
+
+            with open(write_to_file, "a", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
+
+                # This header, i follow cTrader API ProtoOAGetTrendbarsRes punya trendbar object
                 writer.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
-                for bar in data_iterator:
+                for bar in trendbar:
                     writer.writerow([
                         bar.volume,
                         bar.low,
@@ -1287,23 +1311,7 @@ if __name__ == "__main__":
                         bar.deltaHigh,
                         bar.utcTimestampInMinutes
                     ])
-
-        filename = None
-        for r in res:
-
-            if filename is None:
-                trendbar: ProtoOATrendbar = None
-                trendbar = r.trendbar
-                timestamp = r.trendbar[0].utcTimestampInMinutes
-
-            # Print out to make sure, none of them shows "14000"
-            # Cos if there is, means possibly data loss since server max also sends 14k
-            # Always make sure the number is smaller than 14k
-            print(f"History Bar Data Arary Length: {len(trendbar)}")
-
-            filename = to_my_year_month(timestamp)
-            write_to_csv(filename + ".csv", trendbar)
-            print(f"Done written history bar data to {filename}")
+            print(f"Wrote history bar data to {write_to_file}")
 
     def Send_Request_For_History_Bar(symbolId, fromTimestamp, toTimestamp, clientMsgId = None):
         """
@@ -1324,8 +1332,8 @@ if __name__ == "__main__":
         request.toTimestamp = toTimestamp
         request.symbolId = int(symbolId)
 
-        # symbol_name = utility.read_symbol_id(request.symbolId, GlobalVar.ACCOUNT_TYPE)["symbolName"]
-        print(f"Requesting History Data: Symbol:{symbolId} from:{request.fromTimestamp}, to:{request.toTimestamp}")
+        symbol_name = GlobalVar.g_Symbol_Data_ID_As_Key.get(request.symbolId)
+        print(f"Requesting History Data: Symbol:{symbol_name} from:{request.fromTimestamp}, to:{request.toTimestamp}")
         deferred = client.send(request, clientMsgId = clientMsgId)
 
     def test(clientMsgId=None):
@@ -1344,13 +1352,14 @@ if __name__ == "__main__":
         "auth": (sendProtoOAGetAccountListByAccessTokenReq, "Authenticate all accounts, that is, ur API token has access to multiple accounts."),
         "renew": (handle_renew_access_token, "Renew access & refresh token"),
 
-        "p1": (print_g_Symbol_data_ID_As_Key, "Print all symbols IDs"),
-        "p2": (print_g_data_dict, "Print g_data_dict"),
-        "p3": (print_g_time_checks_record, "Print g_time_checks_record"),
-        "p4": (print_g_record_data, "Print g_Record_Data"),
-        "p5": (print_g_favourite_symbol, "Print g_favourite_symbol"),
+        "p1": (print_g_Symbol_data_ID_As_Key, "Print all symbols IDs:Names"),
+        "p2": (print_g_Symbol_Data_Name_As_Key, "Print all symbols Names:IDs"),
+        "p3": (print_g_data_dict, "Print List of Data Got From Server & Havent Processed Yet"),
+        "p4": (print_g_time_checks_record, "Print g_time_checks_record"),
+        "p5": (print_g_record_data, "Print Pending orders you saved"),
+        "p6": (print_g_favourite_symbol, "Print Favourite Symbol you set-ed"),
         "r": (refresh_RAM, "Refresh global variable with latest value"),
-        
+
         "gsd": (getSymbolDetail, "gsd = get symbol detail, call `gsd symbolId`"),
         "us": (handle_symbol_update, "us = update symbol list json file"),
         "usd": (updateSymbolDetail, "usd = update symbol detail to config.ini, call `usd symbolId`"),
@@ -1379,7 +1388,7 @@ if __name__ == "__main__":
             while True:
                 while len(GlobalVar.g_task_queue) == 0:
                     current_time = time.time()
-                    dt = datetime.fromtimestamp(current_time, GlobalVar.g_mytimezone)
+                    dt = datetime.fromtimestamp(current_time, GlobalVar.g_my_timezone)
                     formatted_time = dt.strftime("%H%M")
                     print("\n=====================================\n")
                     userInput = input(f"[{formatted_time}] Cmd (Rmb Termux eats 1 char): ")

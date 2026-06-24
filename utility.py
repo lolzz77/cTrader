@@ -185,20 +185,27 @@ def write_record_file():
 
 def populate_favourite_symbol():
     """
-    Populate g_favourite_symbol
+    Populate g_favourite_symbol, read from favourite.txt
+    In favourite.txt, input symbol name as shown in cTrader
     """
-    GlobalVar.g_favourite_symbol = {}
-    for key, value in GlobalVar.g_Config_Data.items():
-        if key.startswith("SPREAD_"):
-            symbol = key[len("SPREAD_"):]
-            symbol_ID = GlobalVar.g_Symbol_Data_Name_As_Key[symbol]
-            # Append what's after "SPREAD_", that's their symbol name
-            GlobalVar.g_favourite_symbol[symbol] = symbol_ID
-        # For performance, U should always put SPREAD_ to the top of the dictionary
-        else:
-            break
 
-def write_csv(data):
+    if GlobalVar.g_Symbol_Data_Name_As_Key is None:
+        print(f"populate_favourite_symbol: g_Symbol_Data_Name_As_Key is None, exit.")
+        return
+
+    # Always reset it when you re-populate it
+    GlobalVar.g_favourite_symbol = {}
+    with open("favourite.txt", "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    for l in lines:
+        if l == '\n': # Skip newline, like, end of txt you have a newline right?
+            continue
+        l = l.strip() # Strip the newline at the end
+        id = GlobalVar.g_Symbol_Data_Name_As_Key.get(str(l))
+        GlobalVar.g_favourite_symbol[str(l)] = id
+
+def write_csv_spread(data):
     filename = "spread.csv"
     if not os.path.exists(filename) or os.path.getsize(filename) == 0:
         header = [
@@ -214,7 +221,7 @@ def write_csv(data):
         writer.writerows(data)
 
     print("Data Written!")
-    
+
 
 
 
