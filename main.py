@@ -295,11 +295,18 @@ if __name__ == "__main__":
                 if GlobalVar.g_task_queue[0][2] == message.payloadType:
                     GlobalVar.g_task_queue[0][2] = None
 
-    def setAccount(index, clientMsgId = None):
+    def setAccount(*args):
         """
         index is GlobalVar.g_auth_acc index
         call `acc` and you know what 7 im saying
         """
+        required_arguments = 1
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+        index = args[0]
+
         index = int(index)
 
         if len(GlobalVar.g_auth_acc) == 0:
@@ -309,12 +316,24 @@ if __name__ == "__main__":
         GlobalVar.CURRENT_CTIDTRADERACCOUNTID = GlobalVar.g_auth_acc[index]["ctidTraderAccountId"]
         GlobalVar.g_task_queue.append([send_Auth_Account, None, None, None])
 
-    def sendProtoOAVersionReq(clientMsgId = None):
+    def sendProtoOAVersionReq(*args):
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         request = ProtoOAVersionReq()
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def sendProtoOAGetAccountListByAccessTokenReq(clientMsgId = None):
+    def sendProtoOAGetAccountListByAccessTokenReq(*args):
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.g_task_queue.append([getAllAccounts, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAGetAccountListByAccessTokenRes().payloadType, "Call by getAllAccounts"])
         GlobalVar.g_task_queue.append([authenticate_all_accounts, None, None, None])
@@ -330,12 +349,24 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def handle_print_all_accounts(clientMsgId = None):
+    def handle_print_all_accounts(*args):
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.g_task_queue.append([getAllAccounts, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAGetAccountListByAccessTokenRes().payloadType, "Call by getAllAccounts"])
         GlobalVar.g_task_queue.append([print_all_accounts, None, None, None])
 
-    def getCurrentAccount(clientMsgId = None):
+    def getCurrentAccount(*args):
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         nickname = os.getenv(f'A_{GlobalVar.CURRENT_CTIDTRADERACCOUNTID}')
         print(f"ctidTraderAccountId:{GlobalVar.CURRENT_CTIDTRADERACCOUNTID} Nickname: {nickname}")
 
@@ -352,7 +383,16 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId = clientMsgId)
         deferred.addErrback(onError)
 
-    def User_Disconnect(clientMsgId = None): # disconnect the client
+    def User_Disconnect(*args):
+        """
+        disconnect the client
+        """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         client.stopService()
         # After disconnect
         # Your main thread script still running.
@@ -457,7 +497,7 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def getSymbolDetail(symbolId, clientMsgId = None):
+    def getSymbolDetail(*args):
         """
         Example output
 
@@ -522,6 +562,13 @@ if __name__ == "__main__":
         chargeSwapAtWeekends: false
         }
         """
+        required_arguments = 1
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+        symbolId = args[0]
+
         symbolId = int(symbolId)
         param = [symbolId]
         GlobalVar.g_task_queue.append([send_Get_Symbol_Detail, param, None, None])
@@ -606,12 +653,20 @@ if __name__ == "__main__":
             param = [order]
             GlobalVar.g_task_queue.append([send_Amend_Pending_Order_Lotsize, param, None, None])
 
-    def updateSymbolDetail(symbolIdList, clientMsgId = None):
+    def updateSymbolDetail(*args):
         """
         Update symbol to config.ini
         """
         # develop when needed
         return
+
+        required_arguments = 1
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+        symbolIdList = args[0]
+
         # Convert non-list input into a list
         if not isinstance(symbolIdList, list):
             symbolIdList = [symbolIdList]
@@ -622,7 +677,7 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, None])
         GlobalVar.g_task_queue.append([Update_Symbol_Detail, None, None, None])
 
-    def updateSymbolDetailAccordingToFavourite(clientMsgId = None):
+    def updateSymbolDetailAccordingToFavourite(*args):
         """
         Update symbol to config.ini
         But this time, it will auto,
@@ -630,6 +685,13 @@ if __name__ == "__main__":
         """
         # develop when needed
         return
+
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         the_list = []
         for symbolID in GlobalVar.g_favourite_symbol.values():
             the_list.append(symbolID)
@@ -639,17 +701,29 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolByIdRes().payloadType, None])
         GlobalVar.g_task_queue.append([Update_Symbol_Detail, None, None, None])
 
-    def print_g_Symbol_data_ID_As_Key(clientMsgId = None):
+    def print_g_Symbol_data_ID_As_Key(*args):
         """
         Print all symbols IDs:Names
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         for id, symbol in GlobalVar.g_Symbol_Data_ID_As_Key.items():
             print(f"ID:{id}, Symbol:{symbol}")
 
-    def print_g_Symbol_Data_Name_As_Key(clientMsgId = None):
+    def print_g_Symbol_Data_Name_As_Key(*args):
         """
         Print all symbols Names:IDs
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         for symbol, id in GlobalVar.g_Symbol_Data_Name_As_Key.items():
             print(f"Symbol:{symbol}, ID:{id}")
 
@@ -931,10 +1005,16 @@ if __name__ == "__main__":
         GlobalVar.g_Config_Data = None
         utility.read_config_file()
 
-    def handle_symbol_update(clientMsgId = None):
+    def handle_symbol_update(*args):
         """
         Query the server, get all symbols ID, check if got ID changes
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.g_task_queue.append([send_Get_Symbol_List, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOASymbolsListRes().payloadType, "Call by send_Get_Symbol_List"])
         GlobalVar.g_task_queue.append([Update_Symbol_List_Json, None, None, None])
@@ -1020,38 +1100,64 @@ if __name__ == "__main__":
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         GlobalVar.g_task_queue.append([add_record_into_record_file, None, None, None])
 
-    def monitorStart(clientMsgId = None):
+    def monitorStart(*args):
         """
         Start the monitor script
         It will be triggered when receiving heartbeat from server
         """
         # Develop when needed
         return
+
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.START_MONITOR = True
 
-    def monitorStop(clientMsgId = None):
+    def monitorStop(*args):
         """
         Stop the monitor script
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.START_MONITOR = False
 
-    def setLotSize(lotsize, clientMsgId = None):
+    def setLotSize(*args):
         """
         This is for pending orders
         """
+        required_arguments = 1
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+        lotsize = args[0]
+
         lotsize = round(float(lotsize), 2)
         param = [lotsize]
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         GlobalVar.g_task_queue.append([update_lotsize_for_pending_order, param, None, None])
 
-    def saveLotSize(clientMsgId = None):
+    def saveLotSize(*args):
         """
         Save lotsize & put them into record.ini
         Then set lotsize to 100 lot
 
         This is for so that you can run `load` to load back all respective lotsize
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         GlobalVar.g_task_queue.append([add_record_into_record_file, None, None, None])
@@ -1059,10 +1165,16 @@ if __name__ == "__main__":
         param.append("100")
         GlobalVar.g_task_queue.append([setLotSize, param, None, None])
 
-    def loadLotSize(clientMsgId = None):
+    def loadLotSize(*args):
         """
         Load lotisze from record.ini
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.g_task_queue.append([utility.read_record_file, None, None, None])
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
@@ -1073,12 +1185,18 @@ if __name__ == "__main__":
         # On 2nd thought, dont, better let record.ini clogged, and you clean it once in a while
         # GlobalVar.g_task_queue.append([utility.write_record_file, None, None, None])
 
-    def clear_record_file(clientMsgId = None):
+    def clear_record_file(*args):
         """
         Before you clear, you need to ensure current exsting pending orders
         doesnt have 100 lotsize, else, they cannot be restored to their respective
         lot size.
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.g_task_queue.append([send_Get_List_Of_Running_And_Pending_Orders, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAReconcileRes().payloadType, "Call by send_Get_List_Of_Running_And_Pending_Orders"])
         GlobalVar.g_task_queue.append([check_clear_record_file, None, None, None])
@@ -1109,7 +1227,14 @@ if __name__ == "__main__":
         else:
             print(f"Record.ini NOT cleared, pending order lotsize 100 exists!")
 
-    def sendProtoOAUnsubscribeSpotsReq(symbolId, clientMsgId = None):
+    def sendProtoOAUnsubscribeSpotsReq(*args):
+        required_arguments = 1
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+        symbolId = args[0]
+
         request = ProtoOAUnsubscribeSpotsReq()
         request.ctidTraderAccountId = CURRENT_CTIDTRADERACCOUNTID
         request.symbolId.append(int(symbolId))
@@ -1148,30 +1273,54 @@ if __name__ == "__main__":
     def disconnect(clientMsgId=None): # Disconnect the client
         client._disconnected("User exited the connection")
 
-    def print_g_data_dict(clientMsgId = None):
+    def print_g_data_dict(*args):
         """
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         print("g_data_dict:")
         for key, value in GlobalVar.g_data_dict.items():
             print(f"{key}: {value}")
 
-    def print_g_time_checks_record(clientMsgId = None):
+    def print_g_time_checks_record(*args):
         """
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         print("g_time_checks_record:")
         for key, value in GlobalVar.g_time_checks_record.items():
             print(f"{key}: {value}")
 
-    def print_g_favourite_symbol(clientMsgId = None):
+    def print_g_favourite_symbol(*args):
         """
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         print("g_favourite_symbol:")
         for key, value in GlobalVar.g_favourite_symbol.items():
             print(f"{key} : {value}")
 
-    def print_g_record_data(clientMsgId = None):
+    def print_g_record_data(*args):
         """
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         utility.read_record_file()
         print("g_Record_data:")
         for section in GlobalVar.g_Record_Data.sections():
@@ -1180,17 +1329,29 @@ if __name__ == "__main__":
                 print(f"{key} = {value}")
             print() # Blank line between sections
 
-    def refresh_RAM(clientMsgId = None):
+    def refresh_RAM(*args):
         """
         Reload everything into the RAM,
         dont care got new update or not
         """
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         utility.read_config_file(True)
         utility.read_symbol_file(GlobalVar.ACCOUNT_TYPE)
         load_dotenv(override=True)
         GlobalVar.ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
 
-    def handle_renew_access_token(clientMsgId = None):
+    def handle_renew_access_token(*args):
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         GlobalVar.g_task_queue.append([send_renew_access_token, None, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOARefreshTokenRes().payloadType, "Call by send_renew_access_token"])
         GlobalVar.g_task_queue.append([handle_refresh_token, None, None, None])
@@ -1201,20 +1362,39 @@ if __name__ == "__main__":
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
 
-    def setHeartbeat(value, clientMsgId = None):
+    def setHeartbeat(*args):
+        required_arguments = 1
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+        value = args[0]
+
         value = int(value)
         GlobalVar.g_print_heartbeat = int(value)
 
-    def showHelp(clientMsgId = None):
+    def showHelp(*args):
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         for cmd, (func, desc) in defined_commands.items():
             print(f"{cmd:10} - {desc}")
 
-    def Request_History_Bar_Data(symbolID, year, month, clientMsgId = None):
+    def Request_History_Bar_Data(*args):
         """
         This will request history bar data, in 1 minute, for 1 month
         Heed that maximum array returned from server is 14k
         Since i request for 1 month, hence, this function will request separatedly, in chunks
         """
+        required_arguments = 3
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+        symbolID, year, month = args[0], args[1], args[2]
 
         year = int(year)
         month = int(month)
@@ -1336,7 +1516,13 @@ if __name__ == "__main__":
         print(f"Requesting History Data: Symbol:{symbol_name} from:{request.fromTimestamp}, to:{request.toTimestamp}")
         deferred = client.send(request, clientMsgId = clientMsgId)
 
-    def test(clientMsgId=None):
+    def test(*args):
+        required_arguments = 0
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+
         request = ProtoHeartbeatEvent()
         deferred = client.send(request, clientMsgId=clientMsgId)
         deferred.addErrback(onError)
