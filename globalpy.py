@@ -84,7 +84,7 @@ class GlobalVar():
     13052330 = 300000
     """
     RECORD_FILENAME             = "record.ini"
-    GENERATED_PATH              = "./generated/"
+    GENERATED_PATH              = "./generated/" # Path for putting generated files
 
 class SymbolJsonUpdate(Enum):
     NO_UPDATE = 1
