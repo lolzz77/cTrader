@@ -393,7 +393,10 @@ if __name__ == "__main__":
             return
         clientMsgId = None
 
+        stop_event.set()
         client.stopService()
+        print(f"User_Disconnect: Program Exitted.")
+
         # After disconnect
         # Your main thread script still running.
         # Terminate your main thread script
@@ -1573,7 +1576,7 @@ if __name__ == "__main__":
             continue
 
         try:
-            while True:
+            while not stop_event.is_set():
                 while len(GlobalVar.g_task_queue) == 0:
                     current_time = time.time()
                     dt = datetime.fromtimestamp(current_time, GlobalVar.g_my_timezone)
@@ -1613,6 +1616,8 @@ if __name__ == "__main__":
                     function_to_execute, _ = defined_commands[user_typed_command]
                     GlobalVar.g_task_queue.append([function_to_execute, parameters, None, None])
 
+            print(f"executeUserCommand Thread stopped")
+
         # !CTRL C!
         # To detech & handle CTRL C, but this will not work
         # Due to `reactor.run` is being treated as main thread
@@ -1624,7 +1629,7 @@ if __name__ == "__main__":
             User_Disconnect()
 
     def processCommand():
-        while True:
+        while not stop_event.is_set():
             while len(GlobalVar.g_task_queue) != 0:
 
                 # Usually [2] is waiting for server to reply
@@ -1657,8 +1662,11 @@ if __name__ == "__main__":
                 # prompt for user input before you finish executing
                 # the previous command
                 GlobalVar.g_task_queue.pop(0)
+        
+        print(f"processCommand Thread stopped")
 
     # Start user console command
+    stop_event = threading.Event()
     thread_user_input = threading.Thread(target=executeUserCommand)
     thread_user_input.start()
     thread_process_command = threading.Thread(target=processCommand)
