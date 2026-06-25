@@ -1468,6 +1468,8 @@ if __name__ == "__main__":
         filename = symbol_name_filename + "-" + date_time_filename
         write_to_file = GlobalVar.GENERATED_PATH + filename + ".csv"
 
+        os.makedirs(GlobalVar.GENERATED_PATH, exist_ok=True)
+
         for r in res:
             trendbar: ProtoOATrendbar = None
             trendbar = r.trendbar
