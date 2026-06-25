@@ -66,6 +66,23 @@ class GlobalVar():
 
     SYMBOL_LIST_JSON_FILENAME   = "symbolList_"
     CONFIG_FILENAME             = "config.ini"
+
+    """
+    Sample content
+    It's the pending order ID, and their lotsize
+
+    [HEADER]
+    13052327 = 300000
+    13052324 = 300000
+    13052323 = 500000
+    13052322 = 500000
+    13052319 = 100
+    13052170 = 10
+    13052169 = 10
+    13052168 = 100
+    13052328 = 300000
+    13052330 = 300000
+    """
     RECORD_FILENAME             = "record.ini"
     GENERATED_PATH              = "./generated/"
 
