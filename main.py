@@ -1077,7 +1077,7 @@ if __name__ == "__main__":
 
         print(f"Token expiry days remaining: {days_remaining}")
         # Check if it's 5 days away
-        if days_remaining <= 5:
+        if days_remaining <= 10:
             print(f"!!!!!!!!!!!!!!!!!!!")
             print(f"!!!!!!!!!!!!!!!!!!!")
             print(f"!!!!!!!!!!!!!!!!!!!")
@@ -1456,6 +1456,10 @@ if __name__ == "__main__":
 
         """
 
+        if res is None:
+            print(f"Handle_History_Bar_Data: res is null")
+            return
+
         write_to_file = ""
         filename = ""
         symbol_name_filename = ""
@@ -1472,21 +1476,38 @@ if __name__ == "__main__":
         write_to_file = GlobalVar.GENERATED_PATH + filename + ".csv"
 
         os.makedirs(GlobalVar.GENERATED_PATH, exist_ok=True)
+        os.makedirs(GlobalVar.GENERATED_PATH + "weekly/", exist_ok=True)
 
-        for r in res:
-            trendbar: ProtoOATrendbar = None
-            trendbar = r.trendbar
+        with open(write_to_file, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            # This header, i follow cTrader API ProtoOAGetTrendbarsRes punya trendbar object
+            writer.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
 
-            # Print out to make sure, none of them shows "14000"
-            # Cos if there is, means possibly data loss since server max also sends 14k
-            # Always make sure the number is smaller than 14k
-            print(f"History Bar Data Arary Length: {len(trendbar)}")
+            for week_no, r in enumerate(res, start=1):
+                trendbar: ProtoOATrendbar = None
+                trendbar = r.trendbar
+                # Print out to make sure, none of them shows "14000"
+                # Cos if there is, means possibly data loss since server max also sends 14k
+                # Always make sure the number is smaller than 14k
+                print(f"History Bar Data Arary Length: {len(trendbar)}")
 
-            with open(write_to_file, "a", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-
-                # This header, i follow cTrader API ProtoOAGetTrendbarsRes punya trendbar object
-                writer.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
+                # Weekly ones
+                # f"{weekly_no:02d}" - convert it to 2 digit, leading 0
+                write_to_file_weekly = GlobalVar.GENERATED_PATH + "weekly/" + filename + "-" + f"{week_no:02d}" + ".csv"
+                with open(write_to_file_weekly, "w", newline="", encoding="utf-8") as f:
+                    writer_weekly = csv.writer(f)
+                    writer_weekly.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
+                    for bar in trendbar:
+                        writer_weekly.writerow([
+                            bar.volume,
+                            bar.low,
+                            bar.deltaOpen,
+                            bar.deltaClose,
+                            bar.deltaHigh,
+                            bar.utcTimestampInMinutes
+                        ])
+                
+                # Monthly ons
                 for bar in trendbar:
                     writer.writerow([
                         bar.volume,
@@ -1496,7 +1517,7 @@ if __name__ == "__main__":
                         bar.deltaHigh,
                         bar.utcTimestampInMinutes
                     ])
-            print(f"Wrote history bar data to {write_to_file}")
+                print(f"Wrote history bar data to {write_to_file}")
 
     def Send_Request_For_History_Bar(symbolId, fromTimestamp, toTimestamp, clientMsgId = None):
         """
