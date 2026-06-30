@@ -1519,6 +1519,47 @@ if __name__ == "__main__":
                     ])
                 print(f"Wrote history bar data to {write_to_file}")
 
+    def Convert_CSV(*args):
+        """
+        For cTrader, the history bar data you requested, they are not in OHLC format
+        They are in delta high open close format, this function calculate them and convert into OHLC format
+        """
+        os.makedirs(GlobalVar.GENERATED_PATH + "converted/", exist_ok=True)
+
+        csv_dir_list = [GlobalVar.GENERATED_PATH, GlobalVar.GENERATED_PATH + "weekly/"]
+        for csv_dir in csv_dir_list:
+            csv_files = [
+                f for f in os.listdir(csv_dir)
+                if f.endswith(".csv") and f != "spread.csv"
+            ]
+            
+            for csv_f in csv_files:
+                print(f"Reading: {csv_f}")
+                with open(csv_dir + csv_f, newline="", encoding="utf-8") as f:
+                    reader = csv.reader(f)
+                    next(reader) # Skip header
+                    new_filename = csv_f.replace(".csv", "-converted.csv")
+                    new_filename_path = GlobalVar.GENERATED_PATH + "converted/" + new_filename
+                    if os.path.exists(new_filename_path):
+                        print(f"{new_filename_path} file exists, skip")
+                        continue
+                    print(f"Writing: {csv_f}")   
+                    with open(new_filename_path, "w", newline="", encoding="utf-8") as f:
+                        writer = csv.writer(f)
+                        # the before-convert header for your reference
+                        # writer.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
+                        writer.writerow(["volume", "open", "high", "low", "close","utcTimestampInMinutes"])
+
+                        for row in reader:
+                            writer.writerow([
+                                row[0],
+                                int(row[1]) + int(row[2]),
+                                int(row[1]) + int(row[4]),
+                                row[1],
+                                int(row[1]) + int(row[3]),
+                                row[5],
+                            ])
+
     def Send_Request_For_History_Bar(symbolId, fromTimestamp, toTimestamp, clientMsgId = None):
         """
         [command] [symbolID ][year] [month]
@@ -1583,6 +1624,7 @@ if __name__ == "__main__":
         "clearrecord": (clear_record_file, "Clear record.ini file"),
 
         "bar": (Request_History_Bar_Data, "Get historical bar data, call like this `bar [symbolID] [year] [month]"),
+        "con": (Convert_CSV, "Convert the list of CSV, the header, into OHLC"),
 
         "hb": (setHeartbeat, "Set print heartbeat true or false. Call it like this `hb 1`"),
         "sub": (sendProtoOASubscribeSpotsReq, "subscribe to asset, get bid & ask price, call like this `sub 41 1`"),
