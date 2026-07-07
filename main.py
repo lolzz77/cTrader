@@ -1386,6 +1386,46 @@ if __name__ == "__main__":
         for cmd, (func, desc) in defined_commands.items():
             print(f"{cmd:10} - {desc}")
 
+    def Request_History_Bar_Data_Days(*args):
+        """
+        This will request history bar data for past 3 days
+        the moment this function is triggered
+        """
+        required_arguments = 1
+        if len(args) < required_arguments:
+            print(f"Missing arguments, required: {required_arguments}")
+            return
+        clientMsgId = None
+        symbolID = args[0]
+
+        to_dt = datetime.now(GlobalVar.g_my_timezone)
+
+        # Find previous 3 weekdays
+        # If i run this script on monday, it will query sunday saturday, and these 2 days no data lol
+        # so must only find previous 3 weekdays
+        days_count = 0
+        current_dt = to_dt
+
+        while days_count < 3:
+            current_dt -= timedelta(days=1)
+            # Because from my timezone, staruday after 12am still got data
+            if current_dt.weekday() == 5:
+                days_count -= 1
+
+            # Monday = 0, Sunday = 6
+            if current_dt.weekday() < 5:
+                days_count += 1
+
+        from_dt = current_dt
+
+        fromTimestamp = int(from_dt.timestamp() * 1000)
+        toTimestamp = int(to_dt.timestamp() * 1000)
+
+        param = [symbolID, fromTimestamp, toTimestamp]
+        GlobalVar.g_task_queue.append([Send_Request_For_History_Bar, param, None, None])
+        GlobalVar.g_task_queue.append([None, None, ProtoOAGetTrendbarsRes().payloadType, "Call by Send_Request_For_History_Bar"])
+        GlobalVar.g_task_queue.append([Handle_History_Bar_Data, None, None, None])
+
     def Request_History_Bar_Data(*args):
         """
         This will request history bar data, in 1 minute, for 1 month
@@ -1469,8 +1509,11 @@ if __name__ == "__main__":
         symbol_name_filename = GlobalVar.g_Symbol_Data_ID_As_Key.get(symbolId)
 
         utcTimestampInMinutes = res[0].trendbar[0].utcTimestampInMinutes
+        print(f"HI {utcTimestampInMinutes}")
         dt_my_timezone = datetime.fromtimestamp(utcTimestampInMinutes * 60, GlobalVar.g_my_timezone)
-        date_time_filename = dt_my_timezone.strftime("%Y-%m") # Convert UNIX time into "2025-05" time string, 2025 May.
+        # Convert UNIX time into "2025-05-01-00-00-01" time string. Means 2026 May 1st, 12:00:01 am.
+        # It will only get the 1st bar, hence, the filename suggest the start timedate of bar
+        date_time_filename = dt_my_timezone.strftime("%Y-%m-%d-%H-%M-%S")
 
         filename = symbol_name_filename + "-" + date_time_filename
         write_to_file = GlobalVar.GENERATED_PATH + filename + ".csv"
@@ -1624,6 +1667,7 @@ if __name__ == "__main__":
         "clearrecord": (clear_record_file, "Clear record.ini file"),
 
         "bar": (Request_History_Bar_Data, "Get historical bar data, call like this `bar [symbolID] [year] [month]"),
+        "day": (Request_History_Bar_Data_Days, "Get historical bar data for past 3 days"),
         "con": (Convert_CSV, "Convert the list of CSV, the header, into OHLC"),
 
         "hb": (setHeartbeat, "Set print heartbeat true or false. Call it like this `hb 1`"),
