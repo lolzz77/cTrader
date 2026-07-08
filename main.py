@@ -1525,13 +1525,18 @@ if __name__ == "__main__":
         os.makedirs(GlobalVar.GENERATED_PATH, exist_ok=True)
 
         #### WEEKLY_HANDLING START ####
-        os.makedirs(GlobalVar.GENERATED_PATH + "weekly/", exist_ok=True)
+        # os.makedirs(GlobalVar.GENERATED_PATH + "weekly/", exist_ok=True)
         #### WEEKLY_HANDLING END ####
 
         with open(write_to_file, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            # This header, i follow cTrader API ProtoOAGetTrendbarsRes punya trendbar object
-            writer.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
+
+            # # This header, i follow cTrader API ProtoOAGetTrendbarsRes punya trendbar object
+            # writer.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
+
+            #### Temp: auto convert handling START ####
+            writer.writerow(["volume", "open", "high", "low", "close","utcTimestamp"])
+            #### Temp: auto convert handling END ####
 
             for week_no, r in enumerate(res, start=1):
                 trendbar: ProtoOATrendbar = None
@@ -1542,33 +1547,53 @@ if __name__ == "__main__":
                 print(f"History Bar Data Arary Length: {len(trendbar)}")
 
                 #### WEEKLY_HANDLING START ####
-                # f"{weekly_no:02d}" - convert it to 2 digit, leading 0
-                write_to_file_weekly = GlobalVar.GENERATED_PATH + "weekly/" + filename + "-" + f"{week_no:02d}" + ".csv"
-                with open(write_to_file_weekly, "w", newline="", encoding="utf-8") as f:
-                    writer_weekly = csv.writer(f)
-                    writer_weekly.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
-                    for bar in trendbar:
-                        writer_weekly.writerow([
-                            bar.volume,
-                            bar.low,
-                            bar.deltaOpen,
-                            bar.deltaClose,
-                            bar.deltaHigh,
-                            bar.utcTimestampInMinutes
-                        ])
-                print(f"Wrote history bar data to {write_to_file_weekly}")
+                # # f"{weekly_no:02d}" - convert it to 2 digit, leading 0
+                # write_to_file_weekly = GlobalVar.GENERATED_PATH + "weekly/" + filename + "-" + f"{week_no:02d}" + ".csv"
+                # with open(write_to_file_weekly, "w", newline="", encoding="utf-8") as f:
+                #     writer_weekly = csv.writer(f)
+                #     writer_weekly.writerow(["volume", "low", "deltaOpen", "deltaClose", "deltaHigh","utcTimestampInMinutes"])
+                #     for bar in trendbar:
+                #         writer_weekly.writerow([
+                #             bar.volume,
+                #             bar.low,
+                #             bar.deltaOpen,
+                #             bar.deltaClose,
+                #             bar.deltaHigh,
+                #             bar.utcTimestampInMinutes
+                #         ])
+                # print(f"Wrote history bar data to {write_to_file_weekly}")
                 #### WEEKLY_HANDLING END ####
-                
-                # Monthly ones
+
+                #### Monthly handling START ####
+                # for bar in trendbar:
+                #     writer.writerow([
+                #         bar.volume,
+                #         bar.low,
+                #         bar.deltaOpen,
+                #         bar.deltaClose,
+                #         bar.deltaHigh,
+                #         bar.utcTimestampInMinutes
+                #     ])
+                #### Monthly handling END ####
+
+                #### Temp: auto convert handling START ####
                 for bar in trendbar:
+                    # Make it same number as shown in cTrader, always show 2 decimals
+                    open_str = f"{(int(bar.low) + int(bar.deltaOpen)) / 100000:.2f}"
+                    high_str = f"{(int(bar.low) + int(bar.deltaHigh)) / 100000:.2f}"
+                    low_str = f"{int(bar.low) / 100000:.2f}"
+                    close_str = f"{(int(bar.low) + int(bar.deltaClose)) / 100000:.2f}"
+
                     writer.writerow([
                         bar.volume,
-                        bar.low,
-                        bar.deltaOpen,
-                        bar.deltaClose,
-                        bar.deltaHigh,
-                        bar.utcTimestampInMinutes
+                        open_str,
+                        high_str,
+                        low_str,
+                        close_str,
+                        bar.utcTimestampInMinutes *60,
                     ])
+                #### Temp: auto convert handling END ####
+
             print(f"Wrote history bar data to {write_to_file}")
 
     def Convert_CSV(*args):
@@ -1586,7 +1611,7 @@ if __name__ == "__main__":
                 f for f in os.listdir(csv_dir)
                 if f.endswith(".csv") and f != "spread.csv"
             ]
-            
+
             for csv_f in csv_files:
                 print(f"Reading: {csv_f}")
                 with open(csv_dir + csv_f, newline="", encoding="utf-8") as f:
@@ -1597,7 +1622,7 @@ if __name__ == "__main__":
                     if os.path.exists(new_filename_path):
                         print(f"{new_filename_path} file exists, skip")
                         continue
-                    print(f"Writing: {csv_f}")   
+                    print(f"Writing: {csv_f}")
                     with open(new_filename_path, "w", newline="", encoding="utf-8") as f:
                         writer = csv.writer(f)
                         # the before-convert header for your reference
@@ -1780,7 +1805,7 @@ if __name__ == "__main__":
                 # prompt for user input before you finish executing
                 # the previous command
                 GlobalVar.g_task_queue.pop(0)
-        
+
         print(f"processCommand Thread stopped")
 
     # Start user console command
