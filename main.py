@@ -32,7 +32,6 @@ from ctrader_open_api.messages.OpenApiModelMessages_pb2 import *
 from twisted.internet import reactor
 import datetime
 from datetime import datetime, timezone, time as time2, timedelta
-import pytz
 import utility
 from enum import Enum
 import fileinput
@@ -42,6 +41,7 @@ from globalpy import GlobalVar, SymbolJsonUpdate, StopLossTakeProfit
 import math
 import calendar
 import csv
+import uuid
 
 
 utility.read_config_file()
@@ -1390,38 +1390,34 @@ if __name__ == "__main__":
         """
         This will request history bar data for past 3 days
         the moment this function is triggered
+
+        timeframe input:
+        m1
+        m5
+        m15
+        m30
+        h1
+        h4
+        D
+        W
+        M
         """
-        required_arguments = 1
+        required_arguments = 2
         if len(args) < required_arguments:
             print(f"Missing arguments, required: {required_arguments}")
             return
         clientMsgId = None
-        symbolID = args[0]
-
-        request_x_days_of_bars = 1
-        # Find previous 3 weekdays
-        # If i run this script on monday, it will query sunday saturday, and these 2 days no data lol
-        # so must only find previous 3 weekdays
-        days_count = 0
+        symbolID, timeframe = args[0], args[1]
+        # Save it for processing later
+        # I want to save number of bartrends base on entered timeframe
+        dict_key = str(uuid.uuid4())
+        GlobalVar.g_data_dict[dict_key] = timeframe
 
         to_dt = datetime.now(GlobalVar.g_my_timezone)
-        current_dt = to_dt
-
-        while days_count < request_x_days_of_bars:
-            current_dt -= timedelta(days=1)
-
-            # if equal to saturday, decrease the day_count, so it will loop more backward
-            # Because from my timezone, staruday after 12am still got data
-            # So means dont treat saturday as "valid" day, loop back more
-            if current_dt.weekday() == 5:
-                days_count -= 1
-
-            # Monday = 0, Sunday = 6
-            # if weekday, then count
-            if current_dt.weekday() < 5:
-                days_count += 1
-
-        from_dt = current_dt
+        # Just always get last 7 days, once got the bartrend, self trim the array to 1 day of array
+        # I put 7 so that, to avoid sunday saturday counted in you know what 7 im saying
+        # And avoid some holidays
+        from_dt = to_dt - timedelta(days=7)
 
         fromTimestamp = int(from_dt.timestamp() * 1000)
         toTimestamp = int(to_dt.timestamp() * 1000)
@@ -1429,7 +1425,8 @@ if __name__ == "__main__":
         param = [symbolID, fromTimestamp, toTimestamp]
         GlobalVar.g_task_queue.append([Send_Request_For_History_Bar, param, None, None])
         GlobalVar.g_task_queue.append([None, None, ProtoOAGetTrendbarsRes().payloadType, "Call by Send_Request_For_History_Bar"])
-        GlobalVar.g_task_queue.append([Handle_History_Bar_Data, None, None, None])
+        param = [dict_key]
+        GlobalVar.g_task_queue.append([Handle_History_Bar_Data, param, None, None])
 
     def Request_History_Bar_Data(*args):
         """
@@ -1477,7 +1474,7 @@ if __name__ == "__main__":
 
         GlobalVar.g_task_queue.append([Handle_History_Bar_Data, None, None, None])
 
-    def Handle_History_Bar_Data():
+    def Handle_History_Bar_Data(*args):
         res = GlobalVar.g_data_dict[ProtoOAGetTrendbarsRes().payloadType]
         del GlobalVar.g_data_dict[ProtoOAGetTrendbarsRes().payloadType]
         # print(f"FINALLY {res}")
@@ -1499,11 +1496,55 @@ if __name__ == "__main__":
         deltaHigh 	            Delta between high and low price. high = low + deltaHigh.
         utcTimestampInMinutes 	The Unix time in minutes of the bar, equal to the timestamp of the open tick.
 
+        Just a reminder, the response you got from server, will not have the CSV header
+        The header was written by you
+        So in your code, you have to make sure you wrote the header 1 time ok?
         """
 
         if res is None:
             print(f"Handle_History_Bar_Data: res is null")
             return
+
+        user_input_timeframe = None
+        if len(args) != 0:
+            dict_key = args[0]
+            user_input_timeframe = GlobalVar.g_data_dict[dict_key]
+            del GlobalVar.g_data_dict[dict_key]
+
+        # Number of trendbar according to timeframe is suggested by chatgpt
+        number_of_trendbar = 999999999999
+        if user_input_timeframe == "m1":
+            # covers approximately 10 hours
+            number_of_trendbar = 600
+        elif user_input_timeframe == "m5":
+            # covers approximately 16 hours
+            number_of_trendbar = 200
+        elif user_input_timeframe == "m15":
+            # covers approximately 1 day
+            number_of_trendbar = 100
+        elif user_input_timeframe == "m30":
+            # covers approximately 4 days
+            number_of_trendbar = 100
+        elif user_input_timeframe == "h1":
+            # covers approximately 5 days
+            number_of_trendbar = 100
+        elif user_input_timeframe == "h4":
+            # covers approximately 3 weeks
+            number_of_trendbar = 50
+        elif user_input_timeframe == "D":
+            # covers approximately 5 months
+            number_of_trendbar = 100
+        else:
+            print(f"Invalid timeframe entered, default to all trendbars received")
+
+        # This one is not needed, if i run the day function, confirm max 7 days and only 1 request
+        # If i run the monthly request, below will handle the loop the res and write accordingly
+        # merged_result = []
+        
+        print(f"Total trendbars = {len(res[0].trendbar)}, Max num of trendbar = {number_of_trendbar}")
+        if len(res[0].trendbar) > number_of_trendbar:
+            del res[0].trendbar[:-number_of_trendbar]
+        print(f"New Total trendbars = {len(res[0].trendbar)}")
 
         write_to_file = ""
         filename = ""
