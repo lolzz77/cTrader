@@ -1505,7 +1505,7 @@ if __name__ == "__main__":
             print(f"Handle_History_Bar_Data: res is null")
             return
 
-        user_input_timeframe = None
+        user_input_timeframe = ""
         if len(args) != 0:
             dict_key = args[0]
             user_input_timeframe = GlobalVar.g_data_dict[dict_key]
@@ -1560,7 +1560,7 @@ if __name__ == "__main__":
         # It will only get the 1st bar, hence, the filename suggest the start timedate of bar
         date_time_filename = dt_my_timezone.strftime("%Y-%m-%d-%H-%M-%S")
 
-        filename = symbol_name_filename + "-" + date_time_filename
+        filename = symbol_name_filename + "-" + user_input_timeframe + "-" + date_time_filename
         write_to_file = GlobalVar.GENERATED_PATH + filename + ".csv"
 
         os.makedirs(GlobalVar.GENERATED_PATH, exist_ok=True)
